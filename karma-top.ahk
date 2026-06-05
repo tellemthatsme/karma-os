@@ -9,9 +9,8 @@
 ;    3. Press Ctrl+Shift+T anytime to toggle always-on-top for KARMA HUD
 ;    4. The script runs silently in the system tray
 ;
-;  The script also adds:
-;    Ctrl+Shift+W — Toggle always-on-top for KARMA Widget
-;    Ctrl+Shift+H — Toggle always-on-top for KARMA HUD
+;  Future extensions:
+;    Add ^+w:: and ^+h:: hotkeys for Widget/HUD-specific targeting
 ;
 ;  Right-click the tray icon to pause or exit.
 ; ═══════════════════════════════════════════════════════════════════════════

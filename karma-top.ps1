@@ -31,13 +31,15 @@
 #>
 
 param(
-  [string]$Title = "Karma OS",
+  [string]$Title,
   [switch]$Widget,
   [switch]$Off
 )
 
-# Both HUD & Widget page titles start with "Karma OS", so substring match works
-# for both. The -Widget flag exists for display/future differentiation.
+# Use specific title substrings so -Widget actually targets the widget window
+if (-not $Title) {
+  $Title = if ($Widget) { "Karma OS · Widget" } else { "Karma OS · HUD" }
+}
 $targetName = if ($Widget) { "KARMA Widget" } else { "KARMA HUD" }
 
 Add-Type @"
