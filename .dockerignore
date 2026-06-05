@@ -9,3 +9,11 @@ blob-report/
 LICENSE
 .prettierrc
 .prettierignore
+vercel.json
+netlify.toml
+karma-top.ahk
+karma-top.ps1
+launch-karma.bat
+*.ahk
+*.ps1
+*.bat

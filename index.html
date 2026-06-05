@@ -227,8 +227,8 @@ body{padding:20px}
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 const S = {
-  theme: localStorage.getItem('ko_unified_theme') || 'cyberpunk',
-  muted: localStorage.getItem('ko_unified_muted') === 'true',
+  theme: localStorage.getItem('ko_theme') || 'cyberpunk',
+  muted: localStorage.getItem('ko_muted') === 'true',
   startTime: parseInt(localStorage.getItem('ko_start')) || Date.now()
 };
 localStorage.setItem('ko_start', S.startTime);
@@ -238,7 +238,7 @@ function setTheme(t) {
   S.theme = t;
   if (t === 'cyberpunk') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('ko_unified_theme', t);
+  localStorage.setItem('ko_theme', t);
   document.querySelectorAll('.theme-pill').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
   toast('Theme: ' + t.toUpperCase(), 'info');
 }
@@ -294,7 +294,7 @@ function sfxSuccess() { playSound(523, 0.1, 'sine', 0.06); setTimeout(() => play
 const muteBtn = document.getElementById('muteBtn');
 function toggleMute() {
   S.muted = !S.muted;
-  localStorage.setItem('ko_unified_muted', S.muted);
+  localStorage.setItem('ko_muted', S.muted);
   muteBtn.textContent = S.muted ? '🔇' : '🔊';
   muteBtn.classList.toggle('active', S.muted);
   toast(S.muted ? 'Sound muted' : 'Sound on', 'info');
