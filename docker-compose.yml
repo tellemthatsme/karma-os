@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  karma-metrics:
+    build: .
+    ports:
+      - "8888:8888"
+    environment:
+      - PORT=8888
+      - GH_USER=tellemthatsme
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  karma-web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      karma-metrics:
+        condition: service_healthy
+    restart: unless-stopped

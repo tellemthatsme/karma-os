@@ -1,0 +1,16 @@
+[build]
+  publish = "."
+  command = "echo 'Static site - no build needed'"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/"
+  to = "/karma-os-ultimate.html"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://karma-metrics.netlify.app/:splat"
+  status = 200

@@ -1,33 +1,35 @@
-// playwright.config.js
-const { defineConfig, devices } = require('@playwright/test');
+// @ts-check
+const { defineConfig } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: '.',
-  testMatch: ['karma-regression.spec.js', 'karma-widget.spec.js', 'live-desktop.spec.js', 'karma-hud.spec.js'],
-  fullyParallel: false, // file:// URL tests run best sequentially
-  workers: 1,
-  retries: 1,
-  reporter: [
-    ['list'],
-    ['html', { open: 'never' }],
-  ],
+  testMatch: '*.spec.js',
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : 1,
+  reporter: process.env.CI ? 'html' : 'list',
+  timeout: 30000,
   use: {
-    trace: 'on-first-retry',
+    headless: true,
+    viewport: { width: 1280, height: 720 },
+    actionTimeout: 10000,
+    ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { browserName: 'chromium' },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { browserName: 'firefox' },
     },
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { browserName: 'webkit' },
     },
   ],
 });
