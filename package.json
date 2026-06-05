@@ -1,0 +1,31 @@
+{
+  "name": "karma-os",
+  "version": "1.0.0",
+  "description": "KARMA OS — A cyberpunk-themed multi-dashboard system monitor with floating HUD, widget, and live desktop views",
+  "main": "karma-os-ultimate.html",
+  "scripts": {
+    "test": "npx playwright test --project=chromium --reporter=list --workers=1",
+    "test:ci": "npx playwright test --project=chromium --reporter=list",
+    "test:hud": "npx playwright test karma-hud.spec.js --project=chromium --reporter=list --workers=1",
+    "test:widget": "npx playwright test karma-widget.spec.js --project=chromium --reporter=list --workers=1",
+    "test:desktop": "npx playwright test live-desktop.spec.js --project=chromium --reporter=list --workers=1",
+    "test:regression": "npx playwright test karma-regression.spec.js --project=chromium --reporter=list --workers=1",
+    "validate": "node validate-karma.js",
+    "launch": "launch-karma.bat",
+    "install:browsers": "npx playwright install chromium"
+  },
+  "keywords": [
+    "karma",
+    "dashboard",
+    "cyberpunk",
+    "system-monitor",
+    "hud",
+    "widget",
+    "playwright"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

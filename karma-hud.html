@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Karma OS · HUD</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--bg:rgba(8,14,28,.95);--border:rgba(0,212,255,.2);--text:#e4f0ff}
+html,body{
+  background:transparent;
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  width:300px;
+  height:auto;
+  overflow:hidden;
+  padding:0;
+}
+.hud-wrap{
+  position:relative;
+  border-radius:16px;
+  padding:1px;
+  background:linear-gradient(135deg,rgba(0,212,255,.5),rgba(179,71,255,.15),rgba(0,255,157,.5));
+  background-size:200% 200%;
+  animation:borderGlow 6s ease infinite;
+  cursor:move;
+  user-select:none;
+}
+@keyframes borderGlow{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+.hud{
+  background:var(--bg);
+  border-radius:15px;
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  box-shadow:0 8px 44px rgba(0,0,0,.7),inset 0 0 30px rgba(0,212,255,.05);
+  padding:10px 12px;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s ease;
+}
+.hud.collapsed{
+  padding:6px 10px;
+  max-height:36px;
+}
+.hud.collapsed .body,.hud.collapsed .ag-wrap,.hud.collapsed .feed-wrap{
+  display:none;
+}
+
+/* Scanlines */
+.scanlines{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.08) 50%);
+  background-size:100% 2px;
+  pointer-events:none;z-index:10;opacity:0.25;
+}
+
+/* Spotlight */
+.spotlight{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(0,212,255,0.15) 0%,transparent 60%);
+  pointer-events:none;z-index:1;transition:opacity 0.4s;
+}
+
+/* Top bar */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;position:relative;z-index:5;
+}
+.logo{
+  font-family:'Orbitron',monospace;font-size:11px;font-weight:900;
+  background:linear-gradient(90deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+.clock-row{display:flex;align-items:center;gap:8px}
+.tm{
+  font-family:'Orbitron',monospace;font-size:12px;color:var(--ac);font-weight:700;
+  text-shadow:0 0 10px rgba(0,212,255,.4);
+  animation:glow-pulse 2s infinite alternate;
+}
+@keyframes glow-pulse{
+  from{text-shadow:0 0 5px var(--ac)}
+  to{text-shadow:0 0 18px var(--ac),0 0 28px var(--ac2)}
+}
+.dt{font-size:7px;color:rgba(255,255,255,.35);text-align:right}
+
+/* Controls */
+.ctrl{
+  display:flex;gap:4px;
+}
+.btn-icon{
+  width:20px;height:20px;border-radius:5px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.5);
+  font-size:9px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+  font-family:'Inter',sans-serif;
+  flex-shrink:0;
+}
+.btn-icon:hover{background:rgba(255,255,255,.12);color:var(--ac)}
+.btn-icon.active{background:rgba(0,212,255,.15);border-color:rgba(0,212,255,.3);color:var(--ac)}
+
+/* Body */
+.body{display:flex;flex-direction:column;gap:6px;position:relative;z-index:5}
+
+/* Stats row */
+.stats{display:flex;gap:5px}
+.s{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:7px 5px;text-align:center}
+.sv{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;line-height:1}
+.sv.c1{color:var(--ac)}.sv.c2{color:var(--ac3)}.sv.c3{color:var(--ac2)}
+.sl{font-size:6px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.s.clickable{cursor:pointer;transition:background 0.2s}
+.s.clickable:hover{background:rgba(255,255,255,.08)}
+
+/* Crypto */
+.cr{display:flex;gap:4px}
+.ci{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:4px 6px;display:flex;justify-content:space-between;align-items:center}
+.cn{font-size:7px;color:rgba(255,255,255,.35);font-weight:600}
+.cp{font-family:'Orbitron',monospace;font-size:9px;font-weight:700}
+.up{color:var(--ac3)}.dn{color:#ff3366}
+
+/* System bars */
+.sys{margin-bottom:2px}
+.gh{display:flex;justify-content:space-between;font-size:7px;color:rgba(255,255,255,.35);margin-bottom:1px}
+.gv{font-family:'Orbitron',monospace;font-weight:600;color:var(--text);font-size:7px}
+.gb{height:3px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.gf{height:100%;border-radius:3px;transition:width 1.2s ease}
+.gf.cpu{background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.gf.mem{background:linear-gradient(90deg,var(--ac3),var(--ac))}
+
+/* Agents */
+.ag-wrap{display:flex;gap:3px;flex-wrap:wrap;margin:4px 0 2px}
+.ad{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);border-radius:6px;padding:3px 7px;font-size:7px;transition:background 0.3s;cursor:default}
+.ad:hover{background:rgba(255,255,255,.1)}
+.ad .d{width:5px;height:5px;border-radius:50%;flex-shrink:0;animation:breathe 2s infinite alternate}
+@keyframes breathe{0%{transform:scale(0.8);opacity:.5}100%{transform:scale(1.2);opacity:1}}
+.d.g{background:var(--ac3);box-shadow:0 0 5px var(--ac3)}
+.d.y{background:var(--warn);box-shadow:0 0 5px var(--warn)}
+.d.r{background:#ff3366;box-shadow:0 0 5px #ff3366}
+
+/* Feed */
+.feed-wrap{max-height:52px;overflow:hidden}
+.fi{font-size:7px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03);display:flex;gap:4px;animation:sl .3s ease}
+@keyframes sl{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.fi .m{flex:1;color:rgba(255,255,255,.55)}
+.fi .t{color:rgba(255,255,255,.2);font-size:6px;flex-shrink:0}
+
+/* Footer */
+.footer{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.05);
+}
+.si{display:flex;gap:4px;align-items:center}
+.dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.dot.g{background:var(--ac3);box-shadow:0 0 4px var(--ac3)}
+.dot.a{background:var(--ac);box-shadow:0 0 4px var(--ac)}
+.lb{font-size:6px;color:rgba(255,255,255,.25)}
+.lnk{font-size:7px;color:var(--ac);text-decoration:none;opacity:.6;transition:all .2s;border-bottom:1px solid transparent}
+.lnk:hover{opacity:1;border-bottom-color:var(--ac)}
+
+/* Pinned status in footer */
+.pin-status{
+  display:flex;align-items:center;gap:3px;font-size:6px;
+  color:rgba(255,255,255,.3);transition:color 0.3s;
+}
+.pin-status.pinned{color:var(--ac3)}
+.pin-status .ps-dot{
+  width:5px;height:5px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.15);transition:all 0.3s;
+}
+.pin-status.pinned .ps-dot{background:var(--ac3);box-shadow:0 0 6px var(--ac3)}
+
+/* Pin dot (minimized state) */
+.pin-dot{
+  position:absolute;inset:0;border-radius:15px;
+  background:var(--bg);display:none;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.pin-dot span{font-size:10px}
+
+/* NITRO flash */
+@keyframes nitroFlash{
+  0%{box-shadow:0 0 10px var(--ac)}
+  50%{box-shadow:0 0 40px var(--ac),0 0 60px var(--ac2)}
+  100%{box-shadow:0 0 10px var(--ac)}
+}
+.hud.nitro{animation:nitroFlash 0.4s ease}
+</style>
+</head>
+<body>
+<div class="hud-wrap" id="hudWrap">
+  <div class="hud" id="hud" title="Drag to move · Double-click bar to collapse">
+
+    <div class="scanlines"></div>
+    <div class="spotlight" id="spot"></div>
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="logo">KARMA HUD</div>
+      <div class="clock-row">
+        <div>
+          <div class="tm" id="ct">--:--</div>
+          <div class="dt" id="cd"></div>
+        </div>
+        <div class="ctrl">
+          <button class="btn-icon" id="pinBtn" title="Always on top">⬆</button>
+          <button class="btn-icon" id="minBtn" title="Minimize to dot">▬</button>
+          <button class="btn-icon" id="nitroBtn" title="NITRO boost">⚡</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <div class="stats">
+        <div class="s clickable" onclick="tB()" title="Click for NITRO">
+          <div class="sv c1" id="bn">BOOT</div>
+          <div class="sl">Turbo</div>
+        </div>
+        <div class="s">
+          <div class="sv c2" id="ac">25</div>
+          <div class="sl">Agents</div>
+        </div>
+        <div class="s">
+          <div class="sv c3" id="cr">98%</div>
+          <div class="sl">CR</div>
+        </div>
+      </div>
+
+      <div class="cr">
+        <div class="ci"><span class="cn">BTC</span><span class="cp" id="b">$--</span></div>
+        <div class="ci"><span class="cn">ETH</span><span class="cp" id="e">$--</span></div>
+        <div class="ci"><span class="cn">SOL</span><span class="cp" id="s">$--</span></div>
+      </div>
+
+      <div class="sys">
+        <div class="gh"><span>CPU</span><span class="gv" id="cv">0%</span></div>
+        <div class="gb"><div class="gf cpu" id="cb" style="width:0%"></div></div>
+      </div>
+      <div class="sys">
+        <div class="gh"><span>MEM</span><span class="gv" id="mv">0%</span></div>
+        <div class="gb"><div class="gf mem" id="mb" style="width:0%"></div></div>
+      </div>
+
+      <div class="ag-wrap" id="al"></div>
+
+      <div class="feed-wrap" id="fl"></div>
+
+      <div class="footer">
+        <div class="si">
+          <span class="dot g"></span><span class="lb">UAS</span>
+          <span class="dot g"></span><span class="lb">Git</span>
+          <span class="dot a"></span><span class="lb">API</span>
+          <span class="pin-status" id="pinStatus"><span class="ps-dot"></span> FREE</span>
+        </div>
+        <a href="karma-widget.html" class="lnk" target="_blank">Widget ↗</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Clock ────────────────────────────────────────────────────────────────────
+!function u(){
+  const n=new Date();
+  document.getElementById('ct').textContent=n.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('cd').textContent=n.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+  setTimeout(u,1000);
+}();
+
+// ── Agents ────────────────────────────────────────────────────────────────────
+const A=[
+  {n:'Jarvis',c:'g'},{n:'Research',c:'y'},{n:'CodeBot',c:'g'},
+  {n:'GitOps',c:'y'},{n:'Ash Lee',c:'g'},{n:'Sync',c:'g'},
+  {n:'DLMgr',c:'y'},{n:'n8n',c:'y'}
+];
+document.getElementById('al').innerHTML=A.map(a=>`
+  <div class="ad"><span class="d ${a.c}"></span>${a.n}</div>
+`).join('');
+
+// ── Crypto ───────────────────────────────────────────────────────────────────
+async function fc(){
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd',{signal:AbortSignal.timeout(8000)}),
+          d=await r.json();
+    if(d.bitcoin) document.getElementById('b').textContent='$'+(d.bitcoin.usd/1000).toFixed(1)+'k';
+    if(d.ethereum) document.getElementById('e').textContent='$'+d.ethereum.usd.toLocaleString();
+    if(d.solana) document.getElementById('s').textContent='$'+d.solana.usd.toFixed(0);
+  }catch{}
+}
+fc(); setInterval(fc,90000);
+
+// ── System Metrics ───────────────────────────────────────────────────────────
+async function um(){
+  try{
+    const r=await fetch('http://localhost:8888/metrics'),d=await r.json();
+    document.getElementById('cv').textContent=Math.round(d.cpu)+'%';
+    document.getElementById('cb').style.width=d.cpu+'%';
+    document.getElementById('mv').textContent=Math.round(d.memory_percent)+'%';
+    document.getElementById('mb').style.width=d.memory_percent+'%';
+  }catch{
+    const c=Math.random()*35+12,m=Math.random()*25+48;
+    document.getElementById('cv').textContent=Math.round(c)+'%';
+    document.getElementById('cb').style.width=c+'%';
+    document.getElementById('mv').textContent=Math.round(m)+'%';
+    document.getElementById('mb').style.width=m+'%';
+  }
+  try{
+    const gr=await fetch('http://localhost:8888/github'),gd=await gr.json();
+    document.getElementById('bn').textContent=gd.total_repos||'25';
+  }catch{}
+  try{
+    const cr=await fetch('http://localhost:8888/cr'),cd=await cr.json();
+    document.getElementById('cr').textContent=cd.security_score+'%';
+  }catch{}
+}
+setInterval(um,5000); um();
+
+// ── NITRO Turbo ──────────────────────────────────────────────────────────────
+function tB(){
+  const hud=document.getElementById('hud'),bn=document.getElementById('bn');
+  hud.classList.add('nitro');
+  bn.textContent='NITRO';
+  hud.style.boxShadow='0 0 30px rgba(0,212,255,.6),0 0 60px rgba(179,71,255,.3)';
+  setTimeout(()=>{
+    hud.classList.remove('nitro');
+    bn.textContent='BOOT';
+    hud.style.boxShadow='';
+  },2000);
+}
+
+// ── Minimize to dot ──────────────────────────────────────────────────────────
+const minBtn=document.getElementById('minBtn');
+document.getElementById('nitroBtn').onclick=tB;
+minBtn.onclick=()=>{
+  document.getElementById('hud').classList.toggle('collapsed');
+  minBtn.classList.toggle('active');
+};
+
+// ── Always-on-top pin ────────────────────────────────────────────────────────
+// Visual pin toggle — for actual OS-level always-on-top, run karma-top.ps1
+// or use the launch-karma.bat which opens HUD via Chrome --app mode.
+let pinned=false;
+const pinBtn=document.getElementById('pinBtn');
+
+// Show toast notification
+function showToast(msg,dur=2000){
+  let t=document.getElementById('hudToast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='hudToast';
+    t.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);'+
+      'background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;'+
+      'padding:6px 14px;font-size:8px;color:var(--ac);z-index:999;pointer-events:none;'+
+      'opacity:0;transition:opacity 0.3s;font-family:Inter,sans-serif;white-space:nowrap;';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.style.opacity='1';
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>t.style.opacity='0',dur);
+}
+
+// Copy to clipboard
+async function copyToClipboard(text){
+  try{await navigator.clipboard.writeText(text);return true}catch(e){return false}
+}
+
+pinBtn.onclick=async()=>{
+  pinned=!pinned;
+  const ps=document.getElementById('pinStatus');
+  if(pinned){
+    pinBtn.classList.add('active');
+    pinBtn.title='Pinned — click to unpin';
+    ps.classList.add('pinned');
+    ps.innerHTML='<span class="ps-dot"></span> PINNED';
+    const cmd='powershell -ExecutionPolicy Bypass -File "C:\\karma\\karma-top.ps1"';
+    const ok=await copyToClipboard(cmd);
+    showToast(ok?'↑ PINNED · Cmd copied! Run in terminal':'↑ PINNED · Use karma-top.ps1 to lock',2500);
+  }else{
+    pinBtn.classList.remove('active');
+    pinBtn.title='Always on top';
+    ps.classList.remove('pinned');
+    ps.innerHTML='<span class="ps-dot"></span> FREE';
+    showToast('↓ Unpinned',1500);
+  }
+};
+
+// ── Activity Feed ────────────────────────────────────────────────────────────
+const F=[
+  {t:'info',m:'🔭 Research: AI paper digest'},
+  {t:'success',m:'✅ GitOps synced 12 repos'},
+  {t:'warn',m:'⚠️ 3 downloads queued'},
+  {t:'success',m:'💜 Ash Lee posted'},
+  {t:'info',m:'🔄 Sync complete'},
+  {t:'error',m:'❌ Jarvis offline'},
+  {t:'success',m:'⚡ n8n triggered'},
+  {t:'success',m:'📊 CR score: 98%'},
+  {t:'info',m:'🤖 25 agents active'},
+];
+let fi=0;
+function af(){
+  const l=document.getElementById('fl'),
+        t=new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+        d=document.createElement('div'),
+        e=F[fi%F.length];
+  d.className='fi';
+  const colors={info:'var(--ac)',success:'var(--ac3)',warn:'var(--warn)',error:'#ff3366'};
+  d.innerHTML=`<span class="m">> <span style="color:${colors[e.t]||'var(--ac)'}">${e.m}</span></span><span class="t">${t}</span>`;
+  l.prepend(d);
+  if(l.children.length>4)l.lastChild.remove();
+  fi++;
+}
+F.slice(0,3).forEach((_,i)=>setTimeout(af,i*250));
+setInterval(af,7000);
+
+// ── Drag to move ─────────────────────────────────────────────────────────────
+let ox=0,oy=0,dragging=false;
+const hudWrap=document.getElementById('hudWrap');
+hudWrap.addEventListener('mousedown',e=>{
+  dragging=true;
+  const tx=hudWrap.style.transform;
+  const m=tx.match(/translate\(([^)]+)\)/);
+  const curX=m?parseInt(m[1].split(',')[0].trim()):0;
+  const curY=m?parseInt(m[1].split(',')[1]?.trim()||'0'):0;
+  ox=e.screenX-curX;
+  oy=e.screenY-curY;
+  const mv=e2=>{
+    if(!dragging)return;
+    const nx=e2.screenX-ox,ny=e2.screenY-oy;
+    hudWrap.style.transform=`translate(${nx}px,${ny}px)`;
+  };
+  const up=()=>{dragging=false;document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+  document.addEventListener('mousemove',mv);
+  document.addEventListener('mouseup',up);
+});
+
+// ── Spotlight ────────────────────────────────────────────────────────────────
+const spot=document.getElementById('spot'),hud=document.getElementById('hud');
+hud.addEventListener('mousemove',e=>{
+  const rect=hud.getBoundingClientRect();
+  spot.style.setProperty('--x',`${e.clientX-rect.left}px`);
+  spot.style.setProperty('--y',`${e.clientY-rect.top}px`);
+  spot.style.opacity='1';
+});
+hud.addEventListener('mouseleave',()=>spot.style.opacity='0');
+</script>
+</body>
+</html>

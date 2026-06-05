@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KARMA OS · Enhancement Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#060a14;color:#e8f4ff;font-family:'JetBrains Mono',monospace;min-height:100vh;padding:20px}
+.page-title{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;background:linear-gradient(90deg,#00d4ff,#b347ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;letter-spacing:4px}
+.page-sub{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+.section{margin-bottom:24px}
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.section-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:#e8f4ff;text-transform:uppercase}
+.section-note{font-size:8px;color:rgba(255,255,255,.25);margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.card{background:#0a0a18;border-radius:10px;padding:14px 16px;border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;position:relative}
+.card:hover{transform:translateY(-3px)}
+.card.fire{border-color:rgba(179,71,255,.35);background:#0d0a1c}
+.card.fire:hover{border-color:rgba(179,71,255,.65);box-shadow:0 6px 24px rgba(179,71,255,.18)}
+.card.hot{border-color:rgba(0,212,255,.2)}
+.card.hot:hover{border-color:rgba(0,212,255,.5);box-shadow:0 6px 20px rgba(0,212,255,.12)}
+.card.green{border-color:rgba(0,255,157,.18)}
+.card.green:hover{border-color:rgba(0,255,157,.45);box-shadow:0 6px 20px rgba(0,255,157,.1)}
+.card.amber{border-color:rgba(255,107,53,.18)}
+.card.amber:hover{border-color:rgba(255,107,53,.45)}
+.badge{display:inline-flex;align-items:center;font-size:7.5px;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:3px;margin-bottom:9px;font-weight:500}
+.badge.ai{background:rgba(179,71,255,.15);color:#c084fc}
+.badge.live{background:rgba(0,212,255,.1);color:#00d4ff}
+.badge.visual{background:rgba(0,255,157,.1);color:#00ff9d}
+.badge.portfolio{background:rgba(255,107,53,.12);color:#ff8b5e}
+.badge.wild{background:rgba(255,51,102,.12);color:#ff6b8a}
+.badge.daily{background:rgba(255,189,0,.1);color:#ffd700}
+.card-title{font-size:12px;font-weight:500;color:#f0f4ff;margin-bottom:6px;line-height:1.35}
+.card-desc{font-size:9px;color:rgba(255,255,255,.44);line-height:1.65}
+.card-footer{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.meta{font-size:7px;padding:2px 6px;border-radius:3px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.3)}
+.effort{margin-left:auto;font-size:8px;color:rgba(255,255,255,.2)}
+.fire-badge{font-size:11px;margin-left:4px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.12),transparent);margin:8px 0 20px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,212,255,.2)}
+</style>
+</head>
+<body>
+<div class="page-title">KARMA OS</div>
+<div class="page-sub">Enhancement Map · 30+ options · 6 categories · click any card to copy idea</div>
+
+<!-- ZO CHALLENGE -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">🔥 Zo Challenge — Max Impact</div>
+    <div class="section-note">Build these first — judge magnets</div>
+  </div>
+  <div class="grid">
+    <div class="card fire" onclick="copy('Proposal Generator')">
+      <div class="badge ai">AI · Claude streaming</div>
+      <div class="card-title">Real-Time Proposal Generator 🔥</div>
+      <div class="card-desc">3-field form: project type, budget, timeline. Claude generates a full scoped proposal in 30 seconds. Downloads as PDF. Judges will screenshot this.</div>
+      <div class="card-footer"><span class="meta">jsPDF</span><span class="meta">Claude streaming</span><span class="meta">lead capture</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card fire" onclick="copy('AI Agent Profile Card Generator')">
+      <div class="badge wild">WILD · viral</div>
+      <div class="card-title">AI Agent Profile Generator 🔥</div>
+      <div class="card-desc">Visitor types their job/vibe. Claude generates a personalised "KARMA OS agent profile" card — name, emoji, colour, stats. Shareable. Screenshots spread everywhere.</div>
+      <div class="card-footer"><span class="meta">Claude API</span><span class="meta">shareable card</span><span class="meta">viral hook</span><span class="effort">~3h</span></div>
+    </div>
+    <div class="card fire" onclick="copy('Reactive Audio Visualiser')">
+      <div class="badge visual">VISUAL · Web Audio</div>
+      <div class="card-title">Reactive Audio Visualiser 🔥</div>
+      <div class="card-desc">Ambient generative tones that react to OS events — boost triggers bass drop, feed events trigger tones, redline triggers alarm. FFT analyser drives canvas visuals.</div>
+      <div class="card-footer"><span class="meta">Web Audio API</span><span class="meta">canvas FFT</span><span class="meta">wow factor</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card fire" onclick="copy('Live Code Review Panel')">
+      <div class="badge ai">AI · code review</div>
+      <div class="card-title">Live Code Review Panel 🔥</div>
+      <div class="card-desc">Paste any code. Claude roasts it, scores it, rewrites it. Streams output in terminal style with severity tags. Shows off Claude + KARMA brand perfectly.</div>
+      <div class="card-footer"><span class="meta">Claude streaming</span><span class="meta">syntax highlight</span><span class="meta">diff view</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card fire" onclick="copy('ASCII Boot Sequence')">
+      <div class="badge visual">VISUAL · cinematic</div>
+      <div class="card-title">Animated ASCII Boot Sequence 🔥</div>
+      <div class="card-desc">Before the gate, a 3-second ASCII boot runs — KARMA logo in ASCII art, fake driver loads, memory check. Pure nostalgia meets cyberpunk. Sets the tone for everything.</div>
+      <div class="card-footer"><span class="meta">CSS animation</span><span class="meta">typed effect</span><span class="meta">gate preloader</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card fire" onclick="copy('Mouse Parallax 3D Tilt')">
+      <div class="badge visual">VISUAL · 3D depth</div>
+      <div class="card-title">Mouse Parallax + Panel Tilt 🔥</div>
+      <div class="card-desc">Every panel subtly tilts with mouse position. Orbs follow cursor with 200ms delay. Creates a 3D depth illusion that looks incredible in demo recordings. Zero libraries.</div>
+      <div class="card-footer"><span class="meta">CSS perspective</span><span class="meta">mousemove</span><span class="meta">rAF</span><span class="effort">~2h</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI POWERED -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">🤖 AI-Powered Panels</div>
+    <div class="section-note">Claude integrations</div>
+  </div>
+  <div class="grid">
+    <div class="card hot" onclick="copy('KARMA Memory System')">
+      <div class="badge ai">AI · persistent memory</div>
+      <div class="card-title">KARMA Memory System</div>
+      <div class="card-desc">Claude remembers things you tell it across sessions. "Remember I charge $150/hr." Stored in localStorage, injected as system context on every chat turn.</div>
+      <div class="card-footer"><span class="meta">localStorage</span><span class="meta">system prompt injection</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Deep Research Mode')">
+      <div class="badge ai">AI · multi-step research</div>
+      <div class="card-title">Deep Research Mode</div>
+      <div class="card-desc">Give KARMA a topic, it runs 3-5 web searches, synthesises findings, outputs a structured briefing with sources. Progress shown in real-time.</div>
+      <div class="card-footer"><span class="meta">Claude web search</span><span class="meta">multi-turn</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('n8n Workflow Generator')">
+      <div class="badge ai">AI · automation codegen</div>
+      <div class="card-title">n8n Workflow Generator</div>
+      <div class="card-desc">Describe an automation in English. Claude generates full n8n workflow JSON. One-click POST to your local n8n instance to import it instantly.</div>
+      <div class="card-footer"><span class="meta">n8n API</span><span class="meta">Claude codegen</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Ash Lee Content Studio')">
+      <div class="badge ai">AI · content creation</div>
+      <div class="card-title">Ash Lee Content Studio</div>
+      <div class="card-desc">Full panel: generate posts in Ash Lee's voice, generate hashtags, preview before posting, queue via n8n webhook. Claude writes in-character every time.</div>
+      <div class="card-footer"><span class="meta">Claude persona</span><span class="meta">n8n webhook</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Contract Draftor')">
+      <div class="badge ai">AI · legal docs</div>
+      <div class="card-title">Contract Drafter</div>
+      <div class="card-desc">Client name + project type + rate + timeline → Claude drafts complete freelance contract with deliverables, payment terms, IP clauses. Exports as formatted PDF.</div>
+      <div class="card-footer"><span class="meta">Claude</span><span class="meta">jsPDF</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('KARMA Email Composer')">
+      <div class="badge ai">AI · comms</div>
+      <div class="card-title">KARMA Email Composer</div>
+      <div class="card-desc">1-line situation → 3 email versions (direct / warm / final notice). Copy to clipboard. Works for follow-ups, proposals, scope creep, late payment, all of it.</div>
+      <div class="card-footer"><span class="meta">Claude</span><span class="meta">multi-variant</span><span class="meta">clipboard API</span><span class="effort">~1h</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE DATA -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">📡 Live Data & Real Connections</div>
+    <div class="section-note">Replace mock data with real feeds</div>
+  </div>
+  <div class="grid">
+    <div class="card green" onclick="copy('Bluesky Live Feed Panel')">
+      <div class="badge live">LIVE · social</div>
+      <div class="card-title">Bluesky / X Live Panel</div>
+      <div class="card-desc">Pull actual posts and engagement via AT Protocol (Bluesky) or X API. Real follower count, real impressions, real last post text. Replaces static Ash Lee stats.</div>
+      <div class="card-footer"><span class="meta">AT Protocol</span><span class="meta">Bluesky API</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card green" onclick="copy('Website Uptime Monitor')">
+      <div class="badge live">LIVE · devops</div>
+      <div class="card-title">Website Uptime Monitor</div>
+      <div class="card-desc">Ping client sites every 60s. Green/red status pills. Alert sound + red flash when anything goes down. Your clients never find out before you do again.</div>
+      <div class="card-footer"><span class="meta">fetch HEAD</span><span class="meta">status grid</span><span class="meta">audio alerts</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card green" onclick="copy('GitHub Contribution Heatmap')">
+      <div class="badge live">LIVE · github</div>
+      <div class="card-title">Real GitHub Contribution Graph</div>
+      <div class="card-desc">Actual contribution heatmap from GitHub GraphQL API, rendered in KARMA OS colours. Replaces the random heatmap with your real commit history.</div>
+      <div class="card-footer"><span class="meta">GitHub GraphQL</span><span class="meta">canvas grid</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card green" onclick="copy('Sydney Weather + Time Zones')">
+      <div class="badge live">LIVE · weather</div>
+      <div class="card-title">Live Weather + Client Time Zones</div>
+      <div class="card-desc">Sydney weather in topbar. Client time zones shown. Sun/rain icon shifts orb colours dynamically. Open-Meteo API — free, no key required.</div>
+      <div class="card-footer"><span class="meta">Open-Meteo</span><span class="meta">World Clock</span><span class="meta">dynamic orbs</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card green" onclick="copy('Invoice and Revenue Tracker')">
+      <div class="badge live">LIVE · finance</div>
+      <div class="card-title">Invoice & Revenue Tracker</div>
+      <div class="card-desc">YTD revenue, outstanding invoices, average project value. Pull from Wave/FreshBooks or a local JSON. Animated bar charts. Mission Stats become real numbers.</div>
+      <div class="card-footer"><span class="meta">Wave API</span><span class="meta">Chart.js</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card green" onclick="copy('Curated AI RSS Aggregator')">
+      <div class="badge live">LIVE · RSS</div>
+      <div class="card-title">Curated AI RSS Aggregator</div>
+      <div class="card-desc">Anthropic blog + OpenAI + Hugging Face + Ars Technica AI. Claude summarises each to 1 sentence. Full panel + scrolling ticker. Updates every hour via Zo scheduler.</div>
+      <div class="card-footer"><span class="meta">RSS proxy</span><span class="meta">Claude summaries</span><span class="meta">Zo scheduler</span><span class="effort">~3h</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- VISUAL -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">🎨 Visual & Cinematic Enhancements</div>
+    <div class="section-note">Wow factor</div>
+  </div>
+  <div class="grid">
+    <div class="card amber" onclick="copy('Cursor Particle Trail')">
+      <div class="badge visual">VISUAL · particles</div>
+      <div class="card-title">Cursor Particle Trail</div>
+      <div class="card-desc">Mouse cursor leaves accent-coloured particles with gravity and fade. Occasional burst on click. Pure canvas, zero libraries. Takes 45 minutes to build, looks incredible.</div>
+      <div class="card-footer"><span class="meta">canvas2d</span><span class="meta">particle physics</span><span class="effort">~45min</span></div>
+    </div>
+    <div class="card amber" onclick="copy('Scramble Text Animations')">
+      <div class="badge visual">VISUAL · text</div>
+      <div class="card-title">Scramble Text Animations</div>
+      <div class="card-desc">All stat values scramble through random chars before settling on the real value — like a hacker terminal. Triggers on load and every data update. Pure JS, no lib.</div>
+      <div class="card-footer"><span class="meta">char scramble</span><span class="meta">rAF</span><span class="effort">~45min</span></div>
+    </div>
+    <div class="card amber" onclick="copy('Cinematic Focus Mode')">
+      <div class="badge wild">WILD · immersive</div>
+      <div class="card-title">Cinematic Mode (press F)</div>
+      <div class="card-desc">Press F — everything fades except globe, swarm, ticker. Ambient synthwave loop plays. Perfect for screen recordings, wallpaper screenshots, or pitching live to clients.</div>
+      <div class="card-footer"><span class="meta">CSS transitions</span><span class="meta">Web Audio</span><span class="meta">fullscreen API</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card amber" onclick="copy('Generative Daily AI Art Panel')">
+      <div class="badge visual">VISUAL · generative art</div>
+      <div class="card-title">Generative Daily Art Panel</div>
+      <div class="card-desc">Geometric art seeded from today's date + your commit count. Different every day, same day always identical. Perlin noise + WebGL. Could replace the background orbs.</div>
+      <div class="card-footer"><span class="meta">WebGL</span><span class="meta">Perlin noise</span><span class="meta">deterministic seed</span><span class="effort">~3h</span></div>
+    </div>
+    <div class="card amber" onclick="copy('6 Additional Themes')">
+      <div class="badge visual">VISUAL · themes</div>
+      <div class="card-title">6 More Themes</div>
+      <div class="card-desc">Add: Neon Pink, Vaporwave, Blood Red, Ocean Deep, Gold Rush, Monochrome. Each with full CSS variable set. Keyboard shortcut cycles through them. Theme picker in settings.</div>
+      <div class="card-footer"><span class="meta">CSS vars</span><span class="meta">localStorage</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card amber" onclick="copy('Panel Drag and Rearrange')">
+      <div class="badge visual">VISUAL · interactive</div>
+      <div class="card-title">Drag-to-Rearrange Panels</div>
+      <div class="card-desc">Full SortableJS integration across all 3 columns. Drag panels to reorder. Layout persists in localStorage. Show/hide panel toggles per user preference.</div>
+      <div class="card-footer"><span class="meta">SortableJS</span><span class="meta">localStorage layout</span><span class="effort">~1h</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAILY UTILITY -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">⚡ Daily Utility — Tools You'll Actually Use</div>
+    <div class="section-note">Real productivity</div>
+  </div>
+  <div class="grid">
+    <div class="card hot" onclick="copy('Universal Command Palette (Cmd+K)')">
+      <div class="badge daily">DAILY · keyboard</div>
+      <div class="card-title">Universal Command Palette ⌘K</div>
+      <div class="card-desc">Press ⌘+K anywhere. Fuzzy search opens modals, runs voice commands, switches themes, jumps to links, searches GitHub repos. The missing keyboard-first interface.</div>
+      <div class="card-footer"><span class="meta">fuzzy search</span><span class="meta">keyboard shortcut</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Sticky Notes Panel')">
+      <div class="badge daily">DAILY · notes</div>
+      <div class="card-title">Sticky Notes Panel</div>
+      <div class="card-desc">⌘+N to add draggable stickies. Colour-coded by priority. Persist in localStorage. KARMA can read them and act on their content — "remind me about the invoice sticky."</div>
+      <div class="card-footer"><span class="meta">drag API</span><span class="meta">localStorage</span><span class="meta">Claude context</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Pomodoro Focus Mode')">
+      <div class="badge daily">DAILY · focus</div>
+      <div class="card-title">Pomodoro + Focus Mode</div>
+      <div class="card-desc">25/5 timer in topbar. During focus: dims all panels, plays lo-fi beats. KARMA refuses casual chat — only task-relevant help. Resets to full OS on break.</div>
+      <div class="card-footer"><span class="meta">Web Audio</span><span class="meta">CSS dimming</span><span class="meta">prompt override</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Client CRM Panel')">
+      <div class="badge daily">DAILY · client</div>
+      <div class="card-title">Client CRM Panel</div>
+      <div class="card-desc">Active clients: name, project, status, last contact, next action. KARMA nudges you if no follow-up in 7 days. Stored in localStorage or synced to a Zo file.</div>
+      <div class="card-footer"><span class="meta">localStorage DB</span><span class="meta">Zo file sync</span><span class="meta">KARMA reminders</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Time Tracker and Billing Calculator')">
+      <div class="badge daily">DAILY · billing</div>
+      <div class="card-title">Time Tracker + Billing</div>
+      <div class="card-desc">One-click start/stop per client. Auto-calculates billable hours × your rate. Running total shown. Exports invoice summary CSV. Syncs into Mission Stats panel.</div>
+      <div class="card-footer"><span class="meta">localStorage</span><span class="meta">timer API</span><span class="meta">CSV export</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Mission Log Daily Planner')">
+      <div class="badge daily">DAILY · planning</div>
+      <div class="card-title">Mission Log (Daily Planner)</div>
+      <div class="card-desc">Morning: KARMA generates today's plan from current projects. Checklist panel. Check off tasks, stats roll up. Archive sent to Zo file at midnight automatically.</div>
+      <div class="card-footer"><span class="meta">Claude codegen</span><span class="meta">Zo files</span><span class="meta">localStorage archive</span><span class="effort">~2h</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIO -->
+<div class="section">
+  <div class="section-hdr">
+    <div class="section-title">💼 Portfolio & Client-Facing</div>
+    <div class="section-note">Win clients, close deals</div>
+  </div>
+  <div class="grid">
+    <div class="card hot" onclick="copy('Case Study Carousel')">
+      <div class="badge portfolio">PORTFOLIO · work</div>
+      <div class="card-title">Case Study Carousel</div>
+      <div class="card-desc">3-5 past projects as full-bleed cards. Arrow keys to cycle. Each shows client sector, problem, solution, metric result. KARMA can deep-dive any project when asked.</div>
+      <div class="card-footer"><span class="meta">CSS carousel</span><span class="meta">keyboard nav</span><span class="meta">Claude context</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Booking and Discovery Call CTA')">
+      <div class="badge portfolio">PORTFOLIO · funnel</div>
+      <div class="card-title">Booking / Discovery Call CTA</div>
+      <div class="card-desc">"Book a call" button → KARMA pre-qualifies visitor with 2 questions, assesses fit, then reveals Cal.com embed. Only warm leads see your calendar.</div>
+      <div class="card-footer"><span class="meta">Cal.com embed</span><span class="meta">Claude qualification</span><span class="effort">~2h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Tech Stack Radar Chart')">
+      <div class="badge portfolio">PORTFOLIO · skills</div>
+      <div class="card-title">Tech Stack Radar Chart</div>
+      <div class="card-desc">Spider chart of your skills — Claude API, n8n, Python, TypeScript, cloud etc. Animated on load. Stored as JSON so you update it in one place.</div>
+      <div class="card-footer"><span class="meta">Chart.js radar</span><span class="meta">JSON config</span><span class="effort">~1h</span></div>
+    </div>
+    <div class="card hot" onclick="copy('Live Testimonial Typewriter Feed')">
+      <div class="badge portfolio">PORTFOLIO · trust</div>
+      <div class="card-title">Live Testimonial Feed</div>
+      <div class="card-desc">Rotating client quotes with typewriter effect in the signal panel style. KARMA can quote real testimonials when asked "what do clients say about you?"</div>
+      <div class="card-footer"><span class="meta">typewriter effect</span><span class="meta">Claude context</span><span class="effort">~45min</span></div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;font-size:8px;color:rgba(255,255,255,.15);padding:16px 0;letter-spacing:1.5px">
+  KARMA OS · ENHANCEMENT MAP · tellemthatsme · Sydney, AU · "I make the impossible possible." · Click any card — idea copied
+</div>
+
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.35);border-radius:8px;padding:8px 18px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#00d4ff;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap">Copied to clipboard</div>
+
+<script>
+function copy(name){
+  navigator.clipboard.writeText('Build the "'+name+'" enhancement for KARMA OS — full drop-in code, ready to paste into karma-os-v4.html').catch(()=>{});
+  const t=document.getElementById('toast');
+  t.textContent='✓ "'+name+'" — prompt copied to clipboard';
+  t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2500);
+}
+</script>
+</body>
+</html>

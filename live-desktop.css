@@ -1,0 +1,186 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+  /* Default Cyberpunk Theme */
+  --ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--danger:#ff3366;
+  --bg:#060a14;--panel:rgba(10,20,40,.75);--border:rgba(0,212,255,.15);
+  --text:#e8f4ff;--muted:rgba(255,255,255,.35);
+}
+
+[data-theme="stealth"] {
+  --ac:#8892b0;--ac2:#a8b2d1;--ac3:#64ffda;--warn:#ffd700;--danger:#ff0033;
+  --bg:#0a192f;--panel:rgba(17,34,64,.85);--border:rgba(100,255,218,.15);
+  --text:#ccd6f6;--muted:rgba(136,146,176,.5);
+}
+
+[data-theme="alert"] {
+  --ac:#ff3366;--ac2:#ff6b35;--ac3:#ffbd00;--warn:#ff9900;--danger:#ff0000;
+  --bg:#1a0505;--panel:rgba(40,10,10,.85);--border:rgba(255,51,102,.25);
+  --text:#fff0f0;--muted:rgba(255,100,100,.5);
+}
+
+html,body{width:100%;height:100vh;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);user-select:none;transition:background-color 0.5s ease;}
+
+/* ── Background ── */
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(var(--ac),.04) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--ac),.04) 1px,transparent 1px);background-size:60px 60px;animation:gs 30s linear infinite}
+.scanlines{position:fixed;inset:0;z-index:999;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,0) 50%,rgba(0,0,0,0.08) 50%,rgba(0,0,0,0.08));background-size:100% 4px;pointer-events:none;opacity:0.3;animation:scanlineMove 10s linear infinite}
+@keyframes scanlineMove{0%{background-position:0 0}100%{background-position:0 100%}}
+@keyframes gs{from{background-position:0 0}to{background-position:60px 60px}}
+body.wallpaper-mode .bg-grid{animation:gs 40s linear infinite}
+body.wallpaper-mode .orbs-container{filter:saturate(1.2) brightness(0.8)}
+body.wallpaper-mode .desktop{opacity:.85}
+
+/* ── Glows & Gradients ── */
+.glow-ac{box-shadow:0 0 15px var(--ac);border-color:var(--ac)}
+.glow-ac3{box-shadow:0 0 15px var(--ac3);border-color:var(--ac3)}
+.gradient-text{background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ── Orbs ── */
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.18;animation:of 12s ease-in-out infinite alternate;pointer-events:none;transition:background-color 1s;}
+.o1{width:500px;height:500px;background:var(--ac);top:-100px;left:-100px}
+.o2{width:400px;height:400px;background:var(--ac2);bottom:-80px;right:10%;animation-delay:4s}
+.o3{width:300px;height:300px;background:var(--ac3);top:40%;right:30%;animation-delay:8s}
+@keyframes of{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.1)}}
+
+/* ── Desktop Grid ── */
+.desktop{position:relative;z-index:1;display:grid;grid-template-columns:270px 1fr 270px;grid-template-rows:54px 1fr 48px;gap:10px;padding:10px;height:100vh}
+.p{background:var(--panel);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(20px);padding:14px;overflow:hidden;position:relative;transition:border-color .3s,box-shadow .3s,background-color .5s}
+.p::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(0,212,255,.05),transparent 60%);pointer-events:none}
+.pt{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--ac);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;transition:color 0.5s;}
+.pt .d{width:6px;height:6px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--ac);animation:pu 2s ease-in-out infinite;flex-shrink:0;transition:background-color 0.5s, box-shadow 0.5s;}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* ── Topbar ── */
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;transition:background 0.5s;}
+.logo span{font-size:10px;opacity:.5;letter-spacing:2px}
+.tc{display:flex;gap:18px;align-items:center}
+.cp{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;transition:all .3s}
+.cp:hover{border-color:var(--ac);background:rgba(255,255,255,.08);cursor:pointer;}
+.cp .sy{color:var(--muted);font-size:10px}
+.up{color:var(--ac3)}.dn{color:var(--danger)}
+.clk{text-align:right}
+.ct{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--ac)}
+.cd{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* Theme / Audio Toggle */
+.btn-icon { background:transparent; border:none; color:var(--text); opacity:0.6; cursor:pointer; font-size:14px; transition:all 0.2s; }
+.btn-icon:hover { opacity:1; color:var(--ac); transform:scale(1.1); }
+.btn-icon.active { opacity:1; color:var(--danger); }
+
+/* ── Agent List (Left) ── */
+.lc{grid-row:2/3;display:flex;flex-direction:column;gap:5px;overflow:auto}
+.ac{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);transition:all .3s;cursor:default;position:relative}
+.ac:hover{border-color:var(--ac);box-shadow:0 0 15px rgba(0,0,0,.2);transform:translateX(3px)}
+.ac[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:105%;top:50%;transform:translateY(-50%);background:var(--bg);border:1px solid var(--ac);border-radius:6px;padding:4px 8px;font-size:8px;white-space:nowrap;color:var(--text);z-index:999;pointer-events:none}
+.ai{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.an{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.at{font-size:8px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.so{background:var(--ac3);box-shadow:0 0 6px var(--ac3);animation:pu 2s infinite}
+.sb{background:var(--warn);box-shadow:0 0 6px var(--warn);animation:pu 1s infinite}
+.si{background:var(--muted)}
+
+/* ── Centre Stat Cards ── */
+.cc{grid-row:2/3;display:flex;flex-direction:column;gap:10px}
+.ct3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sc{text-align:center;padding:14px 8px;cursor:pointer;transition:all .3s}
+.sc:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.15)}
+.sv{font-family:'Orbitron',monospace;font-size:24px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.sl{font-size:8px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+.sdd{font-size:9px;margin-top:3px}
+
+/* ── Activity Feed ── */
+.af{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.fl{display:flex;flex-direction:column;gap:4px;overflow:auto;flex:1;padding-right:2px}
+.fi{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,.03);border-left:2px solid transparent;font-size:9px;animation:sli .3s ease}
+@keyframes sli{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.fi.info{border-color:var(--ac)}.fi.success{border-color:var(--ac3)}.fi.warn{border-color:var(--warn)}.fi.error{border-color:var(--danger)}
+.ft{flex:1;color:rgba(255,255,255,.8);line-height:1.4}
+.ftm{color:var(--muted);font-size:8px;flex-shrink:0}
+
+/* ── Quick Launch ── */
+.ql{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.qb{position:relative;flex:1;min-width:90px;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:10px;font-weight:600;font-family:'Orbitron',monospace;cursor:pointer;text-decoration:none;transition:all .3s ease;overflow:hidden}
+.qb::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transition:all .5s ease}
+.qb:hover{background:rgba(255,255,255,.05);border-color:var(--ac);transform:translateY(-3px);box-shadow:0 5px 15px rgba(0,0,0,.2)}
+.qb:hover::after{left:200%}
+.qb i{font-size:14px;filter:drop-shadow(0 0 5px currentColor)}
+
+/* ── Right Panel ── */
+.rc{grid-row:2/3;display:flex;flex-direction:column;gap:10px}
+.gi{margin-bottom:5px}
+.gh{display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px}
+.gl{color:var(--muted)}.gvl{font-weight:600;font-family:'Orbitron',monospace;font-size:9px}
+.gb{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.gf{height:100%;border-radius:3px;transition:width 1s ease}
+.cpu{background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.mem{background:linear-gradient(90deg,var(--ac3),var(--ac))}
+.dsk{background:linear-gradient(90deg,var(--warn),var(--ac2))}
+.net{background:linear-gradient(90deg,var(--ac2),var(--danger))}
+
+/* ── Mini Chart ── */
+.mc{flex:1;display:flex;align-items:flex-end;gap:2px;padding-top:5px}
+.cb{flex:1;border-radius:2px 2px 0 0;background:linear-gradient(180deg,var(--ac2),var(--ac));opacity:.7;transition:height 1s ease;min-height:3px}
+
+/* ── Row Stats ── */
+.rs{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:9px}
+.rs:last-child{border-bottom:none}
+.rs .lb{color:var(--muted)}.rs .vl{font-weight:600;font-family:'Orbitron',monospace;font-size:9px}
+
+/* ── Footer ── */
+.bb{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.sb2{display:flex;gap:16px;align-items:center}
+.sti{display:flex;gap:4px;align-items:center;font-size:9px}
+.sti .dt{width:5px;height:5px;border-radius:50%}
+.sti .dt.g{background:var(--ac3);box-shadow:0 0 5px var(--ac3)}
+.sti .dt.y{background:var(--warn)}.sti .dt.b{background:var(--ac)}
+.vt{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);letter-spacing:2px}
+.uptime-display{font-family:'Orbitron',monospace;font-size:8px;color:var(--ac2);letter-spacing:1px}
+
+/* ── CR Panel Progress Bars ── */
+.cr-bar-wrap{margin-top:4px;height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.cr-bar-fill{height:100%;border-radius:3px;transition:width 1.5s ease}
+
+/* ── Agent Heatmap ── */
+.heatmap-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-top:8px}
+.hm-cell{height:14px;border-radius:3px;background:rgba(255,255,255,.1);transition:all .5s ease;cursor:default}
+.hm-cell:hover{transform:scale(1.2);z-index:10;box-shadow: 0 0 10px currentColor;}
+
+/* ── Particle Container ── */
+#particle-container{position:fixed;inset:0;pointer-events:none;z-index:998}
+.particle{position:absolute;border-radius:50%;pointer-events:none;animation:particleFly 1.2s ease-out forwards}
+@keyframes particleFly{0%{opacity:1;transform:scale(1) translate(0,0)}100%{opacity:0;transform:scale(0) translate(var(--tx),var(--ty))}}
+
+/* ── Matrix Canvas ── */
+#matrix-canvas{position:absolute;inset:0;opacity:.15;border-radius:inherit}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--ac);}
+
+/* ── Animations ── */
+@keyframes shake{
+  0%{transform:translate(1px,1px) rotate(0deg)}
+  10%{transform:translate(-1px,-2px) rotate(-1deg)}
+  20%{transform:translate(-3px,0px) rotate(1deg)}
+  30%{transform:translate(3px,2px) rotate(0deg)}
+  40%{transform:translate(1px,-1px) rotate(1deg)}
+  50%{transform:translate(-1px,2px) rotate(-1deg)}
+  60%{transform:translate(-3px,1px) rotate(0deg)}
+  70%{transform:translate(3px,1px) rotate(-1deg)}
+  80%{transform:translate(-1px,-1px) rotate(1deg)}
+  90%{transform:translate(1px,2px) rotate(0deg)}
+  100%{transform:translate(1px,-2px) rotate(-1deg)}
+}
+@keyframes redlinePulse{
+  0%,100%{box-shadow:inset 0 0 0px rgba(255,51,102,0)}
+  50%{box-shadow:inset 0 0 40px rgba(255,51,102,.15)}
+}
+body.redline-mode{animation:redlinePulse 1s infinite}
+
+/* Utility to show drag handle when SortableJS is used */
+.draggable { cursor: grab; }
+.draggable:active { cursor: grabbing; }
+.sortable-ghost { opacity: 0.4; }

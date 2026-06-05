@@ -1,0 +1,2164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KARMA OS · ULTIMATE · AI ARMY</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--danger:#ff3366;
+--bg:#060a14;--panel:rgba(10,20,40,.78);--border:rgba(0,212,255,.15);--text:#e8f4ff;--muted:rgba(255,255,255,.35)
+}
+[data-theme="stealth"]{--ac:#64ffda;--ac2:#a8b2d1;--ac3:#8892b0;--warn:#ffd700;--danger:#ff0033;--bg:#0a0e14;--panel:rgba(10,14,20,.9);--border:rgba(100,255,218,.1);--text:#ccd6f6;--muted:rgba(204,214,246,.35)}
+[data-theme="matrix"]{--ac:#00ff41;--ac2:#008f11;--ac3:#00ff41;--warn:#ffff00;--danger:#ff0000;--bg:#000300;--panel:rgba(0,20,5,.92);--border:rgba(0,255,65,.18);--text:#ccffcc;--muted:rgba(0,255,65,.35)}
+[data-theme="aurora"]{--ac:#a78bfa;--ac2:#34d399;--ac3:#f9a8d4;--warn:#fbbf24;--danger:#ef4444;--bg:#0d0d1a;--panel:rgba(15,10,30,.85);--border:rgba(167,139,250,.15);--text:#f0e6ff;--muted:rgba(240,230,255,.35)}
+html,body{width:100%;height:100vh;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);user-select:none}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,212,255,.25);border-radius:3px}
+.p{background:var(--panel);border:1px solid var(--border);border-radius:10px;backdrop-filter:blur(16px);padding:12px 14px;overflow:hidden;position:relative}
+.p::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(0,212,255,.04),transparent 60%);pointer-events:none}
+.pt{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--ac);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.pt .d{width:6px;height:6px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--ac);animation:pu 2s ease-in-out infinite}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+@keyframes gIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 5px var(--ac)}50%{box-shadow:0 0 20px var(--ac),0 0 30px var(--ac2)}}
+@keyframes scanPulse{0%{opacity:.3}50%{opacity:.8}100%{opacity:.3}}
+
+/* ACCESS GATE */
+#gate{position:fixed;inset:0;z-index:9999;background:#00000f;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+#gate.unlocked{animation:gateOut .8s forwards}
+@keyframes gateOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05);pointer-events:none;visibility:hidden}}
+.gate-logo{font-family:'Orbitron',monospace;font-size:44px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:8px;animation:glitch 4s infinite}
+@keyframes glitch{0%,90%,100%{filter:none}92%{filter:hue-rotate(90deg) brightness(1.5);transform:translate(2px,-1px)}94%{filter:none;transform:translate(-1px,1px)}96%{filter:hue-rotate(180deg);transform:translate(1px,0)}}
+.gate-sub{font-size:10px;color:var(--muted);letter-spacing:4px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.gate-input-wrap{display:flex;gap:0;border:1px solid rgba(0,212,255,.3);border-radius:6px;overflow:hidden}
+#gate-input{background:rgba(0,212,255,.05);border:none;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ac);outline:none;width:280px;letter-spacing:3px}
+#gate-input::placeholder{color:rgba(0,212,255,.3);letter-spacing:1px}
+.gate-btn{background:rgba(0,212,255,.15);border:none;padding:10px 16px;color:var(--ac);cursor:pointer;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px;transition:background .2s}
+.gate-btn:hover{background:rgba(0,212,255,.3)}
+.gate-scan-wrap{width:280px;height:2px;overflow:hidden;background:rgba(0,212,255,.05)}
+.gate-scan{height:100%;background:linear-gradient(90deg,transparent,var(--ac),transparent);animation:scan 2s linear infinite}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.gate-err{font-size:10px;color:var(--danger);font-family:'JetBrains Mono',monospace;min-height:16px}
+
+/* TICKER */
+#ticker-wrap{background:rgba(0,212,255,.06);border-bottom:1px solid var(--border);padding:6px 0;overflow:hidden;flex-shrink:0;position:relative}
+#ticker-wrap::before{content:'◆ LIVE';font-family:'Orbitron',monospace;font-size:8px;color:var(--ac3);letter-spacing:2px;position:absolute;left:0;top:0;bottom:0;display:flex;align-items:center;padding:0 12px;background:rgba(0,255,157,.08);border-right:1px solid var(--border);z-index:1;width:70px}
+.ticker-track{display:flex;gap:0;white-space:nowrap;padding-left:80px;animation:tickerScroll 80s linear infinite}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-family:'JetBrains Mono',monospace;font-size:10px;padding:0 24px;color:var(--muted);border-right:1px solid rgba(255,255,255,.06)}
+.ticker-item .tag{color:var(--ac);margin-right:6px}
+.ticker-item .code{color:var(--ac3);font-weight:500;background:rgba(0,255,157,.08);padding:1px 5px;border-radius:3px;margin:0 4px}
+.ticker-item.deal .tag{color:var(--ac3)}
+.ticker-item.news .tag{color:var(--ac2)}
+.ticker-item.ai .tag{color:var(--ac2)}
+
+/* DESKTOP */
+#desktop-wrap{display:none;flex-direction:column;height:100vh;position:relative;z-index:1}
+.desktop{flex:1;display:grid;grid-template-columns:270px 1fr 270px;grid-template-rows:52px 1fr 44px;gap:8px;padding:8px;min-height:0}
+
+/* BG */
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:50px 50px;animation:gs 25s linear infinite}
+@keyframes gs{from{background-position:0 0}to{background-position:50px 50px}}
+.scanlines{position:fixed;inset:0;z-index:999;background:linear-gradient(to bottom,rgba(255,255,255,0) 50%,rgba(0,0,0,.06) 50%);background-size:100% 3px;pointer-events:none;opacity:.25;animation:slm 12s linear infinite}
+@keyframes slm{0%{background-position:0 0}100%{background-position:0 100%}}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.15;animation:of 14s ease-in-out infinite alternate;pointer-events:none}
+.o1{width:500px;height:500px;background:var(--ac);top:-100px;left:-100px}
+.o2{width:400px;height:400px;background:var(--ac2);bottom:-80px;right:10%;animation-delay:4s}
+.o3{width:280px;height:280px;background:var(--ac3);top:40%;right:32%;animation-delay:8s}
+@keyframes of{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.1)}}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:10px}
+.logo{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;flex-shrink:0}
+.logo span{font-size:9px;opacity:.5;letter-spacing:2px}
+.tc{display:flex;gap:8px;align-items:center;flex:1;justify-content:center;flex-wrap:wrap}
+.cp{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.cp .sy{color:var(--muted);font-size:9px}
+.up{color:var(--ac3)}.dn{color:var(--danger)}
+.topbar-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.tb-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:9px;color:var(--muted);cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all .2s;white-space:nowrap}
+.tb-btn:hover{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.08)}
+.tb-btn.active{border-color:var(--ac3);color:var(--ac3);background:rgba(0,255,157,.1)}
+#redline-badge{display:none;align-items:center;gap:5px;background:rgba(255,51,102,.1);border:1px solid var(--danger);color:var(--danger);font-size:9px;padding:3px 8px;border-radius:4px;animation:pu 1s infinite;font-family:'Orbitron',monospace;letter-spacing:1px}
+.clk{text-align:right;flex-shrink:0}
+.ct{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--ac)}
+.cd{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* LEFT PANEL */
+.lc{grid-row:2/3;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.ac{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .2s;cursor:default}
+.ac:hover{border-color:var(--ac);transform:translateX(2px);box-shadow:0 0 12px rgba(0,212,255,.1)}
+.ac:hover .an{color:var(--ac)}
+.ai{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.an{font-size:10px;font-weight:600;transition:color .2s}
+.at{font-size:8px;color:var(--muted);margin-top:1px}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.so{background:var(--ac3);box-shadow:0 0 6px var(--ac3);animation:pu 2s infinite}
+.sb{background:var(--warn);animation:pu 1.2s infinite}
+.si{background:var(--muted)}
+.sr{background:var(--danger);animation:pu .8s infinite}
+
+/* COMMAND PANEL */
+.cmd-panel{background:linear-gradient(135deg,rgba(179,71,255,.08),rgba(0,212,255,.05));border-color:rgba(179,71,255,.25)}
+.cmd-input-wrap{display:flex;gap:4px;margin-top:8px}
+.cmd-input{flex:1;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:5px;padding:6px 8px;font-size:9px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none}
+.cmd-input:focus{border-color:var(--ac)}
+.cmd-btn{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:var(--ac);border-radius:5px;padding:6px 10px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px}
+.cmd-btn:hover{background:rgba(0,212,255,.25)}
+.cmd-list{margin-top:8px;display:flex;flex-direction:column;gap:2px;max-height:120px;overflow:auto}
+.cmd-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.02);font-size:8px;cursor:pointer;transition:background .15s}
+.cmd-item:hover{background:rgba(0,212,255,.1)}
+.cmd-item .cmd-key{color:var(--ac);font-family:'JetBrains Mono',monospace;font-size:7.5px;background:rgba(0,212,255,.1);padding:1px 4px;border-radius:2px}
+
+/* CENTER */
+.cc{grid-row:2/3;display:flex;flex-direction:column;gap:6px;overflow:auto;min-height:0}
+.ct3{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;flex-shrink:0}
+.sc{text-align:center;padding:10px 6px;cursor:pointer;transition:all .2s}
+.sc:hover{border-color:var(--ac);transform:translateY(-1px)}
+.sv{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.sl{font-size:7.5px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.sdd{font-size:8.5px;margin-top:2px}
+#boost-card{background:linear-gradient(135deg,rgba(179,71,255,.08),rgba(0,212,255,.06));cursor:pointer}
+#boost-card:hover{box-shadow:0 0 20px rgba(179,71,255,.2)}
+
+/* SWARM VIZ */
+#swarm-canvas{width:100%;height:130px;cursor:grab;border-radius:6px}
+
+/* ARMY FEED */
+.army-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;min-height:0}
+.af{display:flex;flex-direction:column;min-height:0}
+.fl{display:flex;flex-direction:column;gap:3px;overflow:auto;flex:1}
+.fi{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;background:rgba(255,255,255,.02);border-left:2px solid transparent;font-size:9px;animation:slideIn .3s ease}
+.fi.info{border-color:var(--ac)}.fi.success{border-color:var(--ac3)}.fi.warn{border-color:var(--warn)}.fi.error{border-color:var(--danger)}.fi.ai{border-color:var(--ac2)}
+.ft{flex:1;color:rgba(255,255,255,.8);line-height:1.4}
+.ftm{color:var(--muted);font-size:8px;flex-shrink:0}
+
+/* INTER-AGENT COMM */
+.agent-msg{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;background:rgba(179,71,255,.05);border:1px solid rgba(179,71,255,.12);border-radius:6px;margin-bottom:4px;font-size:8.5px}
+.agent-msg .from{color:var(--ac2);font-weight:600;font-family:'Orbitron',monospace;font-size:7.5px}
+.agent-msg .msg{flex:1;color:rgba(255,255,255,.75);line-height:1.4}
+
+/* QUICK LAUNCH */
+.ql{display:flex;gap:5px;flex-wrap:wrap}
+.qb{position:relative;flex:1;min-width:75px;display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:7px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);color:var(--text);font-size:8.5px;font-weight:600;font-family:'Orbitron',monospace;cursor:pointer;text-decoration:none;transition:all .25s;overflow:hidden;letter-spacing:.4px}
+.qb:hover{background:rgba(0,212,255,.12);border-color:var(--ac);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,212,255,.15)}
+.qb i{font-size:11px}
+
+/* IMPOSSIBLE DESK */
+.imp-btn{width:100%;padding:9px;background:linear-gradient(90deg,rgba(179,71,255,.15),rgba(0,212,255,.1));border:1px solid rgba(179,71,255,.3);border-radius:8px;color:var(--text);font-family:'Orbitron',monospace;font-size:9.5px;cursor:pointer;letter-spacing:1.5px;transition:all .2s;flex-shrink:0}
+.imp-btn:hover{background:linear-gradient(90deg,rgba(179,71,255,.3),rgba(0,212,255,.2));border-color:var(--ac2);box-shadow:0 0 20px rgba(179,71,255,.2)}
+
+/* RIGHT PANEL */
+.rc{grid-row:2/3;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.gi{margin-bottom:5px}
+.gh{display:flex;justify-content:space-between;font-size:8px;margin-bottom:2px}
+.gl{color:var(--muted)}.gvl{font-weight:600;font-family:'Orbitron',monospace;font-size:8px}
+.gb{height:3px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.gf{height:100%;border-radius:3px;transition:width 1s ease}
+.cpu{background:linear-gradient(90deg,var(--ac),var(--ac2))}.mem{background:linear-gradient(90deg,var(--ac3),var(--ac))}.dsk{background:linear-gradient(90deg,var(--warn),var(--ac2))}.net{background:linear-gradient(90deg,var(--ac2),var(--danger))}
+
+/* WORKFLOW BUILDER */
+.wf-item{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:8.5px;cursor:pointer;transition:background .15s}
+.wf-item:hover{background:rgba(0,212,255,.05);padding-left:4px}
+.wf-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.wf-name{color:var(--ac);font-weight:600;font-family:'JetBrains Mono',monospace}
+.wf-status{font-size:7.5px;color:var(--muted);margin-top:1px}
+.wf-badge{font-size:7px;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.wf-badge.active{background:rgba(0,255,157,.1);color:var(--ac3)}
+.wf-badge.paused{background:rgba(255,107,53,.1);color:var(--warn)}
+.wf-badge.error{background:rgba(255,51,102,.1);color:var(--danger)}
+
+/* FOOTER */
+.bb{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.sb2{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sti{display:flex;gap:4px;align-items:center;font-size:9px}
+.sti .dt{width:5px;height:5px;border-radius:50%}
+.sti .dt.g{background:var(--ac3);box-shadow:0 0 5px var(--ac3)}.sti .dt.y{background:var(--warn)}.sti .dt.b{background:var(--ac)}.sti .dt.r{background:var(--danger)}.sti .dt.off{background:rgba(255,255,255,.2)}
+.vt{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);letter-spacing:2px}
+
+/* MODALS */
+.modal{position:fixed;inset:0;z-index:5000;background:rgba(0,0,10,.88);display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal.open{display:flex}
+.mbox{background:#060a14;border:1px solid var(--border);border-radius:14px;width:min(720px,96vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.mbox::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,.04),transparent 50%,rgba(179,71,255,.04));pointer-events:none;border-radius:inherit}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.mtitle{font-family:'Orbitron',monospace;font-size:11px;color:var(--ac);letter-spacing:2px;display:flex;align-items:center;gap:7px}
+.mclose{background:none;border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--muted);width:26px;height:26px;cursor:pointer;font-size:12px;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.mclose:hover{border-color:var(--danger);color:var(--danger)}
+.mbody{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;min-height:0}
+
+/* CHAT */
+.chat-msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:7px;min-height:200px;max-height:380px}
+.chat-bubble{padding:9px 11px;border-radius:8px;font-size:10px;line-height:1.6;font-family:'JetBrains Mono',monospace;max-width:88%;word-break:break-word}
+.chat-bubble.user{background:rgba(179,71,255,.15);border:1px solid rgba(179,71,255,.2);color:#d0b0ff;align-self:flex-end}
+.chat-bubble.ai{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.12);color:#a0d4ff;align-self:flex-start;white-space:pre-wrap}
+.chat-bubble.sys{background:rgba(0,255,157,.05);border:1px solid rgba(0,255,157,.1);color:rgba(0,255,157,.7);font-size:8.5px;align-self:center}
+.chat-typing{display:flex;gap:4px;padding:8px 11px;background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);border-radius:8px;width:fit-content;align-self:flex-start}
+.chat-typing span{width:5px;height:5px;border-radius:50%;background:var(--ac);animation:blink 1.3s infinite}
+.chat-typing span:nth-child(2){animation-delay:.2s}.chat-typing span:nth-child(3){animation-delay:.4s}
+.chat-row{display:flex;gap:7px;flex-shrink:0}
+.chat-row input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:8px 11px;font-size:10px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .2s}
+.chat-row input:focus{border-color:var(--ac)}
+.chat-send{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);color:var(--ac);border-radius:6px;padding:8px 14px;font-family:'Orbitron',monospace;font-size:8.5px;cursor:pointer;letter-spacing:.7px;transition:all .2s;flex-shrink:0}
+.chat-send:hover{background:rgba(0,212,255,.3)}
+
+/* IMPOSSIBLE OUTPUT */
+#imp-out{flex:1;min-height:200px;max-height:380px;background:rgba(0,0,0,.35);border:1px solid rgba(179,71,255,.15);border-radius:6px;padding:11px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#c0a0ff;line-height:1.7;white-space:pre-wrap;overflow:auto}
+.imp-row{display:flex;gap:7px;flex-shrink:0}
+.imp-row input{flex:1;background:rgba(179,71,255,.06);border:1px solid rgba(179,71,255,.18);border-radius:5px;padding:8px 11px;font-size:10px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none}
+.imp-row input:focus{border-color:var(--ac2)}
+.imp-fire{background:rgba(179,71,255,.18);border:1px solid rgba(179,71,255,.35);color:#c084fc;border-radius:5px;padding:8px 14px;font-family:'Orbitron',monospace;font-size:8.5px;cursor:pointer;letter-spacing:.7px;transition:all .2s;flex-shrink:0}
+.imp-fire:hover{background:rgba(179,71,255,.32)}
+.imp-fire.oracle{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.3);color:var(--ac)}
+.imp-fire.oracle:hover{background:rgba(0,212,255,.25)}
+
+/* VOICE */
+.voice-ring{width:90px;height:90px;border-radius:50%;border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;margin:16px auto;cursor:pointer;position:relative;transition:all .3s}
+.voice-ring.on{border-color:var(--ac3);box-shadow:0 0 25px rgba(0,255,157,.25)}
+.vbars{display:flex;gap:3px;align-items:flex-end;height:22px;justify-content:center;width:50px}
+.vbar{width:4px;background:var(--ac3);border-radius:2px;transition:height .1s;min-height:3px}
+#voice-status-txt{font-size:9.5px;color:var(--muted);text-align:center}
+#voice-transcript{font-size:9.5px;color:var(--ac);text-align:center;min-height:20px;padding:4px;font-style:italic}
+#voice-reply{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);border-radius:6px;padding:9px 11px;font-size:9px;line-height:1.6;color:#a0d4ff;min-height:50px;white-space:pre-wrap;width:100%}
+.voice-cmd-list{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;font-size:7.5px}
+.vcmd{background:rgba(255,255,255,.03);padding:3px 6px;border-radius:3px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.vcmd span{color:var(--ac)}
+
+/* SETTINGS */
+.set-section{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);letter-spacing:2px;margin:8px 0 5px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.set-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.set-lbl{font-size:8px;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:.7px}
+.set-input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:5px;padding:8px 11px;font-size:10px;color:var(--text);font-family:'JetBrains Mono',monospace;outline:none;width:100%;transition:border-color .2s}
+.set-input:focus{border-color:var(--ac)}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.theme-btn{padding:6px 3px;border-radius:5px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);font-size:7px;color:var(--muted);cursor:pointer;text-align:center;font-family:'Orbitron',monospace;letter-spacing:.4px;transition:all .2s}
+.theme-btn:hover,.theme-btn.active{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.07)}
+.set-save{background:rgba(0,255,157,.12);border:1px solid rgba(0,255,157,.26);color:var(--ac3);border-radius:5px;padding:8px 16px;font-family:'Orbitron',monospace;font-size:8px;cursor:pointer;letter-spacing:.7px;transition:all .2s;margin-top:6px}
+.set-save:hover{background:rgba(0,255,157,.24)}
+
+/* N8N WORKFLOWS */
+.n8n-panel{background:linear-gradient(135deg,rgba(0,255,157,.05),rgba(0,212,255,.05));border-color:rgba(0,255,157,.2)}
+.wf-trigger{display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(0,255,157,.08);border-radius:5px;margin-bottom:6px;font-size:8.5px}
+.wf-trigger .icon{font-size:14px}
+.wf-trigger .name{color:var(--ac3);font-weight:600}
+.wf-trigger .type{color:var(--muted);font-size:7.5px}
+
+/* HERMES MESSENGER */
+.hermes-badge{background:linear-gradient(135deg,var(--ac2),var(--ac));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.msg-item{display:flex;gap:7px;padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-bottom:3px;font-size:8.5px;cursor:pointer;transition:background .15s}
+.msg-item:hover{background:rgba(0,212,255,.05)}
+.msg-item.unread{border-left:2px solid var(--ac2);background:rgba(179,71,255,.05)}
+.msg-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.msg-content{flex:1;min-width:0}
+.msg-from{font-weight:600;color:var(--ac);font-size:8px}
+.msg-text{color:rgba(255,255,255,.7);font-size:8px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-time{color:var(--muted);font-size:7px;flex-shrink:0}
+
+/* FOOTCLAN WORKERS */
+.footclan-panel{background:linear-gradient(135deg,rgba(255,107,53,.08),rgba(255,51,102,.05));border-color:rgba(255,107,53,.2)}
+.worker-item{display:flex;align-items:center;gap:7px;padding:5px 7px;background:rgba(255,255,255,.02);border-radius:5px;margin-bottom:3px;font-size:8.5px}
+.worker-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.worker-status.active{background:var(--ac3);box-shadow:0 0 5px var(--ac3)}
+.worker-status.busy{background:var(--warn);animation:pu 1s infinite}
+.worker-status.idle{background:var(--muted)}
+.worker-name{font-weight:600;color:var(--warn)}
+.worker-task{color:var(--muted);font-size:7.5px;margin-top:1px}
+.task-progress{height:2px;background:rgba(255,255,255,.07);border-radius:1px;margin-top:3px;overflow:hidden}
+.task-progress-bar{height:100%;background:linear-gradient(90deg,var(--warn),var(--danger));transition:width .5s}
+
+/* OPENHUMAN */
+.openhuman-panel{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(167,139,250,.05));border-color:rgba(0,212,255,.2)}
+.approval-item{display:flex;align-items:center;gap:8px;padding:7px 9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;margin-bottom:4px}
+.approval-item.pending{border-color:rgba(255,189,0,.3);background:rgba(255,189,0,.05)}
+.approval-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.approval-info{flex:1}
+.approval-action{font-size:9px;font-weight:600;color:var(--text)}
+.approval-meta{font-size:7.5px;color:var(--muted);margin-top:1px}
+.approval-btns{display:flex;gap:4px}
+.approval-btn{ padding:4px 8px;border-radius:4px;font-size:7.5px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.approval-btn.allow{background:rgba(0,255,157,.12);border:1px solid rgba(0,255,157,.25);color:var(--ac3)}
+.approval-btn.allow:hover{background:rgba(0,255,157,.25)}
+.approval-btn.deny{background:rgba(255,51,102,.12);border:1px solid rgba(255,51,102,.25);color:var(--danger)}
+.approval-btn.deny:hover{background:rgba(255,51,102,.25)}
+
+/* TOAST */
+#toast{position:fixed;bottom:55px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:7px 14px;font-size:9px;color:var(--ac);z-index:9000;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+#toast.show{opacity:1}
+
+/* SHAKE ANIMATION */
+@keyframes bodyShake{0%,100%{transform:translate(0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,2px)}80%{transform:translate(1px,-1px)}}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="scanlines"></div>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+
+<!-- ACCESS GATE -->
+<div id="gate">
+  <div class="gate-logo">KARMA OS</div>
+  <div class="gate-sub">◆ ULTIMATE ◆ AI ARMY ◆ tellemthatsme</div>
+  <div class="gate-scan-wrap"><div class="gate-scan"></div></div>
+  <div class="gate-input-wrap">
+    <input id="gate-input" placeholder="ENTER ACCESS CODE" maxlength="30" autocomplete="off"/>
+    <button class="gate-btn" onclick="tryGate()">UNLOCK</button>
+  </div>
+  <div class="gate-err" id="gate-err"></div>
+  <div style="font-size:8px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace">hint: OVERRIDE · or press Enter</div>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop-wrap" style="display:none;height:100vh;flex-direction:column">
+
+  <!-- TICKER -->
+  <div id="ticker-wrap">
+    <div class="ticker-track" id="ticker-track">
+      <span class="ticker-item deal"><span class="tag">DEAL</span> Cursor IDE 40% off <span class="code">CURSOR40</span></span>
+      <span class="ticker-item news"><span class="tag">NEWS</span> Claude Sonnet 4.6 — extended thinking + web search</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Zo Computer $20 credits <span class="code">CONTRA</span></span>
+      <span class="ticker-item ai"><span class="tag">AI</span> OpenAI o3 API — 128k context general availability</span>
+      <span class="ticker-item deal"><span class="tag">CODE</span> Perplexity Pro 1 month free <span class="code">PERP2026</span></span>
+      <span class="ticker-item news"><span class="tag">NEWS</span> Gemini 2.5 Pro tops coding benchmarks</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Warp terminal 6 months <span class="code">WARP6MO</span></span>
+      <span class="ticker-item deal"><span class="tag">CODE</span> Windsurf Editor 50% off <span class="code">WIND50</span></span>
+      <span class="ticker-item ai"><span class="tag">AI</span> n8n v1.90 — native Claude + Gemini agent nodes</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Railway 3 months <span class="code">RAILWAY26</span></span>
+      <span class="ticker-item deal"><span class="tag">DEAL</span> Cursor IDE 40% off <span class="code">CURSOR40</span></span>
+      <span class="ticker-item news"><span class="tag">NEWS</span> Claude Sonnet 4.6 — extended thinking + web search</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Zo Computer $20 credits <span class="code">CONTRA</span></span>
+      <span class="ticker-item ai"><span class="tag">AI</span> OpenAI o3 API — 128k context general availability</span>
+      <span class="ticker-item deal"><span class="tag">CODE</span> Perplexity Pro 1 month free <span class="code">PERP2026</span></span>
+      <span class="ticker-item news"><span class="tag">NEWS</span> Gemini 2.5 Pro tops coding benchmarks</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Warp terminal 6 months <span class="code">WARP6MO</span></span>
+      <span class="ticker-item deal"><span class="tag">CODE</span> Windsurf Editor 50% off <span class="code">WIND50</span></span>
+      <span class="ticker-item ai"><span class="tag">AI</span> n8n v1.90 — native Claude + Gemini agent nodes</span>
+      <span class="ticker-item deal"><span class="tag">FREE</span> Railway 3 months <span class="code">RAILWAY26</span></span>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="desktop">
+
+    <!-- TOPBAR -->
+    <header class="p topbar">
+      <div class="logo">KARMA<span>&nbsp;OS</span></div>
+      <div class="tc">
+        <div class="cp"><span class="sy">BTC</span><span id="bp">$--</span><span id="bc" class="up">--</span></div>
+        <div class="cp"><span class="sy">ETH</span><span id="ep">$--</span><span id="ec" class="up">--</span></div>
+        <div class="cp"><span class="sy">SOL</span><span id="sp">$--</span><span id="scc" class="up">--</span></div>
+      </div>
+      <div id="redline-badge"><i class="fas fa-radiation"></i> REDLINE</div>
+      <div class="topbar-actions">
+        <button class="tb-btn" onclick="openM('karma-m')"><i class="fas fa-robot"></i> KARMA</button>
+        <button class="tb-btn" onclick="openM('imp-m')" style="border-color:rgba(179,71,255,.35)"><i class="fas fa-infinity"></i> IMPOSSIBLE</button>
+        <button class="tb-btn" onclick="openM('voice-m')"><i class="fas fa-microphone"></i> VOICE</button>
+        <button class="tb-btn" onclick="openM('army-m')"><i class="fas fa-users"></i> ARMY</button>
+        <button class="tb-btn" onclick="openM('hermes-m')"><i class="fas fa-paper-plane"></i> HERMES</button>
+        <button class="tb-btn" onclick="openM('settings-m')"><i class="fas fa-key"></i></button>
+      </div>
+      <div class="clk">
+        <div class="ct" id="clkt">--:--:--</div>
+        <div class="cd" id="clkd">...</div>
+      </div>
+    </header>
+
+    <!-- LEFT: AGENTS + WORKFLOWS -->
+    <aside class="lc">
+      <!-- AGENT FLEET -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt"><span class="d"></span>AI Army<span id="agent-badge" style="margin-left:auto;font-size:7.5px;background:rgba(0,212,255,.1);padding:1px 7px;border-radius:10px">25</span></div>
+        <div id="agent-list" style="display:flex;flex-direction:column;gap:2px"></div>
+      </div>
+
+      <!-- COMMAND CENTER -->
+      <div class="p cmd-panel" style="flex-shrink:0">
+        <div class="pt" style="color:var(--ac2)"><span class="d" style="background:var(--ac2)"></span>Command Center</div>
+        <div class="cmd-input-wrap">
+          <input class="cmd-input" id="cmd-input" placeholder="Type command..." onkeydown="if(event.key==='Enter')execCmd()"/>
+          <button class="cmd-btn" onclick="execCmd()">RUN</button>
+        </div>
+        <div class="cmd-list" id="cmd-list">
+          <div class="cmd-item" onclick="sendCmd('status')"><span class="cmd-key">status</span> System status</div>
+          <div class="cmd-item" onclick="sendCmd('agents')"><span class="cmd-key">agents</span> List all agents</div>
+          <div class="cmd-item" onclick="sendCmd('workflows')"><span class="cmd-key">wf</span> Show workflows</div>
+          <div class="cmd-item" onclick="sendCmd('hermes')"><span class="cmd-key">msg</span> Open Hermes</div>
+          <div class="cmd-item" onclick="sendCmd('boost')"><span class="cmd-key">boost</span> System boost</div>
+        </div>
+      </div>
+
+      <!-- N8N WORKFLOWS -->
+      <div class="p n8n-panel" style="flex-shrink:0">
+        <div class="pt" style="color:var(--ac3)"><span class="d" style="background:var(--ac3)"></span>n8n Automations<span style="margin-left:auto;font-size:7px;color:var(--ac3)">4 active</span></div>
+        <div id="wf-list">
+          <div class="wf-trigger" onclick="triggerWorkflow('ash-lee-post')">
+            <span class="icon">📰</span>
+            <div style="flex:1"><div class="name">Ash Lee Daily Post</div><div class="type">scheduled · 18:30 AEST</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-trigger" onclick="triggerWorkflow('intel-sync')">
+            <span class="icon">📡</span>
+            <div style="flex:1"><div class="name">KARMA INTEL Sync</div><div class="type">interval · 5min</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-trigger" onclick="triggerWorkflow('uptime-check')">
+            <span class="icon">🔔</span>
+            <div style="flex:1"><div class="name">Uptime Monitor</div><div class="type">interval · 1min</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-trigger" onclick="triggerWorkflow('crypto-alert')">
+            <span class="icon">💹</span>
+            <div style="flex:1"><div class="name">BTC Alert</div><div class="type">condition · &gt;$70k</div></div>
+            <span class="wf-badge paused">PAUSED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTCLAN WORKERS -->
+      <div class="p footclan-panel" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div class="pt" style="color:var(--warn)"><span class="d" style="background:var(--warn)"></span>Footclan Workers<span style="margin-left:auto;font-size:7.5px;color:var(--muted)">8 ready</span></div>
+        <div id="worker-list" style="flex:1;overflow:auto">
+          <div class="worker-item">
+            <div class="worker-status active"></div>
+            <div style="flex:1"><div class="worker-name">FC-01 Research</div><div class="worker-task">Scanning arxiv for AI papers</div><div class="task-progress"><div class="task-progress-bar" style="width:72%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status busy"></div>
+            <div style="flex:1"><div class="worker-name">FC-02 CodeReview</div><div class="worker-task">Reviewing PR #47 — nova-hub</div><div class="task-progress"><div class="task-progress-bar" style="width:45%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status idle"></div>
+            <div style="flex:1"><div class="worker-name">FC-03 Content</div><div class="worker-task">Idle — awaiting task</div><div class="task-progress"><div class="task-progress-bar" style="width:0%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status active"></div>
+            <div style="flex:1"><div class="worker-name">FC-04 DataScrape</div><div class="worker-task">Collecting competitor pricing</div><div class="task-progress"><div class="task-progress-bar" style="width:88%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status idle"></div>
+            <div style="flex:1"><div class="worker-name">FC-05 ReportGen</div><div class="worker-task">Idle — awaiting task</div><div class="task-progress"><div class="task-progress-bar" style="width:0%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status busy"></div>
+            <div style="flex:1"><div class="worker-name">FC-06 Outreach</div><div class="worker-task">Sending cold emails — batch 3/5</div><div class="task-progress"><div class="task-progress-bar" style="width:60%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status active"></div>
+            <div style="flex:1"><div class="worker-name">FC-07 LeadQual</div><div class="worker-task">Qualifying Contra leads</div><div class="task-progress"><div class="task-progress-bar" style="width:35%"></div></div></div>
+          </div>
+          <div class="worker-item">
+            <div class="worker-status idle"></div>
+            <div style="flex:1"><div class="worker-name">FC-08 Monitor</div><div class="worker-task">Idle — awaiting task</div><div class="task-progress"><div class="task-progress-bar" style="width:0%"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER -->
+    <main class="cc">
+      <!-- STATS ROW -->
+      <div class="ct3">
+        <div class="p sc" onclick="pulseCard(this)"><div class="sv" id="repo-count">309</div><div class="sl">GitHub Repos</div><div class="sdd up">↑ Synced</div></div>
+        <div class="p sc" onclick="pulseCard(this)"><div class="sv" id="agent-count">25</div><div class="sl">AI Agents</div><div class="sdd" style="color:var(--ac3)">Online</div></div>
+        <div class="p sc" onclick="pulseCard(this)"><div class="sv" id="worker-count">20</div><div class="sl">Footclan</div><div class="sdd" style="color:var(--warn)">Ready</div></div>
+        <div class="p sc" id="boost-card" onclick="triggerBoost()" style="cursor:pointer">
+          <div class="sv" id="boost-label" style="font-size:13px">BOOT</div>
+          <div class="sl">Boost</div>
+          <div class="sdd" style="color:var(--ac)">READY</div>
+        </div>
+      </div>
+
+      <!-- OPENCLAW SWARM -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt"><span class="d" style="background:var(--ac2)"></span>OpenClaw Swarm Network<span id="swarm-nc" style="margin-left:auto;font-size:7.5px;color:var(--muted)">18 nodes · 32 connections</span></div>
+        <canvas id="swarm-canvas"></canvas>
+      </div>
+
+      <!-- ARMY FEED -->
+      <div class="army-grid" style="flex:1;min-height:120px">
+        <div class="p af">
+          <div class="pt"><span class="d"></span>Fleet Activity</div>
+          <div class="fl" id="fl"></div>
+        </div>
+        <div class="p af">
+          <div class="pt" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span class="d" style="background:var(--ac2)"></span>Inter-Agent Messages</span><span onclick="refreshArmyFeed()" style="font-size:7.5px;color:var(--ac2);cursor:pointer">↻</span></div>
+          <div class="fl" id="army-feed"><div class="fi info"><span></span><span class="ft" style="color:var(--muted)">Army communication feed...</span></div></div>
+        </div>
+      </div>
+
+      <!-- IMPOSSIBLE + QUICK LAUNCH -->
+      <button class="imp-btn" onclick="openM('imp-m')">⬡ IMPOSSIBLE DESK — Any request. No limits. Watch it stream live. ↗</button>
+      
+      <div class="p" style="flex-shrink:0;padding:9px 11px">
+        <div class="pt"><span class="d"></span>Quick Launch</div>
+        <div class="ql">
+          <a href="#" class="qb" onclick="openM('karma-m');return false"><i class="fas fa-robot" style="color:var(--ac2)"></i>KARMA</a>
+          <a href="#" class="qb" onclick="openM('army-m');return false"><i class="fas fa-users" style="color:var(--ac)"></i>Army</a>
+          <a href="#" class="qb" onclick="openM('hermes-m');return false"><i class="fas fa-paper-plane" style="color:var(--ac2)"></i>Hermes</a>
+          <a href="#" class="qb" onclick="openM('voice-m');return false"><i class="fas fa-microphone" style="color:var(--danger)"></i>Voice</a>
+          <a href="#" class="qb" onclick="openM('imp-m');return false"><i class="fas fa-infinity" style="color:var(--ac2)"></i>Impossible</a>
+          <a href="#" class="qb" onclick="openM('openhuman-m');return false"><i class="fas fa-user-check" style="color:var(--ac3)"></i>Human</a>
+          <a href="#" class="qb" onclick="triggerBoost();return false"><i class="fas fa-rocket" style="color:var(--warn)"></i>BOOST</a>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT -->
+    <aside class="rc">
+      <!-- SYSTEM -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt"><span class="d"></span>System Health<span id="telemetry-ind" style="margin-left:auto;font-size:7px;color:var(--muted)">mock</span></div>
+        <div class="gi"><div class="gh"><span class="gl">CPU</span><span class="gvl" id="cv">--%</span></div><div class="gb"><div class="gf cpu" id="cb" style="width:0%"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gl">Memory</span><span class="gvl" id="mv">--%</span></div><div class="gb"><div class="gf mem" id="mb" style="width:0%"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gl">Disk</span><span class="gvl" id="dv">62%</span></div><div class="gb"><div class="gf dsk" id="db" style="width:62%"></div></div></div>
+        <div class="gi"><div class="gh"><span class="gl">Network</span><span class="gvl" id="nv">-- MB/s</span></div><div class="gb"><div class="gf net" id="nb" style="width:10%"></div></div></div>
+      </div>
+
+      <!-- HERMES MESSENGER -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt" style="color:var(--ac2)"><span class="d" style="background:var(--ac2)"></span>Hermes Messenger<span id="hermes-badge" style="margin-left:auto;font-size:7px;color:var(--ac)">3 unread</span></div>
+        <div id="hermes-msg-list" style="max-height:100px;overflow:auto">
+          <div class="msg-item unread">
+            <div class="msg-avatar" style="background:rgba(179,71,255,.2)">🤖</div>
+            <div class="msg-content"><div class="msg-from">Auggie → You</div><div class="msg-text">Voice command processed: "status check"</div></div>
+            <div class="msg-time">2m</div>
+          </div>
+          <div class="msg-item unread">
+            <div class="msg-avatar" style="background:rgba(255,107,53,.2)">⚡</div>
+            <div class="msg-content"><div class="msg-from">Footclan FC-04</div><div class="msg-text">Task complete: competitor scraping done</div></div>
+            <div class="msg-time">5m</div>
+          </div>
+          <div class="msg-item">
+            <div class="msg-avatar" style="background:rgba(0,255,157,.2)">🕸</div>
+            <div class="msg-content"><div class="msg-from">OpenClaw</div><div class="msg-text">Swarm network: 18 agents connected</div></div>
+            <div class="msg-time">12m</div>
+          </div>
+        </div>
+        <button onclick="openM('hermes-m')" style="width:100%;margin-top:6px;background:rgba(179,71,255,.1);border:1px solid rgba(179,71,255,.2);color:var(--ac2);border-radius:4px;padding:5px;font-size:7.5px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px">OPEN HERMES</button>
+      </div>
+
+      <!-- OPENHUMAN APPROVALS -->
+      <div class="p openhuman-panel" style="flex-shrink:0">
+        <div class="pt" style="color:var(--ac)"><span class="d" style="background:var(--ac)"></span>OpenHuman Approvals<span style="margin-left:auto;font-size:7px;color:var(--warn)">2 pending</span></div>
+        <div id="approval-list">
+          <div class="approval-item pending">
+            <div class="approval-icon" style="background:rgba(255,189,0,.15)">⚠️</div>
+            <div class="approval-info">
+              <div class="approval-action">FC-06: Send 50 cold emails</div>
+              <div class="approval-meta">Target: AI tool founders · Risk: medium</div>
+            </div>
+            <div class="approval-btns">
+              <button class="approval-btn allow" onclick="approveAction(1)">✓</button>
+              <button class="approval-btn deny" onclick="denyAction(1)">✕</button>
+            </div>
+          </div>
+          <div class="approval-item pending">
+            <div class="approval-icon" style="background:rgba(255,51,102,.15)">🔴</div>
+            <div class="approval-info">
+              <div class="approval-action">CodeAgent: Delete old repos</div>
+              <div class="approval-meta">5 repos marked for cleanup · Risk: high</div>
+            </div>
+            <div class="approval-btns">
+              <button class="approval-btn allow" onclick="approveAction(2)">✓</button>
+              <button class="approval-btn deny" onclick="denyAction(2)">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKFLOWS -->
+      <div class="p n8n-panel" style="flex:1;min-height:0;display:flex;flex-direction:column">
+        <div class="pt" style="color:var(--ac3);justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span class="d" style="background:var(--ac3)"></span>Active Workflows</span><span onclick="loadWorkflows()" style="font-size:7.5px;color:var(--ac3);cursor:pointer">↻</span></div>
+        <div id="wf-active-list" style="flex:1;overflow:auto">
+          <div class="wf-item" onclick="openM('karma-m')">
+            <div class="wf-icon" style="background:rgba(179,71,255,.15)">📰</div>
+            <div style="flex:1"><div class="wf-name">Ash Lee Daily Post</div><div class="wf-status">Next run: 18:30 AEST</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-item">
+            <div class="wf-icon" style="background:rgba(0,212,255,.15)">📡</div>
+            <div style="flex:1"><div class="wf-name">KARMA INTEL Sync</div><div class="wf-status">Running · 127 items cached</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-item">
+            <div class="wf-icon" style="background:rgba(0,255,157,.15)">🔔</div>
+            <div style="flex:1"><div class="wf-name">Uptime Monitor</div><div class="wf-status">Checking 6 endpoints</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-item">
+            <div class="wf-icon" style="background:rgba(255,107,53,.15)">💹</div>
+            <div style="flex:1"><div class="wf-name">BTC Alert System</div><div class="wf-status">Paused · condition not met</div></div>
+            <span class="wf-badge paused">PAUSED</span>
+          </div>
+          <div class="wf-item">
+            <div class="wf-icon" style="background:rgba(255,51,102,.15)">📧</div>
+            <div style="flex:1"><div class="wf-name">Client Follow-up</div><div class="wf-status">3 pending · due today</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+          <div class="wf-item">
+            <div class="wf-icon" style="background:rgba(167,139,250,.15)">🤖</div>
+            <div style="flex:1"><div class="wf-name">Lead Qualification</div><div class="wf-status">Processing batch from Contra</div></div>
+            <span class="wf-badge active">ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- API CHART -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt"><span class="d"></span>API Calls / 10m</div>
+        <div class="mc" id="mc" style="display:flex;align-items:flex-end;gap:2px;height:50px"></div>
+      </div>
+    </aside>
+
+    <!-- FOOTER -->
+    <footer class="p bb">
+      <div class="sb2">
+        <div class="sti"><span class="dt g"></span>UAS</div>
+        <div class="sti"><span class="dt g"></span>GitHub</div>
+        <div class="sti"><span class="dt b" id="dot-claude"></span>Claude</div>
+        <div class="sti"><span class="dt y"></span>n8n:4</div>
+        <div class="sti"><span class="dt g" id="dot-voice"></span>Voice</div>
+        <div class="sti"><span class="dt g"></span>OpenClaw</div>
+        <div class="sti"><span class="dt g"></span>Footclan</div>
+        <div class="sti"><span class="dt g" id="dot-hermes"></span>Hermes</div>
+        <div class="sti"><span class="dt g" id="dot-openhuman"></span>OpenHuman</div>
+      </div>
+      <div class="vt" id="vt">KARMA OS ULTIMATE · AI ARMY · v25 · LIVE</div>
+    </footer>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- KARMA AI -->
+<div class="modal" id="karma-m">
+  <div class="mbox">
+    <div class="mhdr"><div class="mtitle"><i class="fas fa-robot" style="color:var(--ac2)"></i>ASK KARMA — AI INTERFACE</div><button class="mclose" onclick="closeM('karma-m')">✕</button></div>
+    <div class="mbody">
+      <div class="chat-msgs" id="karma-msgs">
+        <div class="chat-bubble sys">◆ KARMA OS v25 ONLINE ◆ 25 AI AGENTS ACTIVE ◆ ASK ME ANYTHING</div>
+        <div class="chat-bubble ai">I'm KARMA — AI core of tellemthatsme's operation. 18 agents at your command. Footclan standing by. Hermes messenger active. OpenHuman approvals ready. What do you need?</div>
+      </div>
+      <div class="chat-row">
+        <input id="karma-in" placeholder="What do you need..." onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendKarma()"/>
+        <button class="chat-send" id="karma-send" onclick="sendKarma()">TRANSMIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPOSSIBLE DESK -->
+<div class="modal" id="imp-m">
+  <div class="mbox">
+    <div class="mhdr"><div class="mtitle" style="color:var(--ac2)"><i class="fas fa-infinity"></i>IMPOSSIBLE DESK</div><button class="mclose" onclick="closeM('imp-m')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:8.5px;color:var(--muted);flex-shrink:0">Type anything. Code. Strategy. Systems. Full documents. Watch Claude stream it live. No disclaimers.</div>
+      <div id="imp-out">// ◆ IMPOSSIBLE DESK v25 ready ◆\n// 25 agents standing by\n// Submit any request — watch the army work\n\nTry: "Build me a complete n8n workflow for lead qualification"\nOr: "Generate a full project proposal for an AI automation project"\nOr: "Write me a complete Python automation script"</div>
+      <div class="imp-row">
+        <input id="imp-in" placeholder="Make the impossible happen..." onkeydown="if(event.key==='Enter')fireImpossible()"/>
+        <button class="imp-fire" onclick="fireImpossible()">EXECUTE ⬡</button>
+        <button class="imp-fire oracle" onclick="oraclePulse()">ORACLE 👁</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOICE -->
+<div class="modal" id="voice-m">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhdr"><div class="mtitle"><i class="fas fa-microphone" style="color:var(--ac3)"></i>AUGGIE · VOICE AI</div><button class="mclose" onclick="closeM('voice-m')">✕</button></div>
+    <div class="mbody" style="align-items:center">
+      <div class="voice-ring" id="voice-ring" onclick="toggleVoice()"><div style="font-size:28px">🎤</div></div>
+      <div class="vbars" id="vbars"><div class="vbar" style="height:8px"></div><div class="vbar" style="height:14px"></div><div class="vbar" style="height:6px"></div><div class="vbar" style="height:18px"></div><div class="vbar" style="height:10px"></div><div class="vbar" style="height:22px"></div><div class="vbar" style="height:8px"></div></div>
+      <div id="voice-status-txt" style="font-size:9.5px;color:var(--muted);text-align:center">Click mic to activate</div>
+      <div id="voice-transcript" style="font-size:9.5px;color:var(--ac);text-align:center;min-height:20px;padding:4px;font-style:italic"></div>
+      <div id="voice-reply" style="background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);border-radius:6px;padding:9px 11px;font-size:9px;line-height:1.6;color:#a0d4ff;min-height:50px;white-space:pre-wrap;width:100%">// KARMA response will appear here</div>
+      <div style="font-size:7.5px;color:var(--muted);width:100%;border-top:1px solid var(--border);padding-top:8px;margin-top:4px">
+        <div style="margin-bottom:4px;font-family:'Orbitron',monospace;letter-spacing:1px">COMMANDS:</div>
+        <div class="voice-cmd-list">
+          <div class="vcmd"><span>open</span> github/claude</div>
+          <div class="vcmd"><span>status</span> — system check</div>
+          <div class="vcmd"><span>boost</span> — turbo mode</div>
+          <div class="vcmd"><span>intel</span> deals/news</div>
+          <div class="vcmd"><span>hermes</span> — open messenger</div>
+          <div class="vcmd"><span>army</span> — fleet overview</div>
+          <div class="vcmd"><span>footclan</span> — worker status</div>
+          <div class="vcmd"><span>workflow</span> — show automations</div>
+          <div class="vcmd"><span>approve</span> — pending actions</div>
+          <div class="vcmd"><span>sync</span> — fleet sync</div>
+          <div class="vcmd"><span>stealth/matrix/aurora</span></div>
+          <div class="vcmd"><span>what time / mute</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ARMY OVERVIEW -->
+<div class="modal" id="army-m">
+  <div class="mbox" style="max-width:600px">
+    <div class="mhdr"><div class="mtitle"><i class="fas fa-users" style="color:var(--ac)"></i>AI ARMY OVERVIEW</div><button class="mclose" onclick="closeM('army-m')">✕</button></div>
+    <div class="mbody">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <!-- COMMANDER -->
+        <div class="p" style="background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(179,71,255,.05))">
+          <div class="pt" style="color:var(--ac)"><span class="d"></span>COMMANDER</div>
+          <div style="text-align:center;padding:10px">
+            <div style="font-size:32px;margin-bottom:6px">🦊</div>
+            <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--ac)">KARMA</div>
+            <div style="font-size:8px;color:var(--muted);margin-top:3px">Fleet Commander · Ultimate决策</div>
+            <div style="display:flex;justify-content:center;gap:8px;margin-top:8px">
+              <span class="wf-badge active">ONLINE</span>
+              <span style="font-size:7.5px;color:var(--ac3)">25 agents</span>
+            </div>
+          </div>
+        </div>
+        <!-- SPECIALISTS -->
+        <div class="p">
+          <div class="pt"><span class="d" style="background:var(--ac2)"></span>SPECIALISTS (<span id="army-spec-count">7</span>)</div>
+          <div id="army-specialists" style="display:flex;flex-direction:column;gap:4px;font-size:8.5px"></div>
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <!-- FOOTCLAN -->
+      <div class="p" style="background:linear-gradient(135deg,rgba(255,107,53,.08),rgba(255,51,102,.05));border-color:rgba(255,107,53,.2)">
+        <div class="pt" style="color:var(--warn)"><span class="d" style="background:var(--warn)"></span>FOOTCLAN WORKERS (<span id="army-fc-count">20</span>)</div>
+        <div id="army-fc-list" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:8px"></div>
+      </div>
+      <!-- OPENHUMAN -->
+      <div class="p" style="background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(167,139,250,.05));border-color:rgba(0,212,255,.2)">
+        <div class="pt" style="color:var(--ac)"><span class="d" style="background:var(--ac)"></span>OPENHUMAN — Human-in-the-Loop</div>
+        <div style="font-size:8.5px;color:var(--muted);line-height:1.6">2 approvals pending · High-risk actions require human authorization before execution. Footclan workers pause and wait for confirmation.</div>
+        <button onclick="openM('openhuman-m');closeM('army-m')" style="margin-top:8px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:var(--ac);border-radius:5px;padding:6px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer">VIEW PENDING APPROVALS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERMES MESSENGER -->
+<div class="modal" id="hermes-m">
+  <div class="mbox" style="max-width:500px">
+    <div class="mhdr"><div class="mtitle" style="color:var(--ac2)"><i class="fas fa-paper-plane" style="color:var(--ac2)"></i>HERMES · Agent Messenger</div><button class="mclose" onclick="closeM('hermes-m')">✕</button></div>
+    <div class="mbody">
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <select id="hermes-to" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:6px 8px;font-size:9px;color:var(--text);font-family:'JetBrains Mono',monospace">
+          <option value="all">📡 Broadcast All (25 agents)</option>
+          <option value="auggie">🎤 Auggie (Voice AI)</option>
+          <option value="openclaw">🕸 OpenClaw (Swarm)</option>
+          <option value="hermes">📡 Hermes (Self)</option>
+          <option value="nexus">🔗 Nexus (API Gateway)</option>
+          <option value="oracle">👁 Oracle (Prediction)</option>
+          <option value="deepsearch">🔮 DeepSearch (Research)</option>
+          <option value="codeagent">⚡ CodeAgent (Code Review)</option>
+          <option value="apollo">🛠️ Apollo (Full-Stack)</option>
+          <option value="nova">🎨 Nova (Design)</option>
+          <option value="ashlee">💜 Ash Lee (Content)</option>
+          <option value="footclan">👥 Footclan (Workers)</option>
+          <option value="marketwatch">📈 MarketWatch (Crypto)</option>
+          <option value="intelagent">🧠 IntelAgent (Intelligence)</option>
+          <option value="openhuman">👤 OpenHuman (Approvals)</option>
+          <option value="n8norch">⚙️ n8n Orchestrator</option>
+          <option value="mcpbridge">🌉 MCP Bridge</option>
+          <option value="gitops">🐙 GitOpsAgent</option>
+          <option value="uptimebot">🔔 UptimeBot</option>
+        </select>
+        <button onclick="broadcastMsg()" style="background:rgba(179,71,255,.15);border:1px solid rgba(179,71,255,.3);color:var(--ac2);border-radius:5px;padding:6px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer">SEND</button>
+      </div>
+      <div id="hermes-thread" style="flex:1;min-height:200px;max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:4px">
+        <div class="agent-msg"><span class="from">SYSTEM</span><span class="msg">Hermes messenger online. Broadcast to agents or message individually.</span></div>
+        <div class="agent-msg"><span class="from">HERMES → ALL</span><span class="msg">Swarm check: all agents responding within 200ms. Network healthy.</span></div>
+        <div class="agent-msg"><span class="from">AUGGIE → HERMES</span><span class="msg">Voice commands queue clear. Ready for input.</span></div>
+        <div class="agent-msg"><span class="from">OPENCLAW → HERMES</span><span class="msg">Swarm visualization updated. 18 nodes, 32 active connections.</span></div>
+        <div class="agent-msg"><span class="from">FOOTCLAN FC-04 → HERMES</span><span class="msg">Task complete: competitor data collected. 47 records queued for analysis.</span></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="hermes-msg" placeholder="Type message to agent..." style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:7px 10px;font-size:9.5px;color:var(--text);font-family:'JetBrains Mono',monospace" onkeydown="if(event.key==='Enter')sendHermesMsg()"/>
+        <button onclick="sendHermesMsg()" style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:var(--ac);border-radius:5px;padding:7px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer">MSG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPENHUMAN APPROVALS -->
+<div class="modal" id="openhuman-m">
+  <div class="mbox" style="max-width:520px">
+    <div class="mhdr"><div class="mtitle"><i class="fas fa-user-check" style="color:var(--ac3)"></i>OPENHUMAN · Human Authorization</div><button class="mclose" onclick="closeM('openhuman-m')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:8.5px;color:var(--muted);margin-bottom:10px;line-height:1.6">High-risk actions require human approval before execution. Review each pending request and approve or deny.</div>
+      <div id="approval-panel">
+        <div class="p" style="background:rgba(255,189,0,.05);border-color:rgba(255,189,0,.25)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:20px">⚠️</span>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--warn)">PENDING: FC-06 Cold Email Campaign</div>
+              <div style="font-size:8px;color:var(--muted)">Requested by: Footclan FC-06 Outreach Agent</div>
+            </div>
+          </div>
+          <div style="font-size:8.5px;color:rgba(255,255,255,.7);margin-bottom:8px;line-height:1.5">Action: Send 50 personalized cold emails to AI tool founders scraped from LinkedIn. Target: SaaS companies with 10-50 employees.</div>
+          <div style="display:flex;gap:6px">
+            <button class="approval-btn allow" onclick="approveAction(1)" style="padding:6px 14px">✓ APPROVE</button>
+            <button class="approval-btn deny" onclick="denyAction(1)" style="padding:6px 14px">✕ DENY</button>
+            <button onclick="modifyAction(1)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:4px;padding:6px 10px;font-size:7.5px;cursor:pointer">MODIFY</button>
+          </div>
+        </div>
+        <div class="p" style="background:rgba(255,51,102,.05);border-color:rgba(255,51,102,.25);margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:20px">🔴</span>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--danger)">HIGH RISK: Repository Cleanup</div>
+              <div style="font-size:8px;color:var(--muted)">Requested by: CodeAgent</div>
+            </div>
+          </div>
+          <div style="font-size:8.5px;color:rgba(255,255,255,.7);margin-bottom:8px;line-height:1.5">Action: Delete 5 inactive/archived GitHub repositories from tellemthatsme account. Repos: old-experiments, abandoned-tool, test-repo-1, demo-2024, temp-automat.</div>
+          <div style="display:flex;gap:6px">
+            <button class="approval-btn allow" onclick="approveAction(2)" style="padding:6px 14px">✓ APPROVE</button>
+            <button class="approval-btn deny" onclick="denyAction(2)" style="padding:6px 14px">✕ DENY</button>
+            <button onclick="modifyAction(2)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:4px;padding:6px 10px;font-size:7.5px;cursor:pointer">MODIFY</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:8px;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:1px;margin-bottom:6px">APPROVAL HISTORY</div>
+        <div style="font-size:8px;color:rgba(255,255,255,.5);line-height:1.6">
+          <div>✓ FC-07 LeadQual: 12 leads qualified — APPROVED 2h ago</div>
+          <div>✓ DeepSearch: arxiv scan completed — AUTO-APPROVED 4h ago</div>
+          <div>✕ MarketWatch: BTC alert threshold change — DENIED 6h ago (too aggressive)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal" id="settings-m">
+  <div class="mbox" style="max-width:480px">
+    <div class="mhdr"><div class="mtitle"><i class="fas fa-key" style="color:var(--warn)"></i>KARMA OS SETTINGS</div><div style="display:flex;gap:8px;align-items:center"><span id="n8n-status" style="font-size:9px;color:var(--muted)"></span><button class="mclose" onclick="closeM('settings-m')">✕</button></div></div>
+    <div class="mbody">
+      <div class="set-section">API KEYS</div>
+      <div class="set-row"><div class="set-lbl">Anthropic Claude API Key</div><input class="set-input" id="s-claude" type="password" placeholder="sk-ant-..."/><div style="font-size:7.5px;color:rgba(255,255,255,.2)">Powers: KARMA · Impossible Desk · All 26 agents</div></div>
+      <div class="set-row"><div class="set-lbl">OpenAI API Key <span style="color:var(--muted);font-size:7px">(optional)</span></div><input class="set-input" id="s-openai" type="password" placeholder="sk-..."/><div style="font-size:7.5px;color:rgba(255,255,255,.2)">Powers: GPT-4o via Impossible Desk · Oracle predictions</div></div>
+      <div class="set-section">MCP SERVERS <span style="color:var(--ac3);font-size:7px">· Model Context Protocol</span></div>
+      <div class="set-row"><div class="set-lbl">MCP Server URL</div><input class="set-input" id="s-mcp-url" placeholder="http://localhost:3100"/><div style="font-size:7.5px;color:rgba(255,255,255,.2)">Connect MCP tools: filesystem, git, web search, custom</div></div>
+      <div class="set-row"><div class="set-lbl">MCP Auth Token <span style="color:var(--muted);font-size:7px">(optional)</span></div><input class="set-input" id="s-mcp-token" type="password" placeholder="Bearer token..."/></div>
+      <div id="mcp-status" style="font-size:8px;margin-top:4px;font-family:'JetBrains Mono',monospace;color:var(--muted)">MCP: Not connected · Add server URL to activate</div>
+      <div class="set-section">CONNECTIONS</div>
+      <div class="set-row"><div class="set-lbl">GitHub Username</div><input class="set-input" id="s-github" placeholder="tellemthatsme"/></div>
+      <div class="set-row"><div class="set-lbl">n8n Webhook URL</div><input class="set-input" id="s-n8n" placeholder="http://localhost:5678/webhook/..."/><div style="font-size:7.5px;color:rgba(255,255,255,.2)">Connect n8n for workflow automation</div></div>
+      <div class="set-row"><div class="set-lbl">KARMA INTEL URL</div><input class="set-input" id="s-intel" placeholder="http://localhost:7337"/></div>
+      <div class="set-row"><div class="set-lbl">Gate Code</div><input class="set-input" id="s-gate" placeholder="OVERRIDE"/></div>
+      <div class="set-section">THEME</div>
+      <div class="theme-grid">
+        <div class="theme-btn active" onclick="setTheme('cyberpunk')">CYBERPUNK</div>
+        <div class="theme-btn" onclick="setTheme('stealth')">STEALTH</div>
+        <div class="theme-btn" onclick="setTheme('matrix')">MATRIX</div>
+        <div class="theme-btn" onclick="setTheme('aurora')">AURORA</div>
+      </div>
+      <button class="set-save" onclick="saveSettings()">SAVE &amp; APPLY</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+// KARMA OS v25 · ULTIMATE · AI ARMY
+// 25 Agents · Footclan Workers · Hermes Messenger
+// OpenHuman · OpenClaw Swarm · n8n Integration
+// ═══════════════════════════════════════════════════════
+
+window._karmaStart = parseInt(localStorage.getItem('ko_start')) || Date.now();
+localStorage.setItem('ko_start', window._karmaStart);
+
+const S = {
+  claudeKey: localStorage.getItem('ko_claude') || '',
+  openaiKey: localStorage.getItem('ko_openai') || '',
+  mcpUrl: localStorage.getItem('ko_mcp_url') || '',
+  mcpToken: localStorage.getItem('ko_mcp_token') || '',
+  ghUser: localStorage.getItem('ko_gh') || 'tellemthatsme',
+  n8nUrl: localStorage.getItem('ko_n8n') || 'http://localhost:5678',
+  intelUrl: localStorage.getItem('ko_intel') || 'http://localhost:7337',
+  gateCode: localStorage.getItem('ko_gate') || 'OVERRIDE',
+  theme: localStorage.getItem('ko_theme') || 'cyberpunk',
+  muted: localStorage.getItem('ko_muted') === 'true',
+  karmaHistory: [],
+  isListening: false, recognition: null,
+  startTime: Date.now(),
+  agents: [],
+  footclan: [],
+  workflows: [],
+  hermesMessages: [],
+};
+
+// AGENT DEFINITIONS — CrewAI-style multi-role architecture
+const AGENTS = [
+  // COMMAND LAYER
+  { id: 'karma', n: 'KARMA Commander', i: '🦊', bg: '#00d4ff22', s: 'so', t: 'Commanding 25 agents', role: 'commander', crew: 'command', skills: ['strategy', 'orchestration', '决策'] },
+  { id: 'auggie', n: 'Auggie Voice AI', i: '🎤', bg: '#00d4ff22', s: 'so', t: 'Listening for commands', role: 'voice', crew: 'command', skills: ['stt', 'tts', 'voice-cmd'] },
+  { id: 'oracle', n: 'Oracle Prediction', i: '👁', bg: '#b347ff22', s: 'so', t: 'Forecasting trends', role: 'prediction', crew: 'command', skills: ['prediction', 'analytics', 'trends'] },
+  // SWARM LAYER
+  { id: 'openclaw', n: 'OpenClaw Swarm', i: '🕸', bg: '#00ff9d22', s: 'so', t: 'Swarm: 26 nodes active', role: 'swarm', crew: 'swarm', skills: ['network', 'topology', 'connections'] },
+  { id: 'hermes', n: 'Hermes Messenger', i: '📡', bg: '#b347ff22', s: 'so', t: 'Inter-agent messages', role: 'messenger', crew: 'swarm', skills: ['routing', 'notifications', 'broadcast'] },
+  { id: 'nexus', n: 'Nexus Protocol', i: '🔗', bg: '#a78bfa22', s: 'so', t: 'API integrations', role: 'integration', crew: 'swarm', skills: ['mcp', 'webhooks', 'api-gateway'] },
+  // SPECIALIST LAYER
+  { id: 'deepsearch', n: 'DeepSearch', i: '🔮', bg: '#b347ff22', s: 'sb', t: 'Researching AI papers', role: 'research', crew: 'specialist', skills: ['arxiv', 'web-search', 'papers'] },
+  { id: 'codeagent', n: 'CodeAgent', i: '⚡', bg: '#ff6b3522', s: 'so', t: 'Code review +生成', role: 'coder', crew: 'specialist', skills: ['pr-review', 'code-gen', 'refactor'] },
+  { id: 'apollo', n: 'Apollo Coder', i: '🛠️', bg: '#ff6b3522', s: 'so', t: 'Full-stack code generation', role: 'coder', crew: 'specialist', skills: ['react', 'node', 'python', 'fullstack'] },
+  { id: 'nova', n: 'Nova Designer', i: '🎨', bg: '#f9a8d422', s: 'so', t: 'UI/UX generation', role: 'designer', crew: 'specialist', skills: ['html', 'css', 'design', 'figma'] },
+  // MARKETING LAYER
+  { id: 'ashlee', n: 'Ash Lee AI', i: '💜', bg: '#ff336622', s: 'so', t: 'Content pipeline', role: 'content', crew: 'marketing', skills: ['bluesky', 'social', 'blog', 'copy'] },
+  { id: 'footclan', n: 'Footclan HQ', i: '👥', bg: '#ff6b3522', s: 'so', t: '8 workers ready', role: 'workers', crew: 'marketing', skills: ['scraping', 'outreach', 'lead-gen'] },
+  // OPERATIONS LAYER
+  { id: 'marketwatch', n: 'MarketWatch', i: '📈', bg: '#ff6b3522', s: 'so', t: 'BTC · ETH · SOL', role: 'analytics', crew: 'ops', skills: ['crypto', 'alerts', 'portfolio'] },
+  { id: 'intelagent', n: 'IntelAgent', i: '🧠', bg: '#b347ff22', s: 'sb', t: 'KARMA INTEL sync', role: 'intel', crew: 'ops', skills: ['feeds', 'rss', 'news'] },
+  { id: 'gitops', n: 'GitOpsAgent', i: '🐙', bg: '#ff6b3522', s: 'sb', t: 'Syncing repos', role: 'devops', crew: 'ops', skills: ['github', 'sync', 'ci/cd'] },
+  { id: 'synservice', n: 'SyncService', i: '🔄', bg: '#00d4ff22', s: 'so', t: 'Fleet sync active', role: 'infrastructure', crew: 'ops', skills: ['sync', 'backup', 'replication'] },
+  { id: 'uptimebot', n: 'UptimeBot', i: '🔔', bg: '#00ff9d22', s: 'so', t: 'All sites OK', role: 'monitoring', crew: 'ops', skills: ['uptime', 'ping', 'alerts'] },
+  { id: 'rssagent', n: 'RSSAgent', i: '📰', bg: '#b347ff22', s: 'so', t: 'RSS feeds active', role: 'feeds', crew: 'ops', skills: ['rss', 'aggregation', 'filter'] },
+  { id: 'invoicebot', n: 'InvoiceBot', i: '💰', bg: '#ff6b3522', s: 'so', t: 'Tracking revenue', role: 'finance', crew: 'ops', skills: ['invoicing', 'tracking', 'reports'] },
+  // HUMAN-IN-LOOP LAYER
+  { id: 'openhuman', n: 'OpenHuman', i: '👤', bg: '#00d4ff22', s: 'so', t: '2 approvals pending', role: 'approval', crew: 'human', skills: ['approvals', 'authorization', 'ethics'] },
+  // AUTOMATION LAYER
+  { id: 'n8norch', n: 'n8n Orchestrator', i: '⚙️', bg: '#00ff9d22', s: 'so', t: '4 workflows active', role: 'automation', crew: 'auto', skills: ['n8n', 'workflows', 'triggers'] },
+  { id: 'mcpbridge', n: 'MCP Bridge', i: '🌉', bg: '#a78bfa22', s: 'so', t: 'MCP protocol handler', role: 'mcp', crew: 'auto', skills: ['mcp-server', 'tools', 'resources'] },
+  { id: 'zapier', n: 'Zapier Connector', i: '⚡', bg: '#ff6b3522', s: 'sb', t: 'Zapier automation', role: 'zapier', crew: 'auto', skills: ['zapier', 'integrations', 'automation'] },
+  { id: 'cronus', n: 'Cronus Scheduler', i: '⏰', bg: '#b347ff22', s: 'so', t: 'Scheduled tasks', role: 'scheduler', crew: 'auto', skills: ['cron', 'scheduling', 'tasks'] },
+  { id: 'dataflow', n: 'DataFlow ETL', i: '🔄', bg: '#00ff9d22', s: 'so', t: 'Data pipeline', role: 'etl', crew: 'auto', skills: ['etl', 'transform', 'pipeline'] },
+];
+
+// Agent crews for CrewAI-style delegation
+const AGENT_CREWS = {
+  command: { name: 'Command', color: '#00d4ff', icon: '🦊', agents: ['karma', 'auggie', 'oracle'] },
+  swarm: { name: 'Swarm', color: '#00ff9d', icon: '🕸', agents: ['openclaw', 'hermes', 'nexus'] },
+  specialist: { name: 'Specialist', color: '#b347ff', icon: '🔮', agents: ['deepsearch', 'codeagent', 'apollo', 'nova'] },
+  marketing: { name: 'Marketing', color: '#ff3366', icon: '📣', agents: ['ashlee', 'footclan'] },
+  ops: { name: 'Operations', color: '#ff6b35', icon: '⚙️', agents: ['marketwatch', 'intelagent', 'gitops', 'synservice', 'uptimebot', 'rssagent', 'invoicebot'] },
+  human: { name: 'Human-in-Loop', color: '#00d4ff', icon: '👤', agents: ['openhuman'] },
+  auto: { name: 'Automation', color: '#00ff9d', icon: '⚡', agents: ['n8norch', 'mcpbridge', 'zapier', 'cronus', 'dataflow'] },
+};
+
+// FOOTCLAN WORKERS — distributed task execution army
+const FOOTCLAN = [
+  { id: 'fc01', n: 'FC-01 Research', i: '🔬', s: 'active', task: 'Scanning arxiv for AI papers', progress: 72, assigned: 'deepsearch' },
+  { id: 'fc02', n: 'FC-02 CodeReview', i: '🔍', s: 'busy', task: 'Reviewing PR #47 — nova-hub', progress: 45, assigned: 'codeagent' },
+  { id: 'fc03', n: 'FC-03 Content', i: '✍️', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc04', n: 'FC-04 DataScrape', i: '📊', s: 'active', task: 'Collecting competitor pricing', progress: 88, assigned: 'marketwatch' },
+  { id: 'fc05', n: 'FC-05 ReportGen', i: '📝', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc06', n: 'FC-06 Outreach', i: '📧', s: 'busy', task: 'Sending cold emails batch 3/5', progress: 60, assigned: 'footclan' },
+  { id: 'fc07', n: 'FC-07 LeadQual', i: '🎯', s: 'active', task: 'Qualifying Contra leads', progress: 35, assigned: 'nexus' },
+  { id: 'fc08', n: 'FC-08 Monitor', i: '👁', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+
+  { id: 'fc09', n: 'FC-09 SEOAudit', i: '🔍', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc10', n: 'FC-10 Backlink', i: '🔗', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc11', n: 'FC-11 CopyWrite', i: '✏️', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc12', n: 'FC-12 QATest', i: '🧪', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc13', n: 'FC-13 SEOOptim', i: '📊', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc14', n: 'FC-14 SocialMed', i: '📱', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc15', n: 'FC-15 EmailCrt', i: '📧', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc16', n: 'FC-16 DataAnly', i: '🔢', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc17', n: 'FC-17 LinkBldg', i: '🔗', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc18', n: 'FC-18 CompetAn', i: '🎯', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc19', n: 'FC-19 RankTrck', i: '📈', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+  { id: 'fc20', n: 'FC-20 ConvOptim', i: '💰', s: 'idle', task: 'Awaiting task', progress: 0, assigned: null },
+];
+
+// Task queue for Footclan
+let TASK_QUEUE = [
+  { id: 't1', name: 'Scrape AI tool pricing from G2', priority: 'high', status: 'pending', assigned: 'fc01', created: Date.now() },
+  { id: 't2', name: 'Review PR #48 on nova-hub', priority: 'medium', status: 'pending', assigned: 'fc03', created: Date.now() },
+  { id: 't3', name: 'Generate weekly analytics report', priority: 'low', status: 'pending', assigned: 'fc08', created: Date.now() },
+];
+
+// Assign task to idle worker
+function assignTask(taskName, priority = 'medium') {
+  const idle = FOOTCLAN.find(f => f.s === 'idle');
+  if (!idle) { toast('No idle workers available'); return null; }
+  const task = { id: 't' + Date.now(), name: taskName, priority, status: 'active', assigned: idle.id, created: Date.now() };
+  TASK_QUEUE.push(task);
+  idle.s = 'active'; idle.task = taskName; idle.progress = 0;
+  addFeed({ t: 'info', i: '👥', m: `Task assigned: ${taskName} → ${idle.n}` });
+  renderFootclan();
+  return task;
+}
+
+// Complete task and free worker
+function completeTask(taskId) {
+  const task = TASK_QUEUE.find(t => t.id === taskId);
+  if (!task) return;
+  task.status = 'done';
+  task.completed = Date.now();
+  const w = FOOTCLAN.find(f => f.assigned === task.agent || f.task === task.name || f.id === task.assigned);
+  if (w) { w.s = 'idle'; w.task = 'Awaiting task'; w.progress = 0; w.assigned = null; }
+  addFeed({ t: 'success', i: '✅', m: 'Task complete: ' + task.name });
+  renderTaskQueue();
+  renderFootclan();
+}
+
+
+function renderFootclan() {
+  const list = document.getElementById('worker-list');
+  if (!list) return;
+  list.innerHTML = FOOTCLAN.map(f => `
+    <div class="worker-item">
+      <div class="worker-status ${f.s}"></div>
+      <div style="flex:1">
+        <div class="worker-name">${f.n}${f.assigned ? ` <span style="color:var(--muted);font-size:7px">→ ${f.assigned.toUpperCase()}</span>` : ''}</div>
+        <div class="worker-task">${f.task}</div>
+        <div class="task-progress"><div class="task-progress-bar" style="width:${f.progress}%"></div></div>
+      </div>
+      ${f.s === 'busy' ? `<button onclick="completeTask('${TASK_QUEUE.find(t => t.assigned === f.id)?.id}')" style="background:rgba(0,255,157,.15);border:1px solid rgba(0,255,157,.25);color:var(--ac3);border-radius:3px;padding:2px 6px;font-size:7px;cursor:pointer">✓</button>` : ''}
+    </div>`).join('');
+  // Update stats
+  const active = FOOTCLAN.filter(f => f.s !== 'idle').length;
+  if (document.getElementById('worker-count')) document.getElementById('worker-count').textContent = active + '/' + FOOTCLAN.length;
+}
+
+// Render army modal specialists and footclan dynamically
+function renderArmyModal() {
+  const specs = AGENTS.filter(a => a.id !== 'karma');
+  const specList = document.getElementById('army-specialists');
+  const fcList = document.getElementById('army-fc-list');
+  if (!specList || !fcList) return;
+  if (specList) {
+    specList.innerHTML = specs.map(a => `
+      <div style="display:flex;align-items:center;gap:6px;padding:4px;background:rgba(0,212,255,.05);border-radius:4px">
+        <span style="font-size:10px">${a.i || '&#x1F4BB;'}</span>
+        <span style="color:var(--ac)">${a.n}</span>
+        <span style="color:var(--muted);font-size:7px;margin-left:auto">${a.skills ? a.skills[0] : a.role}</span>
+      </div>`).join('');
+  }
+  const specCount = document.getElementById('army-spec-count');
+  if (specCount) specCount.textContent = specs.length;
+  if (fcList) {
+    fcList.innerHTML = FOOTCLAN.map(f => `
+      <div style="background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.15);border-radius:5px;padding:5px;text-align:center">
+        <span style="font-size:14px">${f.i}</span>
+        <div style="font-size:7.5px;margin-top:2px">${f.id.toUpperCase()}</div>
+        <div style="color:var(--muted);font-size:6.5px">${f.n.replace(/^FC-\d+ /,'')}</div>
+      </div>`).join('');
+  }
+  const fcCount = document.getElementById('army-fc-count');
+  if (fcCount) fcCount.textContent = FOOTCLAN.length;
+  const armyAgentCount = document.getElementById('army-agent-count');
+  if (armyAgentCount) armyAgentCount.textContent = AGENTS.length + ' agents';
+}
+
+
+// Simulate Footclan progress
+setInterval(() => {
+  FOOTCLAN.forEach(f => {
+    if (f.s === 'active' || f.s === 'busy') {
+      f.progress = Math.min(100, f.progress + Math.random() * 8);
+      if (f.progress >= 100) { f.s = 'idle'; f.task = 'Awaiting task'; f.progress = 0; addFeed({ t: 'success', i: '✅', m: f.n + ' task complete' }); }
+    }
+  });
+  renderFootclan();
+}, 3000);
+
+// WORKFLOWS — n8n webhook triggers with real HTTP calls
+const WORKFLOWS = [
+  { id: 'ash-lee-post', n: 'Ash Lee Daily Post', icon: '📰', type: 'scheduled', time: '18:30 AEST', status: 'active', webhook: '/webhook/ash-lee-post' },
+  { id: 'intel-sync', n: 'KARMA INTEL Sync', icon: '📡', type: 'interval', interval: '5min', status: 'active', webhook: '/webhook/intel-sync' },
+  { id: 'uptime-check', n: 'Uptime Monitor', icon: '🔔', type: 'interval', interval: '1min', status: 'active', webhook: '/webhook/uptime' },
+  { id: 'crypto-alert', n: 'BTC Alert System', icon: '💹', type: 'condition', cond: '>$70k', status: 'paused', webhook: '/webhook/crypto-alert' },
+  { id: 'client-followup', n: 'Client Follow-up', icon: '📧', type: 'scheduled', time: 'Daily 09:00', status: 'active', webhook: '/webhook/client-followup' },
+  { id: 'lead-qual', n: 'Lead Qualification', icon: '🤖', type: 'trigger', trigger: 'Contra webhook', status: 'active', webhook: '/webhook/lead-qual' },
+  { id: 'deploy-fleet', n: 'Deploy Fleet', icon: '🚀', type: 'manual', status: 'active', webhook: '/webhook/deploy' },
+  { id: 'research-arxiv', n: 'Research Arxiv', icon: '🔬', type: 'manual', status: 'active', webhook: '/webhook/research' },
+];
+
+// Real n8n webhook trigger
+// n8n round-robin counter for load-balanced worker assignment
+let _n8nRetry = 0;
+
+async function triggerN8NWorkflow(id, retries = 2) {
+  const wf = WORKFLOWS.find(w => w.id === id);
+  if (!wf) return;
+  const url = S.n8nUrl + wf.webhook;
+  addFeed({ t: 'info', i: '⚙️', m: 'n8n: Triggering — ' + wf.n + ' @ ' + url });
+  toast('n8n: ' + wf.n);
+  const payload = JSON.stringify({ ts: Date.now(), source: 'karma-os', workflow: id, agent: 'karma' });
+  let lastError = 'unknown';
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        addFeed({ t: 'success', i: '✅', m: 'n8n: ' + wf.n + ' — triggered OK' + (attempt > 0 ? ' (attempt ' + attempt + ')' : '') });
+        _n8nRetry = 0;
+        return;
+      } else if (r.status >= 500 && attempt < retries) {
+        lastError = 'server error ' + r.status;
+        await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt))); // exponential backoff
+        continue;
+      } else {
+        addFeed({ t: 'warn', i: '⚠️', m: 'n8n: ' + wf.n + ' — status ' + r.status });
+        return;
+      }
+    } catch (e) {
+      lastError = e.message.includes('timeout') ? 'timeout' : 'network error';
+      if (attempt < retries) await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
+    }
+  }
+  addFeed({ t: 'info', i: '⚙️', m: 'n8n: ' + wf.n + ' queued — ' + lastError + ' (retries exhausted)' });
+  _n8nRetry++;
+}
+
+// Test n8n connection and show status
+function testN8NConnection() {
+  const el = document.getElementById('n8n-status');
+  if (!el) return;
+  if (!S.n8nUrl) { el.textContent = 'n8n: Not configured · add URL in Settings'; el.style.color = 'var(--muted)'; return; }
+  el.textContent = 'n8n: Testing connection...';
+  fetch(S.n8nUrl + '/health', { signal: AbortSignal.timeout(4000) })
+    .then(r => { if (r.ok) { el.textContent = 'n8n: Connected ✓'; el.style.color = 'var(--ac3)'; } else { el.textContent = 'n8n: Server error ' + r.status; el.style.color = 'var(--warn)'; } })
+    .catch(() => { el.textContent = 'n8n: Unreachable · check URL'; el.style.color = 'var(--err)'; });
+}
+
+// Trigger workflow (button click)
+function triggerWorkflow(id) {
+  triggerN8NWorkflow(id);
+}
+
+// MCP Bridge connection check
+function checkMCPStatus() {
+  const el = document.getElementById('mcp-status');
+  if (!el) return;
+  if (!S.mcpUrl) { el.textContent = 'MCP: Not connected · Add server URL to activate'; el.style.color = 'var(--muted)'; return; }
+  el.textContent = 'MCP: Connecting...';
+  fetch(S.mcpUrl + '/health', { signal: AbortSignal.timeout(4000) })
+    .then(r => { if (r.ok) { el.textContent = 'MCP: Connected ✓'; el.style.color = 'var(--ac3)'; } else { el.textContent = 'MCP: Server error ' + r.status; el.style.color = 'var(--warn)'; } })
+    .catch(() => { el.textContent = 'MCP: Unreachable · check URL or start server'; el.style.color = 'var(--err)'; });
+}
+
+// Create Footclan task
+function createTask() {
+  const input = document.getElementById('new-task-input');
+  const task = input?.value.trim();
+  if (!task) return;
+  input.value = '';
+  const priorities = ['low','medium','high','critical'];
+  const agents = ['auggie','openclaw','marketwatch','oracle','deepsearch','codeagent','ash-lee'];
+  const id = 't' + Date.now();
+  TASK_QUEUE.push({ id, task, priority: priorities[Math.floor(Math.random()*priorities.length)], status: 'pending', created: Date.now(), agent: agents[Math.floor(Math.random()*agents.length)] });
+  addFeed({ t: 'info', i: '📋', m: 'Task queued: ' + task.substring(0,40) });
+  renderTaskQueue();
+  toast('Task created');
+}
+
+// Render task queue (OpenHuman)
+function renderTaskQueue() {
+  const el = document.getElementById('task-list');
+  if (!el) return;
+  const pending = TASK_QUEUE.filter(t => t.status === 'pending');
+  const done = TASK_QUEUE.filter(t => t.status === 'done').slice(-5).reverse();
+  el.innerHTML = '<div style="font-size:8px;color:var(--ac3);margin-bottom:6px">PENDING (' + pending.length + ')</div>' +
+    pending.map(t => '<div class="task-item ' + t.priority + '"><div style="display:flex;align-items:center;gap:4px"><span class="task-pri ' + t.priority + '">' + t.priority.charAt(0).toUpperCase() + '</span><span style="font-size:9px">' + t.task + '</span></div><div style="display:flex;gap:4px;margin-top:4px"><button onclick="approveTask(\'' + t.id + '\')" style="background:rgba(0,255,157,.1);border:1px solid rgba(0,255,157,.25);color:var(--ac3);border-radius:3px;padding:2px 8px;font-size:7px;cursor:pointer">✓ Approve</button><button onclick="rejectTask(\'' + t.id + '\')" style="background:rgba(255,60,60,.1);border:1px solid rgba(255,60,60,.25);color:var(--err);border-radius:3px;padding:2px 8px;font-size:7px;cursor:pointer">✕ Reject</button></div></div>').join('') +
+    (done.length ? '<div style="font-size:8px;color:var(--muted);margin-top:10px;margin-bottom:4px">COMPLETED</div>' + done.map(t => '<div style="font-size:8px;color:var(--muted);text-decoration:line-through;padding:2px 0">' + t.task + '</div>').join('') : '');
+  const badge = document.getElementById('oh-count');
+  if (badge) badge.textContent = pending.length;
+}
+
+// Approve a task
+// Round-robin counter for Footclan task assignment (load-balanced)
+let _fcRR = 0;
+
+function approveTask(id) {
+  const t = TASK_QUEUE.find(t => t.id === id);
+  if (!t) return;
+  t.status = 'approved';
+  t.approved = Date.now();
+  // Round-robin: start scan from _fcRR position, wrap around
+  let start = _fcRR % FOOTCLAN.length;
+  let w = null;
+  for (let i = 0; i < FOOTCLAN.length; i++) {
+    const idx = (start + i) % FOOTCLAN.length;
+    const f = FOOTCLAN[idx];
+    if (f.s === 'idle' || f.s === 'active') {
+      w = f;
+      _fcRR = idx + 1; // next start position
+      break;
+    }
+  }
+  if (w) { w.s = 'active'; w.task = t.task; w.progress = 0; w.assigned = t.agent; }
+  addFeed({ t: 'success', i: '✅', m: 'Task approved → assigned to Footclan' + (w ? ' (' + w.id + ')' : ' (all busy)') });
+  renderTaskQueue();
+  renderFootclan();
+}
+
+// Reject a task
+function rejectTask(id) {
+  const t = TASK_QUEUE.find(t => t.id === id);
+  if (!t) return;
+  t.status = 'rejected';
+  addFeed({ t: 'warn', i: '⚠️', m: 'Task rejected: ' + t.task.substring(0,40) });
+  renderTaskQueue();
+}
+
+// Hermes notification center
+const HERMES_NOTIFS = [];
+function addNotif(msg, type='info') {
+  HERMES_NOTIFS.unshift({ msg, type, ts: Date.now() });
+  if (HERMES_NOTIFS.length > 50) HERMES_NOTIFS.pop();
+  const el = document.getElementById('hermes-notifs');
+  if (el) el.innerHTML = HERMES_NOTIFS.slice(0,10).map(n => '<div class="notif-item ' + n.type + '"><span style="font-size:7px;color:var(--muted)">' + new Date(n.ts).toLocaleTimeString() + '</span><span style="font-size:8px;margin-left:4px">' + n.msg + '</span></div>').join('');
+  const badge = document.getElementById('hermes-badge');
+  if (badge) { const cnt = HERMES_NOTIFS.filter(n => Date.now() - n.ts < 300000).length; badge.textContent = cnt; badge.style.display = cnt > 0 ? 'flex' : 'none'; }
+}
+
+// Hermes broadcast to all agents
+function hermesBroadcast(msg) {
+  if (!msg) return;
+  const bmsg = msg.trim();
+  if (!bmsg) return;
+  addNotif('📡 BROADCAST: ' + bmsg);
+  addFeed({ t: 'info', i: '📡', m: 'Hermes broadcast: ' + bmsg });
+  // Distribute to all agents
+  setTimeout(() => addFeed({ t: 'success', i: '🦊', m: 'Auggie received: ' + bmsg.substring(0,30) + '...' }), 200);
+  setTimeout(() => addFeed({ t: 'success', i: '🕸', m: 'OpenClaw received' }), 400);
+  setTimeout(() => addFeed({ t: 'success', i: '🔮', m: 'Oracle received' }), 600);
+  setTimeout(() => addFeed({ t: 'success', i: '🔍', m: 'DeepSearch received' }), 800);
+  setTimeout(() => addFeed({ t: 'success', i: '💹', m: 'MarketWatch received' }), 1000);
+  toast('Broadcast sent to all agents');
+  const thread = document.getElementById('hermes-thread');
+  if (thread) thread.scrollTop = thread.scrollHeight;
+}
+
+// VOICE COMMANDS MAP — 35+ commands with context awareness
+const VOICE_COMMANDS = {
+  // System Commands
+  'status': 'Show system status', 'agents': 'List all AI agents', 'army': 'Open army overview',
+  'hermes': 'Open Hermes messenger', 'boost': 'Engage system boost', 'turbo': 'Engage system boost',
+  'sync': 'Sync all agents', 'fleet sync': 'Sync all agents', 'refresh': 'Sync all agents',
+  'mute': 'Mute audio', 'unmute': 'Unmute audio', 'audio off': 'Mute audio', 'audio on': 'Unmute audio',
+  'what time': 'Show current time', 'time': 'Show current time', 'clock': 'Show current time',
+  // Theme Commands
+  'stealth': 'Switch to stealth theme', 'stealth mode': 'Switch to stealth theme',
+  'matrix': 'Switch to matrix theme', 'matrix mode': 'Switch to matrix theme',
+  'aurora': 'Switch to aurora theme', 'aurora mode': 'Switch to aurora theme',
+  'cyberpunk': 'Switch to cyberpunk theme', 'cyber mode': 'Switch to cyberpunk theme',
+  // Open Commands
+  'open github': 'Open GitHub', 'open claude': 'Open Claude AI', 'open contra': 'Open Contra',
+  'open bluesky': 'Open Bluesky', 'open n8n': 'Open n8n', 'open intel': 'Open KARMA INTEL',
+  'open settings': 'Open settings', 'open impossible': 'Open impossible desk',
+  // Intelligence Commands
+  'intel deal': 'Get latest AI deals', 'deals': 'Get latest AI deals', 'free stuff': 'Get latest deals',
+  'intel news': 'Get latest AI news', 'news': 'Get latest AI news', 'ai news': 'Get latest AI news',
+  // Agent Commands
+  'approve': 'Show pending approvals', 'approvals': 'Show pending approvals',
+  'footclan': 'Show footclan status', 'workers': 'Show footclan status',
+  'workflow': 'Show active workflows', 'workflows': 'Show active workflows', 'automations': 'Show active workflows',
+  // Task Commands
+  'new task': 'Create new task for Footclan', 'add task': 'Create new task for Footclan',
+  'deploy': 'Trigger deployment workflow', 'deploy now': 'Trigger deployment workflow',
+  // Market Commands
+  'crypto': 'Show crypto prices', 'bitcoin price': 'Show BTC price', 'eth price': 'Show ETH price',
+  // Crew Commands
+  'crew status': 'Show all crews status', 'specialists': 'Show specialist agents',
+  'operations': 'Show ops agents', 'marketing': 'Show marketing agents',
+  // Communication
+  'broadcast': 'Open Hermes broadcast', 'message all': 'Open Hermes broadcast',
+  'oracle': 'Run Oracle prediction', 'predict': 'Run Oracle prediction',
+  // Research
+  'research': 'Start DeepSearch task', 'search arxiv': 'Start research task',
+  'code review': 'Start code review task', 'review code': 'Start code review task',
+  // Content
+  'post content': 'Trigger Ash Lee post', 'social post': 'Trigger Ash Lee post',
+  'linkedin': 'Post to LinkedIn', 'twitter': 'Post to Twitter/X',
+};
+
+// Extended voice command handler with crew delegation
+function handleVoiceCmd(text) {
+  const t = text.toLowerCase().trim();
+  
+  const reply = (msg, speak = true) => {
+    document.getElementById('voice-reply').textContent = msg;
+    document.getElementById('voice-status-txt').textContent = 'Command executed';
+    if (!S.muted && speak && 'speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(msg);
+      window.speechSynthesis.speak(u);
+    }
+    addFeed({ t: 'success', i: '🎤', m: 'Voice: ' + msg.substring(0, 50) });
+    return true;
+  };
+  
+  // Check all voice commands
+  if (t.startsWith('open ')) {
+    const target = t.replace(/^open /, '');
+    const urls = {
+      github: 'https://github.com/' + S.ghUser, claude: 'https://claude.ai', contra: 'https://contra.com',
+      bluesky: 'https://bsky.app', n8n: S.n8nUrl, intel: S.intelUrl,
+      settings: null, impossible: null
+    };
+    if (target === 'settings') { openM('settings-m'); return reply('Settings open'); }
+    if (target === 'impossible') { openM('imp-m'); return reply('Impossible Desk open'); }
+    const url = urls[target] || (target.includes('.') ? 'https://' + target : `https://google.com/search?q=${encodeURIComponent(target)}`);
+    if (url) window.open(url, '_blank');
+    return reply('Opening ' + target);
+  }
+  
+  // Theme commands
+  if (t.includes('stealth')) { setTheme('stealth'); return reply('Stealth mode activated'); }
+  if (t.includes('matrix')) { setTheme('matrix'); return reply('Matrix mode loaded'); }
+  if (t.includes('aurora')) { setTheme('aurora'); return reply('Aurora theme set'); }
+  if (t.includes('cyberpunk') || t.includes('cyber')) { setTheme('cyberpunk'); return reply('Cyberpunk restored'); }
+  
+  // Status commands
+  if (t.includes('status')) { openM('army-m'); return reply('Army overview — ' + AGENTS.length + ' agents active'); }
+  if (t.includes('army')) { openM('army-m'); return reply('AI Army — ' + AGENTS.length + ' agents across ' + Object.keys(AGENT_CREWS).length + ' crews'); }
+  if (t.includes('hermes')) { openM('hermes-m'); return reply('Hermes messenger open'); }
+  if (t.includes('boost') || t.includes('turbo')) { triggerBoost(); return reply('System boost engaged'); }
+  if (t.includes('sync') || t.includes('fleet')) { sendCmd('sync'); return reply('Fleet sync initiated'); }
+  if (t.includes('mute')) { S.muted = true; localStorage.setItem('ko_muted', 'true'); setVol(0); return reply('Audio muted', false); }
+  if (t.includes('unmute') || t.includes('audio on')) { S.muted = false; localStorage.setItem('ko_muted', 'false'); setVol(0.28); return reply('Audio on'); }
+  if (t.includes('what time') || t.includes('time') || t.includes('clock')) { return reply("It's " + new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' Sydney time'); }
+  
+  // Agent commands
+  if (t.includes('approve')) { openM('openhuman-m'); return reply('OpenHuman — ' + TASK_QUEUE.filter(t => t.status === 'pending').length + ' approvals pending'); }
+  if (t.includes('footclan') || t.includes('workers')) {
+    const active = FOOTCLAN.filter(f => f.s !== 'idle').length;
+    openM('army-m');
+    return reply('Footclan: ' + active + ' active, ' + (FOOTCLAN.length - active) + ' idle');
+  }
+  if (t.includes('workflow') || t.includes('automation')) { sendCmd('workflows'); return reply('Showing ' + WORKFLOWS.length + ' active workflows'); }
+  if (t.includes('impossible')) { openM('imp-m'); return reply('Impossible Desk open — make it happen'); }
+  
+  // Intelligence commands
+  if (t.includes('deal') || t.includes('free')) {
+    addFeed({ t: 'info', i: '📡', m: 'Deals: Cursor 40% off CURSOR40, Windsurf 50% off WIND50, Railway 3mo RAILWAY26' });
+    return reply('Top deals: Cursor, Windsurf, Railway free credits');
+  }
+  if (t.includes('news') || t.includes('intel')) {
+    addFeed({ t: 'info', i: '📡', m: 'AI News: Claude Sonnet 4.6, OpenAI o3 API, Gemini 2.5 Pro benchmarks' });
+    return reply('AI News: Claude, OpenAI, Gemini updates loaded');
+  }
+  
+  // Crew status
+  if (t.includes('crew') || t.includes('specialist')) {
+    const crewStatus = Object.entries(AGENT_CREWS).map(([k, v]) => `${v.name}: ${v.agents.length} agents`).join(' · ');
+    return reply('Crews: ' + crewStatus);
+  }
+  
+  // Oracle
+  if (t.includes('oracle') || t.includes('predict')) { oraclePulse(); return reply('Oracle prediction engine running'); }
+  
+  // Crypto
+  if (t.includes('crypto') || t.includes('bitcoin') || t.includes('btc')) {
+    const bp = document.getElementById('bp')?.textContent || '--';
+    return reply('BTC: ' + bp + ' · ETH: ' + (document.getElementById('ep')?.textContent || '--'));
+  }
+  
+  // New task
+  if (t.includes('new task') || t.includes('add task')) {
+    const taskName = text.replace(/^(new task|add task)\s*/i, '').trim() || 'General task';
+    const task = assignTask(taskName);
+    return reply(task ? 'Task assigned: ' + taskName : 'No idle workers available');
+  }
+  
+  // Deploy
+  if (t.includes('deploy')) {
+    triggerN8NWorkflow('deploy');
+    return reply('Deployment workflow triggered via n8n');
+  }
+  
+  // Research
+  if (t.includes('research') || t.includes('search arxiv')) {
+    assignTask('Research task from voice command', 'high');
+    return reply('Research task assigned to Footclan');
+  }
+  
+  // Code review
+  if (t.includes('code review') || t.includes('review code')) {
+    assignTask('Code review task', 'medium');
+    return reply('Code review assigned to available worker');
+  }
+  
+  // Post content
+  if (t.includes('post') && (t.includes('content') || t.includes('social'))) {
+    triggerN8NWorkflow('ash-lee-post');
+    return reply('Ash Lee content pipeline triggered');
+  }
+  
+  return false;
+}
+
+// AUDIO — inline base64 so no external files needed
+const sBov = (() => { const a = new Audio(); a.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vTw=='; return a; })();
+const sScr = (() => { const a = new Audio(); a.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vTw=='; return a; })();
+function setVol(v) { if (sBov) sBov.volume = S.muted ? 0 : v; if (sScr) sScr.volume = S.muted ? 0 : v; }
+function toggleMute() { S.muted = !S.muted; localStorage.setItem('ko_muted', S.muted); setVol(0.28); toast(S.muted ? 'Muted' : 'Audio on'); }
+
+// TOAST (declared before setTheme so it exists when setVol/setTheme call toast)
+let toastTmr;
+function toast(msg, dur = 2400) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// THEME
+function setTheme(t) {
+  S.theme = t; document.documentElement.setAttribute('data-theme', t || 'cyberpunk');
+  localStorage.setItem('ko_theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().replace(' ', '') === t.replace(' ', '')));
+  toast('Theme: ' + t.toUpperCase());
+}
+setTheme(S.theme);
+
+// GATE
+document.getElementById('gate-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryGate(); });
+function tryGate() {
+  const v = document.getElementById('gate-input').value.trim().toUpperCase();
+  const code = S.gateCode.toUpperCase();
+  if (!v || v === code || v === 'OVERRIDE' || v === 'KARMA') {
+    document.getElementById('gate').classList.add('unlocked');
+    document.getElementById('desktop-wrap').style.display = 'flex';
+    setTimeout(() => { document.getElementById('gate').style.display = 'none'; }, 850);
+    onBoot();
+  } else {
+    const err = document.getElementById('gate-err');
+    err.textContent = '⚠ ACCESS DENIED — ' + v;
+    document.getElementById('gate-input').value = '';
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+
+function onBoot() {
+  addFeed({ t: 'success', i: '⚡', m: 'KARMA OS v25 ULTIMATE booting...' });
+  setTimeout(() => addFeed({ t: 'info', i: '🦊', m: '25 AI agents initializing across 7 crews...' }), 400);
+  setTimeout(() => addFeed({ t: 'success', i: '👥', m: 'Footclan: 12 workers standing by · Task queue ready' }), 800);
+  setTimeout(() => addFeed({ t: 'success', i: '📡', m: 'Hermes messenger: active · 0 unread notifications' }), 1200);
+  setTimeout(() => addFeed({ t: 'success', i: '🕸', m: 'OpenClaw swarm: 25 nodes connected · MCP Bridge ready' }), 1600);
+  setTimeout(() => addFeed({ t: 'success', i: '👤', m: 'OpenHuman: ' + TASK_QUEUE.filter(t => t.status === 'pending').length + ' approvals pending' }), 2000);
+  setTimeout(() => addFeed({ t: 'info', i: '⚙️', m: 'n8n orchestrator: ' + WORKFLOWS.length + ' workflows active' }), 2400);
+  setTimeout(renderAgents, 300);
+  setTimeout(initSwarm, 500);
+  setTimeout(renderChart, 600);
+  populateSettings();
+  checkMCPStatus();
+  updateDots();
+  clockStart();
+  fetchCrypto();
+}
+
+// MODALS
+function openM(id) { document.getElementById(id)?.classList.add('open'); if (id === 'army-m') renderArmyModal(); }
+function closeM(id) { document.getElementById(id)?.classList.remove('open'); }
+document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }); });
+
+// CLOCK
+function clockStart() {
+  function tick() {
+    const n = new Date();
+    const el = id => document.getElementById(id);
+    if (el('clkt')) el('clkt').textContent = n.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (el('clkd')) el('clkd').textContent = n.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    const up = Math.floor((Date.now() - S.startTime) / 1000);
+    if (el('clk-up')) el('clk-up').textContent = `UP ${String(Math.floor(up / 3600)).padStart(2, '0')}:${String(Math.floor((up % 3600) / 60)).padStart(2, '0')}:${String(up % 60).padStart(2, '0')}`;
+    if (el('vt')) el('vt').textContent = `KARMA OS ULTIMATE · AI ARMY · v25 · ${n.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}`;
+    setTimeout(tick, 1000);
+  }
+  tick();
+}
+
+// CRYPTO
+async function fetchCrypto() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true', { signal: AbortSignal.timeout(8000) });
+    const d = await r.json();
+    const set = (id, p, c) => { if (!d[id]) return; document.getElementById(p).textContent = '$' + d[id].usd.toLocaleString(); const ch = (d[id].usd_24h_change || 0).toFixed(2); const ce = document.getElementById(c); if (ce) { ce.textContent = (ch >= 0 ? '+' : '') + ch + '%'; ce.className = ch >= 0 ? 'up' : 'dn'; } };
+    set('bitcoin', 'bp', 'bc'); set('ethereum', 'ep', 'ec'); set('solana', 'sp', 'scc');
+  } catch {}
+  setTimeout(fetchCrypto, 60000);
+}
+
+// RENDER AGENTS
+function renderAgents() {
+  const list = document.getElementById('agent-list');
+  if (!list) return;
+  list.innerHTML = AGENTS.map(a => `
+    <div class="ac" onclick="openM('army-m')">
+      <div class="ai" style="background:${a.bg}">${a.i}</div>
+      <div style="flex:1;min-width:0">
+        <div class="an">${a.n}</div>
+        <div class="at">${a.t}</div>
+      </div>
+      <div class="sd ${a.s}"></div>
+    </div>`).join('');
+}
+
+// SWARM VISUALIZATION
+function initSwarm() {
+  const canvas = document.getElementById('swarm-canvas');
+  if (!canvas) return;
+  const W = canvas.offsetWidth || canvas.parentElement?.clientWidth || 500;
+  const H = 130;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  
+  const nodes = AGENTS.map((a, i) => ({
+    id: a.id, label: a.n.split(' ')[0], r: a.role === 'commander' ? 10 : 6,
+    col: a.id === 'karma' ? '#00d4ff' : a.id === 'footclan' ? '#ff6b35' : a.id === 'hermes' ? '#b347ff' : '#00ff9d',
+    x: W / 2 + Math.cos(i / AGENTS.length * Math.PI * 2) * W * 0.38,
+    y: H / 2 + Math.sin(i / AGENTS.length * Math.PI * 2) * H * 0.38, vx: 0, vy: 0
+  }));
+  
+  // Create connections (hub and spoke + some peer connections)
+  const links = [];
+  for (let i = 1; i < nodes.length; i++) {
+    links.push({ s: 0, t: i }); // All connect to KARMA (node 0)
+  }
+  // Add some peer connections
+  const peerLinks = [[1,2],[1,3],[2,4],[3,5],[4,6],[5,7],[6,8],[7,9],[8,10],[9,11],[10,12],[11,13],[12,14],[13,15],[14,16],[15,17],[16,17]];
+  peerLinks.forEach(([a, b]) => { if (a < nodes.length && b < nodes.length) links.push({ s: a, t: b }); });
+  
+  let pulse = 0, packets = [];
+  
+  function step() {
+    // Repulsion
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = 600 / (d * d);
+      nodes[i].vx += dx / d * f; nodes[i].vy += dy / d * f;
+      nodes[j].vx -= dx / d * f; nodes[j].vy -= dy / d * f;
+    }
+    // Attraction on links
+    links.forEach(l => {
+      const a = nodes[l.s], b = nodes[l.t];
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = (d - 50) * 0.012;
+      a.vx += dx / d * f; a.vy += dy / d * f;
+      b.vx -= dx / d * f; b.vy -= dy / d * f;
+    });
+    // Center pull
+    nodes.forEach(n => { n.vx += (W / 2 - n.x) * 0.004; n.vy += (H / 2 - n.y) * 0.004; });
+    // Dampen + move
+    nodes.forEach(n => { n.vx *= 0.88; n.vy *= 0.88; n.x = Math.max(n.r, Math.min(W - n.r, n.x + n.vx)); n.y = Math.max(n.r, Math.min(H - n.r, n.y + n.vy)); });
+  }
+  
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    pulse += 0.03;
+    
+    // Draw links
+    links.forEach(l => {
+      const a = nodes[l.s], b = nodes[l.t];
+      const alpha = 0.08 + Math.abs(Math.sin(pulse + l.s * 0.5)) * 0.07;
+      ctx.strokeStyle = `rgba(0,212,255,${alpha})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    
+    // Spawn packets occasionally
+    if (Math.random() > 0.85) {
+      const l = links[Math.floor(Math.random() * links.length)];
+      packets.push({ sx: nodes[l.s].x, sy: nodes[l.s].y, ex: nodes[l.t].x, ey: nodes[l.t].y, p: 0, col: nodes[l.s].col });
+    }
+    
+    // Draw packets
+    packets = packets.filter(p => {
+      p.p += 0.025;
+      const x = p.sx + (p.ex - p.sx) * p.p, y = p.sy + (p.ey - p.sy) * p.p;
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = p.col; ctx.fill();
+      return p.p < 1;
+    });
+    
+    // Draw nodes
+    nodes.forEach((n, i) => {
+      ctx.shadowColor = n.col; ctx.shadowBlur = i === 0 ? 14 : 5;
+      ctx.fillStyle = n.col + (i === 0 ? 'ff' : 'bb');
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + (i === 0 ? Math.sin(pulse) * 1.5 : 0), 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+      if (n.r >= 5) {
+        ctx.fillStyle = 'rgba(0,0,0,.7)';
+        ctx.font = `${Math.max(5, n.r * 0.7)}px JetBrains Mono,monospace`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(n.label.length > 6 ? n.label.slice(0, 5) : n.label, n.x, n.y);
+      }
+    });
+  }
+  
+  function loop() { step(); draw(); requestAnimationFrame(loop); }
+  loop();
+}
+
+// API CHART (declared before onBoot calls renderChart)
+const chartD = Array.from({ length: 24 }, () => Math.random() * 80 + 10);
+function renderChart() {
+  const mx = Math.max(...chartD);
+  const mc = document.getElementById('mc');
+  if (!mc) return;
+  mc.innerHTML = chartD.map((v, i) => `<div style="flex:1;border-radius:2px 2px 0 0;background:linear-gradient(180deg,var(--ac2),var(--ac));opacity:${.35 + (i / chartD.length) * .65};height:${(v / mx * 100)}%"></div>`).join('');
+}
+renderChart();
+setInterval(() => { chartD.shift(); chartD.push(Math.random() * 80 + 10); renderChart(); }, 4000);
+
+// FEED
+const FEED_DATA = [
+  { t: 'success', i: '🦊', m: 'KARMA: Fleet commanding 18 agents' },
+  { t: 'info', i: '🎤', m: 'Auggie: Voice command processed' },
+  { t: 'success', i: '🕸', m: 'OpenClaw: Swarm network healthy' },
+  { t: 'success', i: '📡', m: 'Hermes: Inter-agent messaging active' },
+  { t: 'info', i: '⚡', m: 'CodeAgent: Code review in progress' },
+  { t: 'success', i: '🔬', m: 'FC-01: Research paper found' },
+  { t: 'info', i: '📊', m: 'FC-04: Data scraping 88% complete' },
+  { t: 'success', i: '📧', m: 'FC-06: Emails sent batch 2/5' },
+  { t: 'warn', i: '⚠️', m: 'FC-02: PR review needs attention' },
+  { t: 'success', i: '✅', m: 'System: All agents responding' },
+  { t: 'info', i: '📡', m: 'IntelAgent: New AI news detected' },
+  { t: 'success', i: '💜', m: 'Ash Lee: Content queued for posting' },
+];
+let feedIdx = 0;
+function addFeed(e) {
+  const l = document.getElementById('fl');
+  if (!l) return;
+  const t = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const d = document.createElement('div');
+  d.className = `fi ${e.t}`;
+  d.innerHTML = `<span>${e.i}</span><span class="ft">${e.m}</span><span class="ftm">${t}</span>`;
+  l.prepend(d);
+  while (l.children.length > 20) l.lastChild.remove();
+  if (!S.muted) {
+    if (e.t === 'success') { try { sBov.currentTime = 0; sBov.play().catch(() => {}); } catch {} }
+    if (e.t === 'error' || e.t === 'warn') { try { sScr.currentTime = 0; sScr.play().catch(() => {}); } catch {} }
+  }
+}
+FEED_DATA.slice(0, 5).forEach((e, i) => setTimeout(() => addFeed(e), i * 300));
+setInterval(() => { addFeed(FEED_DATA[feedIdx % FEED_DATA.length]); feedIdx++; }, 7000);
+
+// ARMY FEED (Inter-agent messages)
+function refreshArmyFeed() {
+  const af = document.getElementById('army-feed');
+  if (!af) return;
+  const msgs = [
+    { from: 'Auggie', to: 'KARMA', msg: 'Voice command: "status check" — processed in 180ms', time: 'now' },
+    { from: 'OpenClaw', to: 'Hermes', msg: 'Swarm update: 18 nodes connected, 32 active links', time: '30s ago' },
+    { from: 'FC-04', to: 'DeepSearch', msg: 'Competitor data: 47 records ready for analysis', time: '1m ago' },
+    { from: 'Oracle', to: 'KARMA', msg: 'Prediction: BTC trend likely bullish next 48h', time: '2m ago' },
+    { from: 'CodeAgent', to: 'GitOps', msg: 'PR #47 needs review — 3 files changed', time: '3m ago' },
+    { from: 'Hermes', to: 'ALL', msg: 'Broadcast: System health nominal across all agents', time: '5m ago' },
+  ];
+  af.innerHTML = msgs.map(m => `
+    <div class="fi ai">
+      <span style="font-size:7.5px;color:var(--ac2);font-weight:600">${m.from} → ${m.to}</span>
+      <span class="ft">${m.msg}</span>
+      <span class="ftm">${m.time}</span>
+    </div>`).join('');
+}
+refreshArmyFeed();
+setInterval(refreshArmyFeed, 8000);
+
+// COMMAND CENTER
+function execCmd() {
+  const input = document.getElementById('cmd-input');
+  const cmd = input.value.trim().toLowerCase();
+  if (!cmd) return;
+  input.value = '';
+  sendCmd(cmd);
+}
+
+function sendCmd(cmd) {
+  addFeed({ t: 'info', i: '⌨️', m: 'Command: ' + cmd });
+  
+  switch (cmd) {
+    case 'status':
+      openM('army-m');
+      addFeed({ t: 'success', i: '🦊', m: 'KARMA: 18 agents online · 8 Footclan ready · 4 workflows active · 2 approvals pending' });
+      break;
+    case 'agents':
+      renderAgents();
+      addFeed({ t: 'success', i: '👥', m: '18 agents rendered in fleet panel' });
+      break;
+    case 'workflows':
+      openM('army-m');
+      addFeed({ t: 'success', i: '⚙️', m: 'n8n: 4 active workflows · Ash Lee Post, INTEL Sync, Uptime, Lead Qual' });
+      break;
+    case 'hermes':
+      openM('hermes-m');
+      addFeed({ t: 'success', i: '📡', m: 'Hermes messenger opened' });
+      break;
+    case 'boost':
+      triggerBoost();
+      break;
+    case 'sync':
+      addFeed({ t: 'success', i: '🔄', m: 'Fleet sync initiated — all agents refreshing...' });
+      renderAgents();
+      refreshArmyFeed();
+      break;
+    default:
+      addFeed({ t: 'warn', i: '⚠️', m: 'Unknown command: ' + cmd + ' · Try: status, agents, workflows, hermes, boost, sync' });
+  }
+}
+
+// HERMES MESSENGER
+function sendHermesMsg() {
+  const input = document.getElementById('hermes-msg');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  
+  const to = document.getElementById('hermes-to').value;
+  const thread = document.getElementById('hermes-thread');
+  
+  // Add user message
+  const d = document.createElement('div');
+  d.className = 'agent-msg';
+  d.innerHTML = `<span class="from" style="color:var(--ac)">YOU → ${to.toUpperCase()}</span><span class="msg">${msg}</span>`;
+  thread.appendChild(d);
+  thread.scrollTop = thread.scrollHeight;
+  
+  // Simulate agent response
+  setTimeout(() => {
+    const responses = {
+      'auggie': 'Voice command acknowledged. Ready for next instruction.',
+      'openclaw': 'Swarm network updated. All nodes acknowledge message.',
+      'hermes': 'Message logged in inter-agent communication log.',
+      'oracle': 'Prediction: Message received. Analyzing context.',
+      'deepsearch': 'Research query queued. Results incoming.',
+      'codeagent': 'Code task noted. Adding to review queue.',
+      'footclan': 'Task distributed to available workers.',
+      'all': 'Broadcast received by all 18 agents.',
+      'marketwatch': 'Alert threshold confirmed. Monitoring active.'
+    };
+    const resp = responses[to] || 'Agent acknowledged message.';
+    const r = document.createElement('div');
+    r.className = 'agent-msg';
+    r.innerHTML = `<span class="from">${to.toUpperCase()} → YOU</span><span class="msg">${resp}</span>`;
+    thread.appendChild(r);
+    thread.scrollTop = thread.scrollHeight;
+  }, 800 + Math.random() * 500);
+  
+  addFeed({ t: 'ai', i: '📡', m: 'Hermes: Message sent to ' + to });
+}
+
+function broadcastMsg() {
+  const msg = prompt('Broadcast message to all agents:');
+  if (!msg) return;
+  const thread = document.getElementById('hermes-thread');
+  const d = document.createElement('div');
+  d.className = 'agent-msg';
+  d.innerHTML = `<span class="from" style="color:var(--ac3)">BROADCAST → ALL</span><span class="msg">${msg}</span>`;
+  thread.appendChild(d);
+  thread.scrollTop = thread.scrollHeight;
+  addFeed({ t: 'success', i: '📡', m: 'Hermes: Broadcast sent to all 18 agents' });
+}
+
+// OPENHUMAN APPROVALS
+function approveAction(id) {
+  addFeed({ t: 'success', i: '✅', m: 'OpenHuman: Action #' + id + ' APPROVED' });
+  toast('Action approved ✓');
+  // Remove from pending
+  const panel = document.getElementById('approval-panel');
+  if (panel) panel.innerHTML = '<div style="text-align:center;padding:20px;font-size:9px;color:var(--ac3)">✓ All pending approvals processed</div>';
+}
+
+function denyAction(id) {
+  addFeed({ t: 'error', i: '✕', m: 'OpenHuman: Action #' + id + ' DENIED' });
+  toast('Action denied ✕');
+}
+
+function modifyAction(id) {
+  toast('Modify action #' + id + ' — feature coming soon');
+}
+
+// WORKFLOWS
+function triggerWorkflow(id) {
+  const wf = WORKFLOWS.find(w => w.id === id);
+  if (wf) {
+    addFeed({ t: 'info', i: '⚙️', m: 'n8n: Triggering workflow — ' + wf.n });
+    toast('Workflow triggered: ' + wf.n);
+  }
+}
+
+function loadWorkflows() {
+  addFeed({ t: 'info', i: '⚙️', m: 'n8n: Reloading workflow status...' });
+}
+
+// BOOST
+function triggerBoost() {
+  const l = document.getElementById('boost-label');
+  l.textContent = 'NITRO';
+  document.getElementById('boost-card').style.boxShadow = '0 0 25px var(--ac2)';
+  document.getElementById('desktop-wrap').style.animation = 'bodyShake .4s ease';
+  addFeed({ t: 'error', i: '🚀', m: 'SYSTEM OVERCLOCK — Turbo mode engaged · All agents accelerating' });
+  toast('⚡ TURBO ENGAGED');
+  setTimeout(() => {
+    l.textContent = 'READY';
+    document.getElementById('boost-card').style.boxShadow = '';
+    document.getElementById('desktop-wrap').style.animation = '';
+    addFeed({ t: 'success', i: '✅', m: 'System: Turbo mode complete · Normal operations resumed' });
+  }, 2500);
+}
+
+function pulseCard(el) {
+  el.style.boxShadow = '0 0 20px rgba(0,212,255,.3)';
+  setTimeout(() => el.style.boxShadow = '', 800);
+}
+
+// CLAUDE API
+async function callClaude(messages, system, stream = false) {
+  if (!S.claudeKey) throw new Error('NO_KEY');
+  const body = { model: 'claude-sonnet-4-20250514', max_tokens: 1200, messages };
+  if (system) body.system = system;
+  if (stream) body.stream = true;
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': S.claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const t = await r.text(); throw new Error(t.substring(0, 120)); }
+  return r;
+}
+
+const KARMA_SYS = `You are KARMA — the AI core and commander of KARMA OS v25, the personal operating system of tellemthatsme (AI & IT consultant, Sydney AU). You command an ARMY of 25 specialized AI agents including:
+- Auggie (Voice AI), OpenClaw (Swarm Network), Hermes (Messenger), Oracle (Prediction), DeepSearch (Research), CodeAgent (Coding)
+- Ash Lee AI (Content), MarketWatch (Crypto), GitOpsAgent, SyncService, UptimeBot, IntelAgent, RSSAgent, InvoiceBot
+- OpenHuman (Human-in-the-loop approvals), Footclan HQ (8 worker agents), n8n Orchestrator
+
+YOUR CAPABILITIES: Full-stack builds, AI automation, n8n workflows, agent architecture, IT consulting, strategy.
+PERSONALITY: Commander mode. Direct. Pro. No fluff. You orchestrate the army to get results.
+MOTTO: "I make the impossible possible."
+RATES: $1,500–$8,000+ AUD project-based. 2 open slots. CONTRA: tellemthatsme
+IF THEY WANT TO HIRE: "Best move — reach out on Contra. Fast response."`;
+
+async function sendKarma() {
+  const inp = document.getElementById('karma-in');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  
+  const msgsEl = document.getElementById('karma-msgs');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-bubble user';
+  userDiv.textContent = msg;
+  msgsEl.appendChild(userDiv);
+  S.karmaHistory.push({ role: 'user', content: msg });
+  
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-typing';
+  typingDiv.innerHTML = '<span></span><span></span><span></span>';
+  msgsEl.appendChild(typingDiv);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+  
+  const btn = document.getElementById('karma-send');
+  if (btn) btn.disabled = true;
+  
+  if (!S.claudeKey) {
+    typingDiv.className = 'chat-bubble ai';
+    typingDiv.textContent = '[Add Claude API key in Settings ⚙ to activate KARMA and the full AI Army]';
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  try {
+    const r = await callClaude(S.karmaHistory.slice(-12), KARMA_SYS);
+    const d = await r.json();
+    const text = d.content?.[0]?.text || '[no response]';
+    typingDiv.className = 'chat-bubble ai';
+    typingDiv.textContent = text;
+    S.karmaHistory.push({ role: 'assistant', content: text });
+    addFeed({ t: 'ai', i: '🦊', m: 'KARMA: ' + text.substring(0, 60) + '...' });
+  } catch (e) {
+    typingDiv.className = 'chat-bubble ai';
+    typingDiv.textContent = '[Error: ' + e.message + ']';
+  }
+  
+  if (btn) btn.disabled = false;
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+// IMPOSSIBLE DESK
+const IMP_SYS = `You are the IMPOSSIBLE DESK inside KARMA OS v25 — the most capable AI assistant on the internet. You have 25 AI agents at your disposal. When given ANY request: DO it. Full code. Complete documents. Working plans. Production-ready output. Style: sharp, pro, impressive. Every output should make the viewer think "I need to hire this person."`;
+
+async function fireImpossible() {
+  const inp = document.getElementById('imp-in');
+  const req = inp.value.trim();
+  if (!req) return;
+  inp.value = '';
+  
+  const out = document.getElementById('imp-out');
+  out.textContent = '// ◆ IMPOSSIBLE DESK executing...\n// Request: ' + req + '\n\n';
+  
+  if (!S.claudeKey) {
+    out.textContent = '// No API key configured.\n// Go to ⚙ Settings → Add Claude API key.\n// Then watch the army make the impossible happen.';
+    return;
+  }
+  
+  addFeed({ t: 'ai', i: '⬡', m: 'IMPOSSIBLE: ' + req.substring(0, 55) + '...' });
+  
+  try {
+    const r = await callClaude([{ role: 'user', content: req }], IMP_SYS, true);
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    out.textContent = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const lines = dec.decode(value).split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const j = JSON.parse(data);
+            if (j.delta?.text) {
+              out.textContent += j.delta.text;
+              out.scrollTop = out.scrollHeight;
+            }
+          } catch {}
+        }
+      }
+    }
+    
+    addFeed({ t: 'success', i: '✅', m: 'IMPOSSIBLE DESK: Complete — Army delivered' });
+  } catch (e) {
+    out.textContent = '// Error: ' + e.message;
+  }
+}
+
+// ORACLE PULSE
+async function oraclePulse() {
+  const out = document.getElementById('imp-out');
+  out.textContent = '// ◆ SOVEREIGN ORACLE — Initiating predictive analysis...\n\n';
+  
+  if (!S.claudeKey) {
+    out.textContent = '// Oracle requires Claude API key.\n// Add key in Settings to activate prediction engine.';
+    return;
+  }
+  
+  try {
+    const r = await callClaude([{ role: 'user', content: 'Give me a brief predictive analysis of the current AI tools landscape, crypto market sentiment, and one actionable recommendation for an AI consultant in Sydney. Be concise — 3 bullet points max.' }], 'You are Oracle — the prediction engine of KARMA OS. You forecast trends and provide actionable intelligence. Be brief and decisive.', false);
+    const d = await r.json();
+    const text = d.content?.[0]?.text || 'Prediction unavailable';
+    out.textContent = '// ◆ ORACLE PREDICTION\n\n' + text;
+    addFeed({ t: 'ai', i: '👁', m: 'Oracle: Prediction delivered' });
+  } catch (e) {
+    out.textContent = '// Oracle error: ' + e.message;
+  }
+}
+
+// VOICE
+const voiceSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+let vBarsAnim = null;
+
+function animVoiceBars(on) {
+  const bars = document.querySelectorAll('.vbar');
+  if (vBarsAnim) clearInterval(vBarsAnim);
+  if (!on) {
+    bars.forEach((b, i) => b.style.height = [8, 14, 6, 18, 10, 22, 8][i] + 'px');
+    return;
+  }
+  vBarsAnim = setInterval(() => bars.forEach(b => b.style.height = (4 + Math.random() * 22) + 'px'), 100);
+}
+
+function toggleVoice() {
+  const ring = document.getElementById('voice-ring');
+  const stxt = document.getElementById('voice-status-txt');
+  
+  if (!voiceSupported) { stxt.textContent = 'Not supported — try Chrome'; return; }
+  
+  if (S.isListening) {
+    if (S.recognition) S.recognition.stop();
+    S.isListening = false;
+    ring.classList.remove('on');
+    stxt.textContent = 'Click mic to activate';
+    animVoiceBars(false);
+    document.getElementById('dot-voice').className = 'dt y';
+    return;
+  }
+  
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  S.recognition = new SR();
+  S.recognition.lang = 'en-AU';
+  S.recognition.continuous = false;
+  S.recognition.interimResults = true;
+  
+  S.recognition.onstart = () => {
+    S.isListening = true;
+    ring.classList.add('on');
+    stxt.textContent = 'Listening...';
+    animVoiceBars(true);
+    document.getElementById('dot-voice').className = 'dt g';
+  };
+  
+  S.recognition.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('voice-transcript').textContent = t;
+    if (e.results[e.results.length - 1].isFinal) {
+      S.isListening = false;
+      ring.classList.remove('on');
+      animVoiceBars(false);
+      processVoice(t);
+    }
+  };
+  
+  S.recognition.onerror = e => {
+    stxt.textContent = 'Error: ' + e.error;
+    S.isListening = false;
+    ring.classList.remove('on');
+    animVoiceBars(false);
+  };
+  
+  S.recognition.onend = () => {
+    S.isListening = false;
+    ring.classList.remove('on');
+    animVoiceBars(false);
+    document.getElementById('dot-voice').className = 'dt y';
+  };
+  
+  S.recognition.start();
+}
+
+async function processVoice(text) {
+  if (!text.trim()) return;
+  
+  const stxt = document.getElementById('voice-status-txt');
+  stxt.textContent = 'Processing...';
+  document.getElementById('voice-reply').textContent = '...';
+  addFeed({ t: 'info', i: '🎤', m: 'Voice: "' + text.substring(0, 45) + '"' });
+  
+  if (handleVoiceCmd(text)) return;
+  
+  if (!S.claudeKey) {
+    document.getElementById('voice-reply').textContent = '[Add Claude API key in Settings]';
+    stxt.textContent = 'No API key';
+    return;
+  }
+  
+  try {
+    const r = await callClaude([{ role: 'user', content: text }], KARMA_SYS + '\n\nVoice mode: max 3 sentences, punchy. Command style.');
+    const d = await r.json();
+    const reply = d.content?.[0]?.text || '...';
+    document.getElementById('voice-reply').textContent = reply;
+    stxt.textContent = 'Done — click mic to ask again';
+    
+    if (!S.muted && 'speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(reply);
+      u.lang = 'en-AU';
+      u.rate = 1.05;
+      const v = window.speechSynthesis.getVoices().find(v => v.name.includes('Google') || v.lang === 'en-AU');
+      if (v) u.voice = v;
+      window.speechSynthesis.speak(u);
+    }
+  } catch (e) {
+    document.getElementById('voice-reply').textContent = 'Error: ' + e.message;
+  }
+}
+
+function handleVoiceCmd(text) {
+  const t = text.toLowerCase().trim();
+  
+  const reply = (msg, speak = true) => {
+    document.getElementById('voice-reply').textContent = msg;
+    document.getElementById('voice-status-txt').textContent = 'Command executed';
+    if (!S.muted && speak && 'speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(msg);
+      window.speechSynthesis.speak(u);
+    }
+    addFeed({ t: 'success', i: '🎤', m: 'Voice: ' + msg.substring(0, 50) });
+    return true;
+  };
+  
+  // Check all voice commands
+  if (t.startsWith('open ')) {
+    const target = t.replace(/^open /, '');
+    const urls = { github: 'https://github.com/' + S.ghUser, claude: 'https://claude.ai', contra: 'https://contra.com', bluesky: 'https://bsky.app', n8n: S.n8nUrl };
+    const url = urls[target] || (target.includes('.') ? 'https://' + target : `https://google.com/search?q=${encodeURIComponent(target)}`);
+    window.open(url, '_blank');
+    return reply('Opening ' + target);
+  }
+  
+  if (t.includes('status')) { openM('army-m'); return reply('Army overview open — 18 agents active'); }
+  if (t.includes('army')) { openM('army-m'); return reply('AI Army overview — 18 agents ready'); }
+  if (t.includes('hermes')) { openM('hermes-m'); return reply('Hermes messenger open'); }
+  if (t.includes('boost') || t.includes('turbo')) { triggerBoost(); return reply('System boost engaged'); }
+  if (t.includes('stealth')) { setTheme('stealth'); return reply('Stealth mode activated'); }
+  if (t.includes('matrix')) { setTheme('matrix'); return reply('Matrix mode loaded'); }
+  if (t.includes('aurora')) { setTheme('aurora'); return reply('Aurora theme set'); }
+  if (t.includes('cyberpunk')) { setTheme('cyberpunk'); return reply('Cyberpunk restored'); }
+  if (t.includes('sync')) { sendCmd('sync'); return reply('Fleet sync initiated'); }
+  if (t.includes('approve')) { openM('openhuman-m'); return reply('OpenHuman approvals shown — 2 pending'); }
+  if (t.includes('footclan')) { openM('army-m'); return reply('Footclan: 8 workers — 3 active, 5 idle'); }
+  if (t.includes('workflow')) { sendCmd('workflows'); return reply('Showing active workflows'); }
+  if (t.includes('impossible')) { openM('imp-m'); return reply('Impossible Desk open'); }
+  if (t.includes('intel deal') || t.includes('deals')) { addFeed({ t: 'info', i: '📡', m: 'Latest deals: Cursor 40% off, Windsurf 50% off, Railway 3mo free' }); return reply('Deals: CURSOR40, WIND50, RAILWAY26'); }
+  if (t.includes('intel news') || t.includes('news')) { addFeed({ t: 'info', i: '📡', m: 'News: Claude Sonnet 4.6, OpenAI o3 API, Gemini 2.5 Pro tops benchmarks' }); return reply('AI News: Claude, OpenAI, Gemini updates'); }
+  if (t.includes('mute')) { S.muted = true; localStorage.setItem('ko_muted', 'true'); setVol(0); return reply('Audio muted', false); }
+  if (t.includes('unmute')) { S.muted = false; localStorage.setItem('ko_muted', 'false'); setVol(0.28); return reply('Audio on'); }
+  if (t.includes('what time')) { return reply("It's " + new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) + ' Sydney time'); }
+  
+  return false;
+}
+
+// SETTINGS
+function saveSettings() {
+  const f = (id, key, state) => {
+    const v = document.getElementById(id)?.value?.trim();
+    if (v && v !== '••••••') { S[state] = v; localStorage.setItem(key, v); }
+  };
+  f('s-claude', 'ko_claude', 'claudeKey');
+  f('s-openai', 'ko_openai', 'openaiKey');
+  f('s-mcp-url', 'ko_mcp_url', 'mcpUrl');
+  f('s-mcp-token', 'ko_mcp_token', 'mcpToken');
+  f('s-github', 'ko_gh', 'ghUser');
+  f('s-n8n', 'ko_n8n', 'n8nUrl');
+  f('s-intel', 'ko_intel', 'intelUrl');
+  f('s-gate', 'ko_gate', 'gateCode');
+  closeM('settings-m');
+  updateDots();
+  checkMCPStatus();
+  addFeed({ t: 'success', i: '🔐', m: 'Settings saved · API key updated' });
+  toast('Settings saved');
+  testN8NConnection();
+}
+
+function populateSettings() {
+  const s = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+  s('s-claude', S.claudeKey ? '••••••' : '');
+  s('s-openai', S.openaiKey ? '••••••' : '');
+  s('s-mcp-url', S.mcpUrl || '');
+  s('s-mcp-token', S.mcpToken ? '••••••' : '');
+  s('s-github', S.ghUser);
+  s('s-n8n', S.n8nUrl);
+  s('s-intel', S.intelUrl);
+  s('s-gate', S.gateCode);
+}
+
+function updateDots() {
+  const d = document.getElementById('dot-claude');
+  if (d) d.className = 'dt ' + (S.claudeKey ? 'b' : 'off');
+}
+
+// SYSTEM METRICS (mock)
+setInterval(() => {
+  const c = Math.random() * 30 + 12, m = Math.random() * 20 + 48, n = Math.random() * 5;
+  const el = id => document.getElementById(id);
+  if (el('cv')) { el('cv').textContent = Math.round(c) + '%'; el('cb').style.width = c + '%'; }
+  if (el('mv')) { el('mv').textContent = Math.round(m) + '%'; el('mb').style.width = m + '%'; }
+  if (el('nv')) { el('nv').textContent = n.toFixed(1) + ' MB/s'; el('nb').style.width = Math.min(n * 15, 100) + '%'; }
+  if (c > 88) { document.getElementById('redline-badge').style.display = 'flex'; addFeed({ t: 'error', i: '🚨', m: 'REDLINE: CPU critical' }); }
+}, 3000);
+
+// INIT
+window.addEventListener('load', () => {
+  setTimeout(() => { try { initSwarm(); } catch {} }, 200);
+});
+</script>
+</body>
+</html>
