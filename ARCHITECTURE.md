@@ -4,7 +4,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                          KARMA OS v1.2                               │
+│                          KARMA OS v1.2.0                             │
 ├───────────┬───────────┬──────────────┬──────────────┬───────────────┤
 │ Unified   │  Main OS  │     HUD      │   Widget     │ Live Desktop  │
 │ (26 KB)   │ (134 KB)  │   (18 KB)    │   (12 KB)    │   (47 KB)     │
@@ -140,4 +140,6 @@ Docker Compose
 | Documentation | 7 .md files | ~40 KB |
 | Scripts | bat, ps1, ahk | ~13 KB |
 | Config | package.json, prettierrc, etc. | ~6 KB |
-| **Total** | **43 tracked files** | **~470 KB** |
+| **Active total** | **43 files** | **~470 KB** |
+| Legacy versions | `karma-os-v6.html`, `karma-os-v6 (1).html`, `karma-enhancements (2).html` | ~225 KB |
+| Legacy docs | `KARMA-OS-DOCUMENTATION.md`, `N8N-SETUP-GUIDE.md` | ~31 KB |

@@ -10,6 +10,7 @@
     "test:widget": "npx playwright test karma-widget.spec.js --project=chromium --reporter=list --workers=1",
     "test:desktop": "npx playwright test live-desktop.spec.js --project=chromium --reporter=list --workers=1",
     "test:regression": "npx playwright test karma-regression.spec.js --project=chromium --reporter=list --workers=1",
+    "test:visual": "npx playwright test karma-visual.spec.js --project=chromium --reporter=list --workers=1",
     "validate": "node validate-karma.js",
     "server": "node server.js",
     "dev": "node server.js & npx playwright test --project=chromium --reporter=list --workers=1",
