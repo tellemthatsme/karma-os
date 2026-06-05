@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>KARMA OS · Unified</title>
+<link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -483,6 +484,11 @@ updateMetrics();
 setInterval(updateUptime, 10000);
 setInterval(updateMetrics, 5000);
 toast('KARMA OS loaded · Press Ctrl+K for commands', 'success', 4000);
+
+// ── Service Worker (PWA) ──────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>

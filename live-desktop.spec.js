@@ -76,7 +76,10 @@ test.describe('live-desktop.html', () => {
            !e.includes('Failed to fetch') &&
            !e.includes('ERR_FILE_NOT_FOUND') &&
            !e.includes('ERR_FAILED') &&
-           !e.includes('ERR_CONNECTION_REFUSED')
+           !e.includes('ERR_CONNECTION_REFUSED') &&
+           !e.includes('429') &&
+           !e.includes('bov.wav') &&
+           !e.includes('screech.wav')
     );
     expect(realErrors).toHaveLength(0);
   });

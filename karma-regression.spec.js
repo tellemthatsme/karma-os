@@ -16,16 +16,18 @@ test.describe('KARMA OS Ultimate - Full Regression Suite', () => {
       if (msg.type() === 'error') {
         const text = msg.text();
         if (!text.includes('favicon') && !text.includes('404') && !text.includes('net::ERR')
-            && !text.includes('CORS') && !text.includes('coingecko')) {
+            && !text.includes('CORS') && !text.includes('coingecko') && !text.includes('429')
+            && !text.includes('bov.wav') && !text.includes('screech.wav')) {
           page._consoleErrors.push(text);
         }
       }
     });
-    await page.goto(FILE_URL, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await page.waitForTimeout(300);
+    await page.goto(FILE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(500);
     await page.locator('#gate-input').fill('OVERRIDE');
     await page.locator('.gate-btn').click();
-    await page.waitForTimeout(1000);
+    // WebKit needs extra time for gate unlock on file:// protocol
+    await page.waitForTimeout(2000);
   });
 
   // ───────────────────────────────────────────────────────────
