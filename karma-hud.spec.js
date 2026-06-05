@@ -4,7 +4,7 @@ const { test, expect } = require('@playwright/test');
 
 const HUD_URL = 'file:///C:/karma/karma-hud.html';
 // Filter environment noise: CORS (CoinGecko file://), missing audio files, unavailable localhost
-const IGNORE_PATTERNS = ['CORS', 'coingecko', 'fetch', 'ERR_FILE_NOT_FOUND', 'ERR_CONNECTION_REFUSED', 'ERR_FAILED', '429', 'bov.wav', 'screech.wav'];
+const IGNORE_PATTERNS = ['CORS', 'coingecko', 'fetch', 'ERR_FILE_NOT_FOUND', 'ERR_CONNECTION_REFUSED', 'ERR_FAILED', '429', 'bov.wav', 'screech.wav', 'Could not connect to server'];
 
 test.describe('Karma HUD', () => {
 

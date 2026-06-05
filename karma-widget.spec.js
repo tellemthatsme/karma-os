@@ -77,7 +77,8 @@ test.describe('karma-widget.html', () => {
            !e.includes('ERR_FAILED') &&
            !e.includes('429') &&
            !e.includes('bov.wav') &&
-           !e.includes('screech.wav')
+           !e.includes('screech.wav') &&
+           !e.includes('Could not connect to server')
     );
     expect(realErrors).toHaveLength(0);
   });

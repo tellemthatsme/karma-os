@@ -17,7 +17,8 @@ test.describe('KARMA OS Ultimate - Full Regression Suite', () => {
         const text = msg.text();
         if (!text.includes('favicon') && !text.includes('404') && !text.includes('net::ERR')
             && !text.includes('CORS') && !text.includes('coingecko') && !text.includes('429')
-            && !text.includes('bov.wav') && !text.includes('screech.wav')) {
+            && !text.includes('bov.wav') && !text.includes('screech.wav')
+            && !text.includes('Could not connect to server')) {
           page._consoleErrors.push(text);
         }
       }

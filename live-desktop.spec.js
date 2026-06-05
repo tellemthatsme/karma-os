@@ -79,7 +79,8 @@ test.describe('live-desktop.html', () => {
            !e.includes('ERR_CONNECTION_REFUSED') &&
            !e.includes('429') &&
            !e.includes('bov.wav') &&
-           !e.includes('screech.wav')
+           !e.includes('screech.wav') &&
+           !e.includes('Could not connect to server')
     );
     expect(realErrors).toHaveLength(0);
   });
