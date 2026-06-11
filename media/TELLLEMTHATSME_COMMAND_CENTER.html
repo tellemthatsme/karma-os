@@ -2591,7 +2591,7 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
   cal30Init()
 
 
-function copyAIResearch() {
+async function copyAIResearch() {
     const brief = document.getElementById('ai-research-brief');
     if (!brief) return;
     try {
