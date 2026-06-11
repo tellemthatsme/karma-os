@@ -1,0 +1,54 @@
+#!/bin/bash
+# Pre-commit hook: run node --check on inline scripts in changed .html files
+# Catches SyntaxError regressions like the unescaped apostrophe and
+# top-level await bugs we fixed in commits 67fb6e0 and 8563037.
+#
+# Install: git config core.hooksPath .githooks
+set -e
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep '\.html$' || true)
+if [ -z "$changed" ]; then
+  exit 0
+fi
+# Prefer python3, fall back to python
+PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null)
+if [ -z "$PYTHON" ]; then
+  echo 'Warning: python not found, skipping HTML syntax check'
+  exit 0
+fi
+failed=0
+for f in $changed; do
+  "$PYTHON" -X utf8 -c "
+import re, sys, subprocess, tempfile, os
+try:
+    html = open(r'$f', encoding='utf-8').read()
+    scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, re.S)
+    if not scripts: sys.exit(0)
+    # Check ALL script blocks over 50 chars (skip tiny inline handlers)
+    tmpdir = tempfile.gettempdir()
+    any_fail = False
+    for i, script in enumerate(scripts):
+        if len(script.strip()) < 50:
+            continue
+        tmpfile = os.path.join(tmpdir, f'_precommit_check_{i}.js')
+        open(tmpfile, 'w', encoding='utf-8').write(script)
+        r = subprocess.run(['node', '--check', tmpfile], capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f'  SyntaxError in $f (script block {i}):')
+            print(r.stderr[:500])
+            any_fail = True
+        try: os.unlink(tmpfile)
+        except: pass
+    if not any_fail:
+        print(f'  ok: $f ({len([s for s in scripts if len(s.strip()) >= 50])} scripts checked)')
+    else:
+        sys.exit(1)
+except Exception as e:
+    print(f'  skipped: $f ({e})')
+" || failed=1
+done
+if [ $failed -ne 0 ]; then
+  echo ''
+  echo 'Commit blocked: fix SyntaxErrors before committing.'
+  exit 1
+fi
+exit 0

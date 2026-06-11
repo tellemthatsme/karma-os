@@ -667,7 +667,7 @@ TellemThatsMe is a hip-hop-rooted AI producer from Melbourne, Australia. Blendin
   </section>
 
   <!-- SETTINGS -->
-  <section id="sec-ytresearch" class="panel" style="display:none">
+  <section id="sec-ytresearch" class="section">
   <div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <span style="font-size:24px">🧪</span>
@@ -2418,6 +2418,7 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
   ];
 
   async function loadAIResearch() {
+    try {
     const status = document.getElementById('ai-research-status');
     const brief = document.getElementById('ai-research-brief');
     if (!brief) return;
@@ -2432,7 +2433,20 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
       brief.textContent = 'Brief file not found: ' + AI_RESEARCH_PATH + '\n\nRun: python scripts/youtube_researcher.py --trending -o ' + AI_RESEARCH_PATH;
       if (status) status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span>Brief file not loaded. Run the researcher to generate it.</span>';
     }
+     } catch (e) {
+      console.warn('loadAIResearch outer guard:', e.message);
+      const _brief = document.getElementById('ai-research-brief');
+      const _status = document.getElementById('ai-research-status');
+      if (_brief) _brief.textContent = `Research unavailable — could not load brief.
+
+Error: ${e.message}
+
+Try running:
+python scripts/youtube_researcher.py --trending -o ${AI_RESEARCH_PATH}`;
+      if (_status) _status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span>Research unavailable. Open DevTools console for details.</span>';
+    }
   }
+  
 
   function renderAIResearchChannels() {
     const host = document.getElementById('ai-research-channels');

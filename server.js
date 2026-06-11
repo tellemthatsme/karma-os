@@ -1,5 +1,7 @@
 const http = require('http')
 const os = require('os')
+const fs = require('fs')
+const path = require('path')
 const { exec } = require('child_process')
 
 const PORT = process.env.PORT || 8888
@@ -231,8 +233,7 @@ const requestHandler = async (req, res) => {
         ok: null,
       }
       // Archive the previous brief before overwriting
-      const fs = require('fs')
-      const path = require('path')
+
       const archiveDir = path.join(__dirname, 'ai_news', 'archive')
       try { fs.mkdirSync(archiveDir, { recursive: true }) } catch {}
       const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md')
@@ -259,8 +260,7 @@ const requestHandler = async (req, res) => {
       res.end(JSON.stringify({ started: true, pid: child.pid, brief_path: 'ai_news/CURRENT_AI_BRIEF.md' }))
     } else if (url === '/api/research/status') {
       // ── Returns the last research job's status + brief metadata ───────
-      const fs = require('fs')
-      const path = require('path')
+
       const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md')
       let briefMeta = { exists: false }
       try {
@@ -277,8 +277,7 @@ const requestHandler = async (req, res) => {
     } else if (url === '/api/research/rss' || url === '/feed.xml' || url === '/rss') {
       // ── Atom feed of the current brief + archive (last 30) ─────────
       // Subscribe in Feedly / NetNewsWire / Reeder / any RSS reader.
-      const fs = require('fs')
-      const path = require('path')
+
       const baseUrl = `http://${req.headers.host || 'localhost:' + PORT}`
       const aiDir = path.join(__dirname, 'ai_news')
       const entries = []
@@ -339,8 +338,7 @@ ${entries.map(e => `  <entry>
       return
     } else if (url === '/api/research/history' && req.method === 'GET') {
       // ── List archived briefs (last 30 days) ──────────────────────────
-      const fs = require('fs')
-      const path = require('path')
+
       const archiveDir = path.join(__dirname, 'ai_news', 'archive')
       let history = []
       try {
@@ -359,8 +357,7 @@ ${entries.map(e => `  <entry>
       res.end(JSON.stringify({ history }, null, 2))
     } else if (url.startsWith('/_archive/') && req.method === 'GET') {
       // ── Serve archived brief for the history dropdown ────────────────
-      const fs = require('fs')
-      const path = require('path')
+
       const subpath = url.replace('/_archive/', '')
       // Security: only allow alphanumerics, slashes, dots, dashes
       if (!/^[a-zA-Z0-9._\-\/]+$/.test(subpath)) {
@@ -435,9 +432,24 @@ ${entries.map(e => `  <entry>
         }
       })
       return
+    } else if (url.startsWith('/media/') && req.method === 'GET') {
+      // Static file handler for /media/* (command center, dashboards)
+      let safe;
+      try { safe = decodeURIComponent(url.replace(/^\/media\//, '').split('#')[0]).replace(/\.\./g, '') } catch { res.writeHead(400, { 'Content-Type': 'text/plain' }); return res.end('Bad request') }
+      const full = path.join(__dirname, 'media', safe)
+      if (!full.startsWith(path.join(__dirname, 'media'))) {
+        res.writeHead(403); return res.end('Forbidden')
+      }
+      const ext = path.extname(full).toLowerCase()
+      const mime = {'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.md':'text/markdown','.json':'application/json'}[ext] || 'application/octet-stream'
+      fs.readFile(full, (err, data) => {
+        if (err) { console.error('[media]', err.code, full); res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found: ' + safe) }
+        res.writeHead(200, { 'Content-Type': mime }); res.end(data)
+      })
+      return
     } else {
       res.writeHead(404)
-      res.end(JSON.stringify({ error: 'Not found', endpoints: ['/metrics', '/github', '/cr', '/git', '/health', '/api/chat (POST)', '/api/research/refresh (POST)', '/api/research/status', '/api/research/rss', '/api/research/history', '/api/push/{discord|telegram|slack} (POST)'] }))
+      res.end(JSON.stringify({ error: 'Not found', endpoints: ['/metrics', '/github', '/cr', '/git', '/health', '/api/chat (POST)', '/api/research/refresh (POST)', '/api/research/status', '/api/research/rss', '/api/research/history', '/api/push/{discord|telegram|slack} (POST)', '/media/* (static)'] }))
     }
   } catch (e) {
     res.writeHead(500)

@@ -16,6 +16,13 @@
 
 ---
 
+
+## Architecture
+
+![KARMA OS System Architecture](media/architecture-diagram.png)
+
+_Full data flow: 5 dashboards → server.js endpoints → browser bridge → YouTube channels → researcher → brief + archive → Atom feed / Discord / Telegram / Slack / n8n cron / VPS cron fallback._
+
 ## 🖥️ Dashboards
 
 | Dashboard | File | Size | Description |
