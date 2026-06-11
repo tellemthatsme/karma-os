@@ -42,6 +42,11 @@ Also shipped (smaller, but useful):
 
 ## System Architecture
 
+![KARMA OS System Architecture](architecture-diagram.png)
+
+<details>
+<summary>📐 Mermaid source (click to expand)</summary>
+
 ```mermaid
 flowchart TB
     subgraph Browser
@@ -123,6 +128,8 @@ flowchart TB
     style K fill:#4f7a0a,stroke:#00ff9d,color:#fff
     style H fill:#7a4f0a,stroke:#ff6b35,color:#fff
 ```
+
+</details>
 
 **Data flow at a glance:**
 
