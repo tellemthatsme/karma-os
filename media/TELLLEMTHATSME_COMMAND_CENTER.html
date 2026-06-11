@@ -667,7 +667,7 @@ TellemThatsMe is a hip-hop-rooted AI producer from Melbourne, Australia. Blendin
   </section>
 
   <!-- SETTINGS -->
-  <section id="sec-ytresearch" class="section" style="display:none">
+  <section id="sec-ytresearch" class="section">
   <div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
       <span style="font-size:24px">🧪</span>
@@ -2442,7 +2442,7 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
 Error: ${e.message}
 
 Try running:
-python scripts/youtube_researcher.py --trending -o ${typeof AI_RESEARCH_PATH !== 'undefined' ? AI_RESEARCH_PATH : 'ai_news/CURRENT_AI_BRIEF.md'}`;
+python scripts/youtube_researcher.py --trending -o ${AI_RESEARCH_PATH}`;
       if (_status) _status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span>Research unavailable. Open DevTools console for details.</span>';
     }
   }
