@@ -6,7 +6,7 @@
 > 📊 **For the social-media HQ:** open `media/TELLLEMTHATSME_COMMAND_CENTER.html` (22 tabs · 180 KB · 32 platforms · AEST-aware).
 > 🤖 **For AI Research:** open the **🧪 AI Research** tab in the command center, or hit `http://localhost:8888/api/research/rss` for the Atom feed.
 
-![Tests](https://img.shields.io/badge/tests-53%2F53-brightgreen)
+![Tests](https://img.shields.io/badge/tests-72%2F72-brightgreen)
 ![Chromium](https://img.shields.io/badge/Chromium-53%2F53-brightgreen)
 ![Firefox](https://img.shields.io/badge/Firefox-50%2F53-yellow)
 ![WebKit](https://img.shields.io/badge/WebKit-38%2F53-orange)
@@ -93,7 +93,7 @@ The `index.html` launcher includes:
 ## 🧪 Testing
 
 ```bash
-# Run all 53 tests (Chromium)
+# Run all 72 tests (Chromium)
 npm test
 
 # Run specific suites
@@ -183,13 +183,20 @@ All themes persist via `localStorage` (`ko_theme` key) and sync across dashboard
 node server.js    # Start on port 8888
 ```
 
-| Endpoint | Response |
-|---|---|
-| `GET /metrics` | CPU, memory, disk, hostname, uptime |
-| `GET /github` | Public repos and followers count |
-| `GET /cr` | Security score |
-| `GET /git` | Git commit count |
-| `GET /health` | Server status |
+| Endpoint | Method | Response |
+|---|---|---|
+| `/metrics` | GET | CPU, memory, disk, hostname, uptime |
+| `/github` | GET | Public repos and followers count |
+| `/cr` | GET | Security score |
+| `/git` | GET | Git commit count |
+| `/health` | GET | Server status |
+| `/api/chat` | POST | Claude API proxy (key in env, never in browser) |
+| `/api/research/refresh` | POST | Trigger AI research refresh |
+| `/api/research/status` | GET | Research pipeline status |
+| `/api/research/rss` | GET | Atom feed (current brief + 30 archived) |
+| `/api/research/history` | GET | Archived briefs list |
+| `/media/*` | GET | Static file server (command center, dashboards) |
+| `/_archive/*` | GET | Archived research files |
 
 All dashboards connect to `localhost:8888` and fall back to mock data if the server is offline.
 
@@ -214,10 +221,20 @@ docker-compose up -d
 | `T` | Cycle through themes |
 | `Esc` | Close command palette |
 
+## 🛡 Pre-Commit Hook
+
+A pre-commit hook (`.githooks/pre-commit`) automatically checks all `<script>` blocks >50 chars for JavaScript syntax errors before every commit. This catches issues like unescaped apostrophes, missing `async` keywords, and unterminated string literals before they reach production.
+
+```bash
+# The hook runs automatically on git commit
+# To skip (not recommended): git commit --no-verify
+# To install manually: git config core.hooksPath .githooks
+```
+
 ## 📦 npm Scripts
 
 ```bash
-npm test              # Run all 53 tests (Chromium)
+npm test              # Run all 72 tests (Chromium)
 npm run test:hud      # HUD tests only
 npm run test:widget   # Widget tests only
 npm run test:desktop  # Desktop tests only

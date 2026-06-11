@@ -4,7 +4,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                          KARMA OS v1.2.0                             │
+│                          KARMA OS v1.3.0                             │
 ├───────────┬───────────┬──────────────┬──────────────┬───────────────┤
 │ Unified   │  Main OS  │     HUD      │   Widget     │ Live Desktop  │
 │ (26 KB)   │ (134 KB)  │   (18 KB)    │   (12 KB)    │   (47 KB)     │
@@ -84,6 +84,13 @@ Browser ──fetch()──→ Metrics Server (Node.js :8888)
 | `/cr` | GET | Security score, total scans |
 | `/git` | GET | Git commit count |
 | `/health` | GET | Server status, uptime |
+| `/api/chat` | POST | Claude API proxy (ANTHROPIC_API_KEY in env) |
+| `/api/research/refresh` | POST | Trigger AI research pipeline refresh |
+| `/api/research/status` | GET | Research pipeline status (last run, next run) |
+| `/api/research/rss` | GET | Atom feed — current brief + 30 archived |
+| `/api/research/history` | GET | List of archived briefs |
+| `/media/*` | GET | Static files — command center, dashboards, diagrams |
+| `/_archive/*` | GET | Archived research brief files |
 
 ## Test Architecture
 
@@ -97,7 +104,7 @@ playwright.config.js (3 browsers: chromium, firefox, webkit)
 
 validate-karma.js               10 checks  Structural validation
 
-Total: 53 tests (Chromium all passing)
+Total: 72 tests (Chromium all passing)
 ```
 
 ### Cross-Browser Results
@@ -120,6 +127,34 @@ Push/PR to main
     → Upload playwright-report artifact
 ```
 
+## `/media/` Static File Handler
+
+```
+Browser ──GET /media/TELLLEMTHATSME_COMMAND_CENTER.html──→ server.js
+   │                                                         │
+   ├── decodeURIComponent(url.split('#')[0])                 │
+   ├── replace(/\.\./g, '')  ← strip path traversal          │
+   ├── path.join(__dirname, 'media', safe)                   │
+   ├── if (!full.startsWith(__dirname + '/media')) → 403     │
+   └── fs.readFile(full) → 200 with Content-Type             │
+       └── Error → 404 text/plain (no path leakage)         │
+```
+
+Security: defense-in-depth with 3 layers (decode try/catch, `..` stripping, `startsWith` check).
+
+## Pre-Commit Hook
+
+```
+git commit
+  → .githooks/pre-commit
+    → find all <script> blocks >50 chars in changed .html files
+    → write each to tempfile
+    → node -c <tempfile>  (syntax check)
+    → if any fail → abort commit with error details
+```
+
+Uses `python3`/`python` fallback and `tempfile.gettempdir()` for cross-platform compatibility.
+
 ## Infrastructure
 
 ```
@@ -140,6 +175,6 @@ Docker Compose
 | Documentation | 7 .md files | ~40 KB |
 | Scripts | bat, ps1, ahk | ~13 KB |
 | Config | package.json, prettierrc, etc. | ~6 KB |
-| **Active total** | **43 files** | **~470 KB** |
+| **Active total** | **50+ files** | **~650 KB** |
 | Legacy versions | `karma-os-v6.html`, `karma-os-v6 (1).html`, `karma-enhancements (2).html` | ~225 KB |
 | Legacy docs | `KARMA-OS-DOCUMENTATION.md`, `N8N-SETUP-GUIDE.md` | ~31 KB |

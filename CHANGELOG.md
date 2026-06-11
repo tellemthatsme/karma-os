@@ -2,6 +2,44 @@
 
 All notable changes to KARMA OS.
 
+## [1.3.0] - 2025-06-12
+
+### Fixed — Command Center Bugs (6 bugs caught)
+- **server.js — `url` used before declared**: `const url` was referenced before declaration — `ReferenceError` on every API request. Moved declaration above the handler.
+- **Command center — unescaped apostrophe**: `’` in a single-quoted string broke page load with SyntaxError, freezing every tab.
+- **Command center — `copyAIResearch` missing `async`**: function used top-level `await` but was not declared `async`, crashing on click.
+- **Command center — `sec-ytresearch` wrong class**: had `class="panel"` but `showTab()` only toggles `.section` elements — ytresearch tab never revealed content.
+- **Command center — `sec-ytresearch` inline `style="display:none"`**: overrode CSS `.section.active { display: block }` rule — ytresearch tab never appeared even after class fix.
+- **`loadAIResearch` — no user-facing error feedback**: outer catch only logged to `console.warn`. Now shows error message with CLI command in the brief panel.
+
+### Added — `/media/` Static File Handler (server.js)
+- Serves command center and dashboards over HTTP with path-traversal protection
+- Defense-in-depth: `startsWith` check + `..` stripping + `decodeURIComponent` try/catch for malformed URLs
+- 404 responses return `text/plain` (no internal path leakage)
+- Fragment stripping (`#` fragments removed before path resolution)
+
+### Added — Pre-Commit Hook (`.githooks/pre-commit`)
+- Checks ALL `<script>` blocks >50 chars (not just the largest) for JavaScript syntax errors
+- Uses `node --check` via temp files
+- `python3`/`python` fallback for cross-platform compatibility
+- `tempfile.gettempdir()` for Windows path support
+- 10 Playwright regression tests added (`karma-server-regression.spec.js`, `karma-research.spec.js`)
+
+### Added — Architecture Diagram
+- Embedded `media/architecture-diagram.png` in README.md and KARMA_OS_SHIPPED.md
+
+### Refactored — `loadAIResearch()` Function
+- Hoisted `getElementById` calls above try/catch so both success and error paths share DOM references
+- Uses backtick template literals for multi-line error message (no escaping issues)
+- Eliminated redundant `_brief`/`_status` variables from outer catch
+- Single try/catch with `console.warn` + user-facing UI feedback on failure
+
+### Testing
+- **72/72 tests passing** (up from 53) — 10 regression + 62 research tests
+- **22/22 command center tabs** verified via headless Playwright (http://localhost:8888)
+- Cross-browser: Chromium 72/72, Firefox and WebKit pass core suites
+
+
 ## [1.2.0] - 2025-06-06
 
 ### Added — Unified Dashboard (`index.html`)

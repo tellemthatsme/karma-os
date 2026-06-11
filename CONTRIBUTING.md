@@ -30,10 +30,10 @@ npx playwright install chromium
 
 ## Testing
 
-All PRs must pass the 53-test Playwright suite:
+All PRs must pass the 72-test Playwright suite:
 
 ```bash
-npm test                    # Run all 53 tests (Chromium)
+npm test                    # Run all 72 tests (Chromium)
 npm run test:hud            # 10 tests — HUD widget
 npm run test:widget         #  8 tests — compact widget
 npm run test:desktop        # 10 tests — live desktop
@@ -45,6 +45,21 @@ Cross-browser testing (Firefox + WebKit):
 ```bash
 npx playwright test --project=firefox
 npx playwright test --project=webkit
+```
+
+## Pre-Commit Hook
+
+A pre-commit hook (`.githooks/pre-commit`) automatically validates JavaScript syntax in all `<script>` blocks before every commit. This catches bugs like:
+
+- Unescaped apostrophes in single-quoted strings
+- Missing `async` keywords on functions using `await`
+- Unterminated string literals
+- Other syntax errors that break page load
+
+```bash
+# The hook runs automatically — no setup needed
+# To skip (not recommended): git commit --no-verify
+# To install on clone: git config core.hooksPath .githooks
 ```
 
 ## Code Style
