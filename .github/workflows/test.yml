@@ -28,13 +28,49 @@ jobs:
       - name: Run validation
         run: npm run validate
 
-      - name: Run all tests
+      - name: Run all tests (Chromium)
         run: npm run test:ci
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-chromium
+          path: playwright-report/
+          retention-days: 7
+
+  cross-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start server
+        run: node server.js &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:8888/health --timeout 15000
+
+      - name: Run cross-browser tests
+        run: npm run test:cross-browser
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-cross-browser
           path: playwright-report/
           retention-days: 7
