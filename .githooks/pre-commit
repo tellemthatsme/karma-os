@@ -9,22 +9,39 @@ changed=$(git diff --cached --name-only --diff-filter=ACM | grep '\.html$' || tr
 if [ -z "$changed" ]; then
   exit 0
 fi
+# Prefer python3, fall back to python
+PYTHON=$(command -v python3 2>/dev/null || command -v python 2>/dev/null)
+if [ -z "$PYTHON" ]; then
+  echo 'Warning: python not found, skipping HTML syntax check'
+  exit 0
+fi
 failed=0
 for f in $changed; do
-  python -X utf8 -c "
-import re, sys, subprocess
+  "$PYTHON" -X utf8 -c "
+import re, sys, subprocess, tempfile, os
 try:
     html = open(r'$f', encoding='utf-8').read()
     scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, re.S)
     if not scripts: sys.exit(0)
-    largest = max(scripts, key=len)
-    open('/tmp/_precommit_check.js', 'w', encoding='utf-8').write(largest)
-    r = subprocess.run(['node', '--check', '/tmp/_precommit_check.js'], capture_output=True, text=True)
-    if r.returncode != 0:
-        print(f'  SyntaxError in $f:')
-        print(r.stderr[:500])
+    # Check ALL script blocks over 50 chars (skip tiny inline handlers)
+    tmpdir = tempfile.gettempdir()
+    any_fail = False
+    for i, script in enumerate(scripts):
+        if len(script.strip()) < 50:
+            continue
+        tmpfile = os.path.join(tmpdir, f'_precommit_check_{i}.js')
+        open(tmpfile, 'w', encoding='utf-8').write(script)
+        r = subprocess.run(['node', '--check', tmpfile], capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f'  SyntaxError in $f (script block {i}):')
+            print(r.stderr[:500])
+            any_fail = True
+        try: os.unlink(tmpfile)
+        except: pass
+    if not any_fail:
+        print(f'  ok: $f ({len([s for s in scripts if len(s.strip()) >= 50])} scripts checked)')
+    else:
         sys.exit(1)
-    print(f'  ok: $f')
 except Exception as e:
     print(f'  skipped: $f ({e})')
 " || failed=1
