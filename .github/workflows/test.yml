@@ -63,7 +63,7 @@ jobs:
         run: node server.js &
 
       - name: Wait for server
-        run: npx wait-on http://localhost:8888/health --timeout 15000
+        run: for i in $(seq 1 15); do curl -sS http://localhost:8888/health && break || sleep 1; done
 
       - name: Run cross-browser tests
         run: npm run test:cross-browser
