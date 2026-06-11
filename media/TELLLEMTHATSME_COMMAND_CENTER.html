@@ -2418,6 +2418,7 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
   ];
 
   async function loadAIResearch() {
+    try {
     const status = document.getElementById('ai-research-status');
     const brief = document.getElementById('ai-research-brief');
     if (!brief) return;
@@ -2432,7 +2433,11 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
       brief.textContent = 'Brief file not found: ' + AI_RESEARCH_PATH + '\n\nRun: python scripts/youtube_researcher.py --trending -o ' + AI_RESEARCH_PATH;
       if (status) status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span>Brief file not loaded. Run the researcher to generate it.</span>';
     }
+    } catch (e) {
+      console.warn('loadAIResearch outer guard:', e.message);
+    }
   }
+  
 
   function renderAIResearchChannels() {
     const host = document.getElementById('ai-research-channels');

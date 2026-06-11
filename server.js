@@ -435,9 +435,23 @@ ${entries.map(e => `  <entry>
         }
       })
       return
+    } else if (url.startsWith('/media/') && req.method === 'GET') {
+      // Static file handler for /media/* (command center, dashboards)
+      const safe = url.replace(/^\/media\//, '').replace(/\.\./g, '')
+      const full = path.join(__dirname, 'media', safe)
+      if (!full.startsWith(path.join(__dirname, 'media'))) {
+        res.writeHead(403); return res.end('Forbidden')
+      }
+      const ext = path.extname(full).toLowerCase()
+      const mime = {'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.md':'text/markdown','.json':'application/json'}[ext] || 'application/octet-stream'
+      fs.readFile(full, (err, data) => {
+        if (err) { res.writeHead(404); return res.end('Not found') }
+        res.writeHead(200, { 'Content-Type': mime }); res.end(data)
+      })
+      return
     } else {
       res.writeHead(404)
-      res.end(JSON.stringify({ error: 'Not found', endpoints: ['/metrics', '/github', '/cr', '/git', '/health', '/api/chat (POST)', '/api/research/refresh (POST)', '/api/research/status', '/api/research/rss', '/api/research/history', '/api/push/{discord|telegram|slack} (POST)'] }))
+      res.end(JSON.stringify({ error: 'Not found', endpoints: ['/metrics', '/github', '/cr', '/git', '/health', '/api/chat (POST)', '/api/research/refresh (POST)', '/api/research/status', '/api/research/rss', '/api/research/history', '/api/push/{discord|telegram|slack} (POST)', '/media/* (static)'] }))
     }
   } catch (e) {
     res.writeHead(500)
