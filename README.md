@@ -13,6 +13,7 @@
 ![Playwright](https://img.shields.io/badge/Playwright-v1.52-blue)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 ![GitHub](https://img.shields.io/badge/GitHub-tellemthatsme%2Fkarma--os-blue)
+![CI](https://img.shields.io/github/actions/workflow/status/tellemthatsme/karma-os/test.yml?branch=master&label=CI&logo=github)
 
 ---
 
