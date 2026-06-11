@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "name": "AI Browser Bridge",
+  "version": "1.0",
+  "description": "Any AI model can control your real browser. Open the popup and click START.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "debugger",
+    "http://localhost:9876/*",
+    "https://www.youtube.com/*",
+    "https://studio.youtube.com/*",
+    "https://www.facebook.com/*",
+    "https://www.instagram.com/*",
+    "https://twitter.com/*",
+    "https://www.tiktok.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Browser Bridge",
+    "default_icon": {
+      "16": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🤖</text></svg>",
+      "48": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><text y='42' font-size='42'>🤖</text></svg>",
+      "128": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><text y='112' font-size='112'>🤖</text></svg>"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ai-browser-bridge@tellemthatsme"
+    }
+  }
+}

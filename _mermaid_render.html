@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script></head><body><div class="mermaid">
+flowchart TB
+    subgraph Browser
+        A[TELLLEMTHATSME Command Center<br/>media/TELLLEMTHATSME_COMMAND_CENTER.html]
+        B[karma-os-ultimate.html]
+        C[karma-hud.html]
+        D[karma-widget.html]
+        E[live-desktop.html]
+    end
+
+    subgraph Server [karma-metrics :8888]
+        F[server.js<br/>Metrics + Claude proxy]
+        G[/api/research/refresh/]
+        H[/api/research/rss<br/>Atom feed/]
+        I[/api/push/:platform/]
+        J[/api/chat<br/>SSE streaming/]
+    end
+
+    subgraph Chrome [browser_extension]
+        K[bridge_server.py :9876]
+        L[mcp_server.py<br/>rate-limited]
+        M[youtube_uploader.py]
+    end
+
+    subgraph AI [AI Research]
+        N[youtube_researcher.py<br/>5 modes]
+        O[ai_news/CURRENT_AI_BRIEF.md]
+        P[ai_news/archive/*.md<br/>30-day rolling]
+    end
+
+    subgraph Notify [Push destinations]
+        Q[Discord webhook]
+        R[Telegram bot]
+        S[Slack webhook]
+    end
+
+    subgraph RSS [Subscribers]
+        T[Feedly]
+        U[NetNewsWire]
+        V[Reeder]
+    end
+
+    subgraph Cron [Schedulers]
+        W[n8n 06:00 AEST]
+        X[/etc/cron.d fallback/]
+    end
+
+    A -->|fetch RSS| H
+    A -->|refresh button| G
+    A -->|push buttons| I
+    A -->|chat| J
+    B -->|metrics| F
+    C -->|metrics| F
+    D -->|metrics| F
+    E -->|metrics| F
+    J -->|API call| AA[api.anthropic.com]
+    G -->|spawn| N
+    N -->|scrape| K
+    K -->|drive Chrome| AB[YouTube channels]
+    N -->|summarize via| J
+    N -->|write| O
+    G -->|archive prev| P
+    H -->|serve| O
+    H -->|serve| P
+    I -->|webhook| Q
+    I -->|sendMessage| R
+    I -->|incoming-webhook| S
+    H -->|subscribe| T
+    H -->|subscribe| U
+    H -->|subscribe| V
+    W -->|trigger| N
+    X -->|trigger| N
+    M -->|via| K
+    L -->|via| K
+
+    style A fill:#0a4f7a,stroke:#00d4ff,color:#fff
+    style F fill:#0a4f7a,stroke:#00d4ff,color:#fff
+    style N fill:#7a0a4f,stroke:#b347ff,color:#fff
+    style K fill:#4f7a0a,stroke:#00ff9d,color:#fff
+    style H fill:#7a4f0a,stroke:#ff6b35,color:#fff
+</div><script>mermaid.initialize({startOnLoad:true, theme:'dark', themeVariables:{primaryColor:'#0a1428', primaryTextColor:'#00d4ff', primaryBorderColor:'#00d4ff', lineColor:'#b347ff', secondaryColor:'#1a0a2e', tertiaryColor:'#0a0a0a', fontFamily:'Inter, sans-serif'}});</script></body></html>

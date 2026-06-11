@@ -184,3 +184,11 @@ body.redline-mode{animation:redlinePulse 1s infinite}
 .draggable { cursor: grab; }
 .draggable:active { cursor: grabbing; }
 .sortable-ghost { opacity: 0.4; }
+
+/* ── Media Hub ── */
+.media-hub { background: linear-gradient(135deg, rgba(255,77,0,.06), rgba(255,215,0,.04)); border-color: rgba(255,77,0,.15); }
+.media-vid { display: flex; align-items: center; gap: 6px; padding: 4px 7px; border-radius: 5px; background: rgba(255,255,255,.02); border-left: 2px solid #ff4d00; cursor: pointer; transition: all .2s; font-size: 8px; }
+.media-vid:hover { background: rgba(255,77,0,.08); transform: translateX(2px); }
+.media-vid .vid-num { font-family: 'Orbitron', monospace; font-size: 7px; color: #ff4d00; background: rgba(255,77,0,.15); padding: 1px 4px; border-radius: 2px; flex-shrink: 0; }
+.media-vid .vid-name { flex: 1; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-vid .vid-theme { font-size: 7px; color: var(--muted); flex-shrink: 0; }

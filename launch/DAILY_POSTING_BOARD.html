@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAILY POSTING BOARD — TellLemThatsMe</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .header .subtitle {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      max-width: 900px;
+      margin: 0 auto 30px;
+      background: #111827;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #1e293b;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .progress-header h2 { font-size: 16px; color: #94a3b8; }
+    .progress-count { font-size: 24px; font-weight: 700; color: #4ade80; }
+    .progress-bar-outer {
+      width: 100%;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+
+    /* Day Navigation */
+    .day-nav {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .day-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #111827;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .day-btn:hover { border-color: #6366f1; color: #e0e0e0; }
+    .day-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+    .day-btn.done { background: #064e3b; border-color: #22c55e; color: #4ade80; }
+    .day-btn.done::after {
+      content: '✓';
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 10px;
+      background: #22c55e;
+      color: #000;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Track Card */
+    .track-card {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      background: #111827;
+      border-radius: 16px;
+      border: 1px solid #1e293b;
+      overflow: hidden;
+    }
+    .track-header {
+      padding: 24px;
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .track-header h2 { font-size: 20px; color: #fff; }
+    .track-day { font-size: 13px; color: #a5b4fc; margin-bottom: 4px; }
+    .track-channel { font-size: 12px; color: #6366f1; }
+
+    .track-body { padding: 24px; }
+
+    /* Copy Section */
+    .copy-section {
+      margin-bottom: 20px;
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #1e293b;
+    }
+    .copy-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .copy-label span {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .copy-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: #334155; border-color: #6366f1; }
+    .copy-btn.copied { background: #064e3b; border-color: #22c55e; color: #4ade80; }
+
+    .copy-content {
+      background: #020617;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+    .copy-content.tags { max-height: 60px; }
+    .copy-content.pinned { max-height: 100px; }
+
+    /* Checklist */
+    .checklist {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      background: #111827;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #1e293b;
+    }
+    .checklist h3 { font-size: 15px; color: #94a3b8; margin-bottom: 12px; }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #22c55e;
+      cursor: pointer;
+    }
+    .check-item label {
+      font-size: 14px;
+      color: #e2e8f0;
+      cursor: pointer;
+      flex: 1;
+    }
+    .check-item.done label { text-decoration: line-through; color: #64748b; }
+
+    .mark-done-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+    .mark-done-btn.ready {
+      background: #22c55e;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+    }
+    .mark-done-btn.ready:hover { background: #16a34a; transform: scale(1.02); }
+    .mark-done-btn.not-ready {
+      background: #1e293b;
+      color: #475569;
+      cursor: not-allowed;
+    }
+
+    .reset-btn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid #334155;
+      color: #64748b;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .reset-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: transform 0.3s ease;
+      z-index: 999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 DAILY POSTING BOARD</h1>
+  <div class="subtitle">TellLemThatsMe — 16 Tracks, 16 Days, 32 Uploads</div>
+</div>
+
+<div class="progress-section">
+  <div class="progress-header">
+    <h2>Overall Progress</h2>
+    <div class="progress-count"><span id="progressText">0 / 16 days</span></div>
+  </div>
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progressBar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="day-nav" id="dayNav"></div>
+
+<div id="trackContent"></div>
+
+<button class="reset-btn" onclick="resetProgress()">Reset All Progress</button>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+const TRACKS = [
+  {
+    day: 1, title: "EVERY MORNING WHEN I WAKE UP",
+    file: "Every morning when I wake up.mp4", channel: "Both",
+    desc: "Every morning brings a new chance to fight, to grow, to become who you're meant to be. This track captures the raw ritual of waking up and choosing to keep going no matter what.\n\nDedicated to my kids — you are my reason, my purpose, and my strength every single day. Everything I do, I do for you.\n\nAnd to the love of my life, who's always there no matter what, where, or how far apart we are. Thank you for being my constant.\n\ntellemthatsme — EVERY MORNING WHEN I WAKE UP\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\nDon't mess with IT. Hated By Many! Confronted by NONE!\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #EveryMorning #MotivationalMusic #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Every Morning When I Wake Up, Australian Hip Hop, motivational rap, morning motivation, grind mode, real talk, underground hip hop, Australian rap, original music, music video, new music 2026",
+    pinned: "This one's for everyone who wakes up and chooses to keep going. You're not alone. What's the first thing YOU do every morning? Drop it below. New videos every week — subscribe and hit the bell."
+  },
+  {
+    day: 2, title: "DONT RUSH ME",
+    file: "dont rush me.mp4", channel: "Both",
+    desc: "Sometimes the best things take time. \"Don't Rush Me\" is a declaration of patience, persistence, and staying true to your own pace while the world speeds around you.\n\ntellemthatsme — DONT RUSH ME\nGenre: Australian Hip-Hop / Drill\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\nDon't mess with IT. Hated By Many! Confronted by NONE!\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #DontRushMe #AustralianHipHop #OriginalMusic #HipHop #DrillMusic #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Dont Rush Me, Australian Hip Hop, Drill Music, hip hop, rap, new music 2026, independent artist, underground hip hop, patience, motivational rap, real talk, Australian rap, original music, music video",
+    pinned: "Patience is power. What's something YOU refuse to rush? Drop it below. Subscribe for new videos every week!"
+  },
+  {
+    day: 3, title: "I LIVE FOR YOU",
+    file: "i live for you.mp4", channel: "Both",
+    desc: "Devotion, loyalty, and purpose. Written about not getting to see your children — and one day you did, but had no idea it would be the last time.\n\nDedicated to Leah, Ryan, and Jess — every word is for you.\n\ntellemthatsme — I LIVE FOR YOU\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #ILiveForYou #Devotion #OriginalMusic #HipHop #Heartfelt #UndergroundHipHop #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, I Live For You, Australian Hip Hop, devotion, purpose driven, hip hop, new music 2026, emotional rap, real music, heartfelt, Australian rap, original music, music video, family, love",
+    pinned: "This one hits different when you've lost someone you love. Who do YOU live for? New videos every week — subscribe and stay with me."
+  },
+  {
+    day: 4, title: "LIKE I MEANT TO DO",
+    file: "LIKE I MEANT TO DO.mp4", channel: "Both",
+    desc: "Finally stepping into who I was always meant to be. This is the sound of breaking free from everything that held me back.\n\nTHE STORY BEHIND THE SONG:\nSix years. No reason. No explanation. Just silence — and the pieces I had to pick up alone.\n\n\"Like I'm Meant To Do\" was written in the wreckage of a six-year relationship that ended without a word. No fight. No closure. Just somebody walking away like those years meant nothing.\n\nThis isn't a love song. This is the sound of putting yourself back together when someone else left you in pieces.\n\nDedicated to: Leah, Ryan, and Jess. I love you. I always have. I always will.\n\ntellemthatsme — LIKE I MEANT TO DO\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #LikeIMeantToDo #Heartbreak #Healing #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Like I Meant To Do, Australian Hip Hop, heartbreak, healing, moving on, real story, hip hop, new music 2026, emotional rap, independent artist, underground hip hop, original music, music video",
+    pinned: "We've all been left with no closure. This one's for anyone picking up the pieces. What song got YOU through a breakup? Drop it below."
+  },
+  {
+    day: 5, title: "MY CHILDREN",
+    file: "my children.mp4", channel: "Both",
+    desc: "Written from the darkest chapter of my life — my three children stolen away by lies, a father left to grieve, and the fight to hold on when everything was taken. This track is for every parent who knows this pain.\n\nDedicated to Leah, Ryan, and Jess — I love you. I always have. I always will.\n\ntellemthatsme — MY CHILDREN\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #MyChildren #ParentalAlienation #Fatherhood #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, My Children, Australian Hip Hop, parental alienation, father, kids, family, real, hip hop, new music 2026, emotional rap, independent artist, underground hip hop, original music, music video",
+    pinned: "If you're a parent who's been separated from your children — you're not alone. This one's for you. Share your story below."
+  },
+  {
+    day: 6, title: "WEATHER YOU CAN DO",
+    file: "weather you can do.mp4", channel: "Both",
+    desc: "No matter the weather, no matter the storm — I'm still standing. This track is about resilience and proving that nothing can break you when you know who you are.\n\nDedicated to Leah, Ryan, and Jess — no matter the weather, I will always be here for you. Every storm we weathered, we weathered together. I love you. I always have. I always will.\n\ntellemthatsme — WEATHER YOU CAN DO\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #WeatherYouCanDo #Resilience #Kids #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Weather You Can Do, Australian Hip Hop, resilience, kids, family, dedication, hip hop, new music 2026, emotional rap, independent artist, underground hip hop, original music, music video",
+    pinned: "This one's for my kids — no matter the weather, I will always be here for you. Who do YOU weather the storm for? Drop it below. New music every week — subscribe!"
+  },
+  {
+    day: 7, title: "I CANT BE HIM",
+    file: "i cant be him.mp4", channel: "Both",
+    desc: "I can't be him. I won't be him. This track is about refusing to be someone you're not, breaking out of molds, and owning your own identity.\n\ntellemthatsme — I CANT BE HIM\nGenre: Australian Hip-Hop / Identity\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #ICantBeHim #Identity #SelfMade #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, I Cant Be Him, Australian Hip Hop, identity, self, original, real, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "Ever been told to be someone you're not? This one's for you. What's YOUR identity? Drop it below."
+  },
+  {
+    day: 8, title: "TELLEMTHATSME",
+    file: "tellemtrhatsme.mp4", channel: "Both",
+    desc: "The anthem. The name. The statement. This is who I am — take it or leave it. No apologies, no compromises.\n\ntellemthatsme — TELLEMTHATSME\nGenre: Australian Hip-Hop / Anthem\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\nDon't mess with IT. Hated By Many! Confronted by NONE!\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #Tellemthatsme #Anthem #Identity #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Australian Hip Hop, anthem, identity, original music, hip hop, new music 2026, independent artist, underground hip hop, real talk, music video",
+    pinned: "This is the anthem. This is the name. Tell them who you are. Drop your story below. Subscribe for more."
+  },
+  {
+    day: 9, title: "EVIL PAST",
+    file: "evil past.mp4", channel: "Both",
+    desc: "We all have a past. Some of it's dark. This track confronts the mistakes, the scars, and the things we'd rather forget — and turns them into fuel.\n\ntellemthatsme — EVIL PAST\nGenre: Australian Hip-Hop / Redemption\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #EvilPast #Redemption #Growth #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Evil Past, Australian Hip Hop, past, redemption, growth, real talk, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "Your past doesn't define you — it fuels you. What's YOUR redemption story? Drop it below."
+  },
+  {
+    day: 10, title: "JUST DRILL ME",
+    file: "just drill me.mp4", channel: "Both",
+    desc: "Hard-hitting. Unapologetic. This track brings the energy and the edge — straight drill vibes with something to say.\n\ntellemthatsme — JUST DRILL ME\nGenre: Australian Hip-Hop / Drill\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #JustDrillMe #Drill #Energy #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Just Drill Me, Australian Hip Hop, drill, energy, hard, original, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "Straight energy. No filter. What drill track hits YOU the hardest? Drop it below. Subscribe for more."
+  },
+  {
+    day: 11, title: "WOODS",
+    file: "woods.mp4", channel: "Both",
+    desc: "Deep in the woods — lost, found, and everything in between. This track is about navigating life's darkest moments and finding your way back.\n\ntellemthatsme — WOODS\nGenre: Australian Hip-Hop / Reflective\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #Woods #Deep #Reflective #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Woods, Australian Hip Hop, deep, reflective, atmosphere, real, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "Sometimes you have to get lost to find yourself. What's YOUR dark moment that made you stronger? Drop it below."
+  },
+  {
+    day: 12, title: "NO CHEATS",
+    file: "no cheats.mp4", channel: "Both",
+    desc: "No shortcuts. No cheating. Just real work and real results. This track is about earning everything you have and doing it the right way.\n\ntellemthatsme — NO CHEATS\nGenre: Australian Hip-Hop / Integrity\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #NoCheats #Integrity #Grind #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, No Cheats, Australian Hip Hop, real, grind, hustle, integrity, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "No shortcuts. No cheats. Just hard work. What's something YOU earned the hard way? Drop it below."
+  },
+  {
+    day: 13, title: "TILL I'M DONE",
+    file: "till im done.mp4", channel: "Both",
+    desc: "I won't stop till I'm done. Period. This track is about persistence, drive, and refusing to quit until you've given everything you've got.\n\ntellemthatsme — TILL I'M DONE\nGenre: Australian Hip-Hop / Persistence\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #TillImDone #Persistence #NeverQuit #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Till Im Done, Australian Hip Hop, persistence, grind, never quit, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "Never stop. Never quit. What keeps YOU going when it gets hard? Drop it below. Subscribe for more."
+  },
+  {
+    day: 14, title: "AI FIVE",
+    file: "ai five.mp4", channel: "Both",
+    desc: "Five tracks deep in the AI revolution. This one's about the future, the technology, and how we ride the wave instead of getting swept away.\n\ntellemthatsme — AI FIVE\nGenre: Australian Hip-Hop / Future\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #AIFive #Future #Technology #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, AI Five, Australian Hip Hop, artificial intelligence, future, tech, original, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "AI is changing everything. Are you riding the wave or watching from the shore? Drop your take below."
+  },
+  {
+    day: 15, title: "SINCE I WAS YOUNG",
+    file: "since i was young.mp4", channel: "Both",
+    desc: "Since I was young, I knew I was different. This track traces the journey from childhood dreams to the reality of who I've become.\n\ntellemthatsme — SINCE I WAS YOUNG\nGenre: Australian Hip-Hop / Journey\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #SinceIWasYoung #Journey #Growth #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026 #MusicVideo",
+    tags: "tellemthatsme, Since I Was Young, Australian Hip Hop, journey, growth, childhood, real story, hip hop, new music 2026, independent artist, underground hip hop, original music, music video",
+    pinned: "We all started somewhere. Where did YOUR journey begin? Drop it below. Subscribe for more."
+  },
+  {
+    day: 16, title: "EVERY MORNING (MV)",
+    file: "Every morning when I wake up.mp4", channel: "Both",
+    desc: "Every morning brings a new chance to fight, to grow, to become who you're meant to be. This music video captures the raw ritual of waking up and choosing to keep going no matter what.\n\nDedicated to my kids — you are my reason, my purpose, and my strength every single day. Everything I do, I do for you.\n\nAnd to the love of my life, who's always there no matter what, where, or how far apart we are. Thank you for being my constant.\n\ntellemthatsme — EVERY MORNING (Music Video)\nGenre: Australian Hip-Hop / Emotional\nArtist: Brendan Foots (tellemthatsme)\nFrom: Australia\n\nLYRICS in video\n\nCONNECT WITH ME\nFacebook: facebook.com/tellemthatsme69\nYouTube: youtube.com/@tellemthatsme69\n\nDon't mess with IT. Hated By Many! Confronted by NONE!\n\n(C) 2026 tellemthatsme. All rights reserved.\n\n#tellemthatsme #EveryMorning #MusicVideo #MotivationalMusic #OriginalMusic #HipHop #RealTalk #UndergroundArtist #NewMusic2026",
+    tags: "tellemthatsme, Every Morning, music video, Australian Hip Hop, motivational rap, morning motivation, dedication, kids, love, hip hop, new music 2026, original music",
+    pinned: "The music video for Every Morning. This one's for everyone who keeps going. What's YOUR morning routine? Drop it below. Subscribe and hit the bell."
+  }
+];
+
+let currentDay = 1;
+let progress = {};
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('tlm_posting_progress');
+    if (saved) progress = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function saveProgress() {
+  localStorage.setItem('tlm_posting_progress', JSON.stringify(progress));
+}
+
+function getCompletedCount() {
+  return Object.values(progress).filter(d => d && d.bothDone).length;
+}
+
+function updateProgressBar() {
+  const count = getCompletedCount();
+  const pct = (count / 16) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = count + ' / 16 days';
+}
+
+function renderDayNav() {
+  const nav = document.getElementById('dayNav');
+  nav.innerHTML = '';
+  for (let i = 1; i <= 16; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.textContent = i;
+    if (i === currentDay) btn.classList.add('active');
+    const dayData = progress[i];
+    if (dayData && dayData.bothDone) btn.classList.add('done');
+    btn.onclick = () => selectDay(i);
+    nav.appendChild(btn);
+  }
+}
+
+function selectDay(day) {
+  currentDay = day;
+  renderDayNav();
+  renderTrackCard();
+}
+
+function renderTrackCard() {
+  const track = TRACKS[currentDay - 1];
+  const dayData = progress[currentDay] || {};
+  const container = document.getElementById('trackContent');
+
+  container.innerHTML = `
+    <div class="track-card">
+      <div class="track-header">
+        <div>
+          <div class="track-day">DAY ${track.day} of 16</div>
+          <h2>${track.title}</h2>
+          <div class="track-channel">Upload to: ${track.channel} | File: ${track.file}</div>
+        </div>
+      </div>
+      <div class="track-body">
+        <div class="copy-section">
+          <div class="copy-label">
+            <span>Title</span>
+            <button class="copy-btn" onclick="copyText(this, 'title-${currentDay}')">Copy Title</button>
+          </div>
+          <div class="copy-content" id="title-${currentDay}">tellemthatsme — ${track.title}</div>
+        </div>
+
+        <div class="copy-section">
+          <div class="copy-label">
+            <span>Description</span>
+            <button class="copy-btn" onclick="copyText(this, 'desc-${currentDay}')">Copy Description</button>
+          </div>
+          <div class="copy-content" id="desc-${currentDay}">${escapeHtml(track.desc)}</div>
+        </div>
+
+        <div class="copy-section">
+          <div class="copy-label">
+            <span>Tags</span>
+            <button class="copy-btn" onclick="copyText(this, 'tags-${currentDay}')">Copy Tags</button>
+          </div>
+          <div class="copy-content tags" id="tags-${currentDay}">${escapeHtml(track.tags)}</div>
+        </div>
+
+        <div class="copy-section">
+          <div class="copy-label">
+            <span>Pinned Comment</span>
+            <button class="copy-btn" onclick="copyText(this, 'pinned-${currentDay}')">Copy Comment</button>
+          </div>
+          <div class="copy-content pinned" id="pinned-${currentDay}">${escapeHtml(track.pinned)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="checklist">
+      <h3>Upload Checklist — Day ${track.day}</h3>
+      <div class="check-item ${dayData.mainDone ? 'done' : ''}">
+        <input type="checkbox" id="chk-main" ${dayData.mainDone ? 'checked' : ''} onchange="toggleCheck('main')">
+        <label for="chk-main">Main channel (@tellemthatsme69) — Upload + Metadata + Publish</label>
+      </div>
+      <div class="check-item ${dayData.secondDone ? 'done' : ''}">
+        <input type="checkbox" id="chk-second" ${dayData.secondDone ? 'checked' : ''} onchange="toggleCheck('second')">
+        <label for="chk-second">Second channel — Upload + Metadata + Publish</label>
+      </div>
+      <div class="check-item ${dayData.commentDone ? 'done' : ''}">
+        <input type="checkbox" id="chk-comment" ${dayData.commentDone ? 'checked' : ''} onchange="toggleCheck('comment')">
+        <label for="chk-comment">Pin comment on both videos</label>
+      </div>
+      <button class="mark-done-btn ${dayData.mainDone && dayData.secondDone ? 'ready' : 'not-ready'}"
+              onclick="markDayDone()" ${!(dayData.mainDone && dayData.secondDone) ? 'disabled' : ''}>
+        ${dayData.bothDone ? 'Day Complete!' : 'Complete Both Channels First'}
+      </button>
+    </div>
+  `;
+}
+
+function toggleCheck(type) {
+  if (!progress[currentDay]) progress[currentDay] = {};
+  const dayData = progress[currentDay];
+
+  if (type === 'main') {
+    dayData.mainDone = document.getElementById('chk-main').checked;
+  } else if (type === 'second') {
+    dayData.secondDone = document.getElementById('chk-second').checked;
+  } else if (type === 'comment') {
+    dayData.commentDone = document.getElementById('chk-comment').checked;
+  }
+
+  saveProgress();
+  renderTrackCard();
+}
+
+function markDayDone() {
+  if (!progress[currentDay]) progress[currentDay] = {};
+  progress[currentDay].bothDone = true;
+  saveProgress();
+  updateProgressBar();
+  renderDayNav();
+  renderTrackCard();
+  showToast('Day ' + currentDay + ' marked complete!');
+
+  if (currentDay < 16) {
+    setTimeout(() => selectDay(currentDay + 1), 1500);
+  }
+}
+
+function copyText(btn, id) {
+  const el = document.getElementById(id);
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    showToast('Copied to clipboard!');
+    setTimeout(() => {
+      btn.textContent = btn.textContent.replace('Copied!', '').trim() || 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function resetProgress() {
+  if (confirm('Reset all progress? This cannot be undone.')) {
+    progress = {};
+    saveProgress();
+    updateProgressBar();
+    renderDayNav();
+    renderTrackCard();
+    showToast('Progress reset');
+  }
+}
+
+// Init
+loadProgress();
+updateProgressBar();
+renderDayNav();
+renderTrackCard();
+</script>
+</body>
+</html>

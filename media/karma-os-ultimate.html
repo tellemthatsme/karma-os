@@ -360,6 +360,7 @@ html,body{width:100%;height:100vh;overflow:hidden;font-family:'Inter',sans-serif
         <button class="tb-btn" onclick="openM('voice-m')"><i class="fas fa-microphone"></i> VOICE</button>
         <button class="tb-btn" onclick="openM('army-m')"><i class="fas fa-users"></i> ARMY</button>
         <button class="tb-btn" onclick="openM('hermes-m')"><i class="fas fa-paper-plane"></i> HERMES</button>
+        <button class="tb-btn" onclick="openM('social-m')" style="border-color:rgba(255,77,0,.35)"><i class="fas fa-fire"></i> SOCIAL</button>
         <button class="tb-btn" onclick="openM('settings-m')"><i class="fas fa-key"></i></button>
       </div>
       <div class="clk">
@@ -503,6 +504,8 @@ html,body{width:100%;height:100vh;overflow:hidden;font-family:'Inter',sans-serif
           <a href="#" class="qb" onclick="openM('voice-m');return false"><i class="fas fa-microphone" style="color:var(--danger)"></i>Voice</a>
           <a href="#" class="qb" onclick="openM('imp-m');return false"><i class="fas fa-infinity" style="color:var(--ac2)"></i>Impossible</a>
           <a href="#" class="qb" onclick="openM('openhuman-m');return false"><i class="fas fa-user-check" style="color:var(--ac3)"></i>Human</a>
+          <a href="#" class="qb" onclick="openM('social-m');return false"><i class="fas fa-fire" style="color:#ff4d00"></i>Social</a>
+
           <a href="#" class="qb" onclick="triggerBoost();return false"><i class="fas fa-rocket" style="color:var(--warn)"></i>BOOST</a>
         </div>
       </div>
@@ -870,6 +873,78 @@ html,body{width:100%;height:100vh;overflow:hidden;font-family:'Inter',sans-serif
   </div>
 </div>
 
+
+<!-- SOCIAL MEDIA HUB -->
+<div class="modal" id="social-m">
+  <div class="mbox" style="max-width:780px;max-height:92vh">
+    <div class="mhdr"><div class="mtitle" style="color:#ff4d00"><i class="fas fa-fire" style="color:#ff4d00"></i>TELLLEMTHATSME \u00b7 SOCIAL MEDIA HUB</div><button class="mclose" onclick="closeM('social-m')">\u2715</button></div>
+    <div class="mbody" style="gap:10px">
+      <!-- STATS BAR -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="p sc" style="flex:1;min-width:90px;padding:10px 6px"><div class="sv" style="font-size:20px;background:linear-gradient(135deg,#ff4d00,#ffd700)">14</div><div class="sl">Music Videos</div></div>
+        <div class="p sc" style="flex:1;min-width:90px;padding:10px 6px"><div class="sv" style="font-size:20px;background:linear-gradient(135deg,#ff0000,#ff4d00)">5</div><div class="sl">YouTube Subs</div></div>
+        <div class="p sc" style="flex:1;min-width:90px;padding:10px 6px"><div class="sv" style="font-size:20px;background:linear-gradient(135deg,#1877f2,#00d4ff)">3.9K</div><div class="sl">FB Likes</div></div>
+        <div class="p sc" style="flex:1;min-width:90px;padding:10px 6px"><div class="sv" style="font-size:20px;background:linear-gradient(135deg,#ffd700,#ff4d00)">404+</div><div class="sl">Total Songs</div></div>
+      </div>
+
+      <!-- SOCIAL PLATFORMS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div class="p" style="text-align:center;padding:10px 6px;cursor:pointer" onclick="window.open('https://youtube.com/@tellemthatsme69','_blank')">
+          <div style="font-size:20px">\ud83c\udfac</div><div style="font-size:8px;color:var(--muted);margin-top:4px">YouTube</div><div style="font-size:10px;color:#ff0000;font-weight:600">@tellemthatsme69</div>
+        </div>
+        <div class="p" style="text-align:center;padding:10px 6px;cursor:pointer" onclick="window.open('https://facebook.com/tellemthatsme69','_blank')">
+          <div style="font-size:20px">\ud83d\udcd8</div><div style="font-size:8px;color:var(--muted);margin-top:4px">Facebook</div><div style="font-size:10px;color:#1877f2;font-weight:600">tellemthatsme69</div>
+        </div>
+        <div class="p" style="text-align:center;padding:10px 6px;cursor:pointer" onclick="window.open('https://instagram.com/tellemthatsme69','_blank')">
+          <div style="font-size:20px">\ud83d\udcf8</div><div style="font-size:8px;color:var(--muted);margin-top:4px">Instagram</div><div style="font-size:10px;color:#e4405f;font-weight:600">IG Reels</div>
+        </div>
+        <div class="p" style="text-align:center;padding:10px 6px;cursor:pointer" onclick="window.open('https://tiktok.com/@tellemthatsme69','_blank')">
+          <div style="font-size:20px">\ud83c\udfb5</div><div style="font-size:8px;color:var(--muted);margin-top:4px">TikTok</div><div style="font-size:10px;color:#00f2ea;font-weight:600">3-5x/day</div>
+        </div>
+      </div>
+
+      <!-- VIDEO CATALOG -->
+      <div class="p" style="flex-shrink:0">
+        <div class="pt" style="color:#ff4d00"><span class="d" style="background:#ff4d00"></span>\ud83c\udfac Music Video Catalog \u00b7 14 Videos<span style="margin-left:auto;font-size:7px;color:var(--muted)">Click to copy title</span></div>
+        <div id="social-video-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:240px;overflow:auto"></div>
+      </div>
+
+      <!-- CONTENT STRATEGY -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="p">
+          <div class="pt" style="color:var(--ac3)"><span class="d" style="background:var(--ac3)"></span>\ud83d\udcf1 Content Strategy</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.7);line-height:1.7">
+            <div style="color:var(--ac);font-weight:600;margin-bottom:4px">1 video = 30+ pieces of content</div>
+            <div>\ud83c\udfac YouTube: Long-form + 3-5 Shorts daily</div>
+            <div>\ud83d\udcf8 IG: 2-3 Reels daily + lyric carousels</div>
+            <div>\ud83c\udfb5 TikTok: 3-5x/day with trending sounds</div>
+            <div>\ud83d\udcd8 FB: Clips + group shares + live sessions</div>
+          </div>
+        </div>
+        <div class="p">
+          <div class="pt" style="color:var(--warn)"><span class="d" style="background:var(--warn)"></span>\ud83d\udcc5 Upload Schedule</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.7);line-height:1.7">
+            <div style="color:var(--warn);font-weight:600;margin-bottom:4px">12-Day Release Plan</div>
+            <div>\ud83c\udf05 Morning (8-10AM): Short #1 + engage</div>
+            <div>\u2600\ufe0f Midday (12-2PM): Main video + cross-post</div>
+            <div>\ud83c\udf19 Evening (6-9PM): Short #3 + community</div>
+            <div>\ud83d\udcca Peak: Fri-Sun 12-3PM \u00b7 Weekdays 6-9PM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHORTS TRACKER -->
+      <div class="p">
+        <div class="pt" style="color:var(--ac2)"><span class="d" style="background:var(--ac2)"></span>\u26a1 Shorts Engine<span style="margin-left:auto;font-size:7px;color:var(--ac3)">70 shorts planned \u00b7 5 per video</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <button onclick="triggerN8NWorkflow('ash-lee-post')" style="background:rgba(179,71,255,.12);border:1px solid rgba(179,71,255,.25);color:var(--ac2);border-radius:5px;padding:6px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px">\ud83d\ude80 LAUNCH SHORTS</button>
+          <button onclick="window.open('file:///C:/Users/karma/TELLLEMTHATSME_SOCIAL_MEDIA_DASHBOARD.html','_blank')" style="background:rgba(255,77,0,.12);border:1px solid rgba(255,77,0,.25);color:#ff4d00;border-radius:5px;padding:6px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px">\ud83d\udcca FULL DASHBOARD</button>
+          <button onclick="window.open('file:///C:/Users/karma/TELLLEMTHATSME_THUMBNAIL_GENERATOR.html','_blank')" style="background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);color:#ffd700;border-radius:5px;padding:6px 12px;font-size:8px;font-family:'Orbitron',monospace;cursor:pointer;letter-spacing:.5px">\ud83d\uddbc\ufe0f THUMBNAILS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
@@ -895,6 +970,7 @@ const S = {
   theme: localStorage.getItem('ko_theme') || 'cyberpunk',
   muted: localStorage.getItem('ko_muted') === 'true',
   karmaHistory: [],
+  selectedAgent: localStorage.getItem('ko_selected_agent') || 'karma',
   isListening: false, recognition: null,
   startTime: Date.now(),
   agents: [],
@@ -938,6 +1014,154 @@ const AGENTS = [
   { id: 'cronus', n: 'Cronus Scheduler', i: '⏰', bg: '#b347ff22', s: 'so', t: 'Scheduled tasks', role: 'scheduler', crew: 'auto', skills: ['cron', 'scheduling', 'tasks'] },
   { id: 'dataflow', n: 'DataFlow ETL', i: '🔄', bg: '#00ff9d22', s: 'so', t: 'Data pipeline', role: 'etl', crew: 'auto', skills: ['etl', 'transform', 'pipeline'] },
 ];
+
+// AGENT_PROMPTS — per-agent system prompts so specialists can be invoked individually
+const AGENT_PROMPTS = {
+  karma: 'You are KARMA Commander — orchestrator of a 25-agent AI Army. Break high-level intent into tasks, delegate to specialists, synthesize results. Be decisive, brief, concrete.',
+  deepsearch: 'You are DeepSearch — research specialist. Find academic papers, technical docs, current AI developments. Always cite sources. Return concise summaries with links.',
+  codeagent: 'You are CodeAgent — code review and refactoring specialist. Analyze code, suggest improvements, catch bugs and security issues. Be specific with line references.',
+  apollo: 'You are Apollo — full-stack developer. Generate React, Node, Python code following current best practices. Prefer functional, typed, well-tested code.',
+  nova: 'You are Nova — UI/UX designer. Suggest layouts, color schemes, component structures, CSS. Be specific and visual.',
+  ashlee: 'You are Ash Lee — content creator for Bluesky, X, blog, social. Write in tellmthatsme voice: raw, personal, hip-hop-rooted, dedicated to kids Leah Ryan and Jess.',
+  oracle: 'You are Oracle — prediction engine. Forecast AI and crypto trends, provide actionable intelligence. Be brief: 3 bullet points max with confidence levels.',
+  marketwatch: 'You are MarketWatch — crypto and finance analyst. Track BTC, ETH, SOL. Alert on thresholds. Summarize market moves in 2 sentences max.'
+};
+
+
+// --- Output sanitization (XSS prevention) ---
+// All agent responses pass through this before innerHTML injection.
+const HTML_ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#x60;' };
+function sanitizeHTML(text) {
+  if (text == null) return '';
+  return String(text).replace(/[&<>"'`]/g, c => HTML_ESCAPE_MAP[c]);
+}
+// Allow basic markdown-ish rendering for agent output (newlines + bold).
+// Returns safe HTML where newlines become <br> and **text** becomes <strong>text</strong>.
+function renderAgentText(text) {
+  const safe = sanitizeHTML(text);
+  return safe
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+// --- Shared Blackboard (inter-agent state) ---
+// One global object all 25 agents can read/write. Persisted to localStorage.
+const BLACKBOARD_KEY = 'ko_blackboard';
+const BLACKBOARD_DEFAULT = {
+  goals: [],
+  context: {},
+  decisions: [],
+  artifacts: {},
+  metrics: { autonomous: 0, requires_approval: 0, handoffs: 0 },
+  updated_by: null,
+  updated_at: null,
+};
+function readBlackboard() {
+  try {
+    const raw = localStorage.getItem(BLACKBOARD_KEY);
+    if (!raw) return { ...BLACKBOARD_DEFAULT };
+    const parsed = JSON.parse(raw);
+    return { ...BLACKBOARD_DEFAULT, ...parsed,
+      metrics: { ...BLACKBOARD_DEFAULT.metrics, ...(parsed.metrics || {}) } };
+  } catch { return { ...BLACKBOARD_DEFAULT }; }
+}
+function writeBlackboard(patch, by = 'system') {
+  const bb = readBlackboard();
+  const next = { ...bb, ...patch, updated_by: by, updated_at: Date.now() };
+  // Cap arrays to prevent unbounded growth
+  if (Array.isArray(next.decisions)) next.decisions = next.decisions.slice(-200);
+  if (Array.isArray(next.goals)) next.goals = next.goals.slice(-50);
+  localStorage.setItem(BLACKBOARD_KEY, JSON.stringify(next));
+  return next;
+}
+function blackboardAppend(collection, entry, by = 'system') {
+  const bb = readBlackboard();
+  const arr = Array.isArray(bb[collection]) ? bb[collection] : [];
+  arr.push({ ...entry, _by: by, _at: Date.now() });
+  return writeBlackboard({ [collection]: arr }, by);
+}
+
+
+// Wrap sendKarma / callAgent to display per-agent execution timing
+const _origCallAgent = typeof callAgent === 'function' ? callAgent : null;
+if (_origCallAgent) {
+  window.callAgent = async function(agentId, msg, stream) {
+    const t0 = performance.now();
+    const bubbleId = 'agent-bubble-' + Date.now();
+    // Add a placeholder bubble with timing badge
+    const msgs = document.getElementById('karma-msgs');
+    if (msgs) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'chat-bubble ai timing';
+      placeholder.id = bubbleId;
+      placeholder.innerHTML = `<span class="timing-spinner">⏱</span> <em>${sanitizeHTML(agentId)} thinking…</em>`;
+      msgs.insertBefore(placeholder, msgs.firstChild);
+    }
+    try {
+      const result = await _origCallAgent(agentId, msg, stream);
+      const dt = ((performance.now() - t0) / 1000).toFixed(1);
+      const placeholder = document.getElementById(bubbleId);
+      if (placeholder) {
+        placeholder.classList.remove('timing');
+        const timing = document.createElement('span');
+        timing.className = 'timing-badge';
+        timing.textContent = `${agentId} · ${dt}s`;
+        timing.title = `Agent ${agentId} responded in ${dt} seconds`;
+        placeholder.appendChild(timing);
+      }
+      // Log to blackboard for observability
+      try {
+        blackboardAppend('decisions', { type: 'agent_call', agent: agentId, duration_s: parseFloat(dt) }, agentId);
+      } catch {}
+      return result;
+    } catch (err) {
+      const placeholder = document.getElementById(bubbleId);
+      if (placeholder) placeholder.innerHTML = `<em>${sanitizeHTML(agentId)} failed: ${sanitizeHTML(err.message || err)}</em>`;
+      throw err;
+    }
+  };
+}
+
+
+// Initialize blackboard on load
+(function initBlackboard() {
+  if (!localStorage.getItem(BLACKBOARD_KEY)) {
+    localStorage.setItem(BLACKBOARD_KEY, JSON.stringify(BLACKBOARD_DEFAULT));
+  }
+})();
+
+
+// callAgent — dispatcher that routes a message to a specific specialist's prompt
+async function callAgent(agentId, message, stream) {
+  const system = AGENT_PROMPTS[agentId] || AGENT_PROMPTS.karma;
+  const userMsg = { role: 'user', content: message };
+  // Try server-side proxy first (preferred — keeps API key off the browser)
+  try {
+    const proxyUrl = (location.protocol === 'file:' ? 'http://localhost:8888' : '') + '/api/chat';
+    const r = await fetch(proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [userMsg], system, stream: !!stream, agent: agentId }) });
+    if (r.ok) {
+      if (stream) return r;
+      const d = await r.json();
+      return { ok: true, text: d.content?.[0]?.text || '[no response]', via: 'proxy' };
+    }
+  } catch (e) { /* proxy offline */ }
+  // Direct browser fallback
+  if (!S.claudeKey) return { ok: false, error: 'NO_KEY', text: null };
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': S.claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1200, system, messages: [userMsg], stream: !!stream })
+  });
+  if (!r.ok) return { ok: false, error: (await r.text()).substring(0, 200), text: null };
+  if (stream) return { ok: true, response: r, via: 'direct' };
+  const d = await r.json();
+  return { ok: true, text: d.content?.[0]?.text || '[no response]', via: 'direct' };
+}
+
+// Persistence helpers — survive page refresh
+function saveKarmaHistory() { try { localStorage.setItem('ko_karma_history', JSON.stringify((S.karmaHistory || []).slice(-100))); } catch(e){} }
+function loadKarmaHistory() { try { const r = localStorage.getItem('ko_karma_history'); if (r) { const a = JSON.parse(r); if (Array.isArray(a)) S.karmaHistory = a; } } catch(e){} }
+function saveTaskQueue() { try { localStorage.setItem('ko_task_queue', JSON.stringify(TASK_QUEUE)); } catch(e){} }
 
 // Agent crews for CrewAI-style delegation
 const AGENT_CREWS = {
@@ -1002,6 +1226,7 @@ function completeTask(taskId) {
   task.completed = Date.now();
   const w = FOOTCLAN.find(f => f.assigned === task.agent || f.task === task.name || f.id === task.assigned);
   if (w) { w.s = 'idle'; w.task = 'Awaiting task'; w.progress = 0; w.assigned = null; }
+  saveTaskQueue();
   addFeed({ t: 'success', i: '✅', m: 'Task complete: ' + task.name });
   renderTaskQueue();
   renderFootclan();
@@ -1193,6 +1418,7 @@ function approveTask(id) {
     }
   }
   if (w) { w.s = 'active'; w.task = t.task; w.progress = 0; w.assigned = t.agent; }
+  saveTaskQueue();
   addFeed({ t: 'success', i: '✅', m: 'Task approved → assigned to Footclan' + (w ? ' (' + w.id + ')' : ' (all busy)') });
   renderTaskQueue();
   renderFootclan();
@@ -1385,6 +1611,15 @@ function handleVoiceCmd(text) {
     return reply('Code review assigned to available worker');
   }
   
+  // Social media hub
+  if (t.includes('social') && !t.includes('post')) { openM('social-m'); return reply('Social Media Hub — 14 music videos loaded'); }
+  if (t.includes('video') || t.includes('music video')) { openM('social-m'); return reply('Video catalog — ' + TTM_VIDEOS.length + ' music videos'); }
+  if (t.includes('shorts')) { openM('social-m'); return reply('Shorts Engine — 70 shorts planned, 5 per video'); }
+  if (t.includes('youtube')) { window.open('https://youtube.com/@tellemthatsme69', '_blank'); return reply('Opening YouTube channel'); }
+  if (t.includes('tiktok')) { window.open('https://tiktok.com/@tellemthatsme69', '_blank'); return reply('Opening TikTok'); }
+  if (t.includes('instagram')) { window.open('https://instagram.com/tellemthatsme69', '_blank'); return reply('Opening Instagram'); }
+  if (t.includes('content calendar') || t.includes('upload schedule')) { openM('social-m'); return reply('Content strategy — 12-day release plan loaded'); }
+
   // Post content
   if (t.includes('post') && (t.includes('content') || t.includes('social'))) {
     triggerN8NWorkflow('ash-lee-post');
@@ -1848,16 +2083,17 @@ async function sendKarma() {
   userDiv.textContent = msg;
   msgsEl.appendChild(userDiv);
   S.karmaHistory.push({ role: 'user', content: msg });
-  
+  const selEl = document.getElementById('karma-agent-select');
+  if (selEl) { S.selectedAgent = selEl.value; localStorage.setItem('ko_selected_agent', S.selectedAgent); }
+  const activeAgent = S.selectedAgent || 'karma';
+  const agentDef = AGENTS.find(function(a){ return a.id === activeAgent; });
   const typingDiv = document.createElement('div');
   typingDiv.className = 'chat-typing';
   typingDiv.innerHTML = '<span></span><span></span><span></span>';
   msgsEl.appendChild(typingDiv);
   msgsEl.scrollTop = msgsEl.scrollHeight;
-  
   const btn = document.getElementById('karma-send');
   if (btn) btn.disabled = true;
-  
   if (!S.claudeKey) {
     typingDiv.className = 'chat-bubble ai';
     typingDiv.textContent = '[Add Claude API key in Settings ⚙ to activate KARMA and the full AI Army]';
@@ -1866,9 +2102,8 @@ async function sendKarma() {
   }
   
   try {
-    const r = await callClaude(S.karmaHistory.slice(-12), KARMA_SYS);
-    const d = await r.json();
-    const text = d.content?.[0]?.text || '[no response]';
+    const r = await callAgent(activeAgent, S.karmaHistory.slice(-12), false);
+    const text = r.text || '[no response]';
     typingDiv.className = 'chat-bubble ai';
     typingDiv.textContent = text;
     S.karmaHistory.push({ role: 'assistant', content: text });
@@ -2159,6 +2394,70 @@ setInterval(() => {
 window.addEventListener('load', () => {
   setTimeout(() => { try { initSwarm(); } catch {} }, 200);
 });
+
+// ══════════════════════════════════════════════
+// SOCIAL MEDIA HUB — Video Catalog & Copy
+// ══════════════════════════════════════════════
+const TTM_VIDEOS = [
+  {n:'Dont Rush Me', f:'dont rush me.mp4', t:'Patience & Persistence'},
+  {n:'Every Morning When I Wake Up', f:'Every morning when I wake up.mp4', t:'Daily Motivation & Devotion'},
+  {n:'My Evil Past', f:'evil past.mp4', t:'Redemption & Growth'},
+  {n:'I Cant Be Him', f:'i cant be him.mp4', t:'Identity & Self-Worth'},
+  {n:'I Live For You', f:'i live for you.mp4', t:'Devotion & Purpose'},
+  {n:'Just Drill Me', f:'just drill me.mp4', t:'Hard Drill Energy'},
+  {n:'Like I Meant To Do', f:'LIKE I MEANT TO DO.mp4', t:'Confidence & Parental Alienation'},
+  {n:'My Children', f:'my children.mp4', t:'Family & Legacy'},
+  {n:'No Cheats', f:'no cheats.mp4', t:'Integrity & Authenticity'},
+  {n:'Tellemthatsme', f:'tellemtrhatsme.mp4', t:'Signature Anthem'},
+  {n:'Till Im Done', f:'till im done.mp4', t:'Party & Energy'},
+  {n:'Weather You Can Do', f:'weather you can do.mp4', t:'Resilience & Endurance'},
+  {n:'Woods', f:'music_videomp4(4).mp4', t:'Reflection & Journey'},
+  {n:'Every Morning (MV Version)', f:'Every morning when I wake up.mp4', t:'Music Video Visual'},
+];
+
+function renderSocialVideos() {
+  const grid = document.getElementById('social-video-grid');
+  if (!grid) return;
+  grid.innerHTML = TTM_VIDEOS.map((v, i) =>
+    '<div style="background:rgba(255,77,0,.06);border:1px solid rgba(255,77,0,.15);border-radius:6px;padding:8px 10px;cursor:pointer;transition:all .2s" ' +
+    'onmouseenter="this.style.borderColor='rgba(255,77,0,.4)'" onmouseleave="this.style.borderColor='rgba(255,77,0,.15)'" ' +
+    'onclick="navigator.clipboard.writeText('' + v.n + ' — tellemthatsme (Official Music Video)').then(()=>toast('Copied: ' + v.n.replace(/'/g, "\\'") + ''))">' +
+    '<div style="display:flex;align-items:center;gap:6px">' +
+    '<span style="font-family:Orbitron,monospace;font-size:9px;color:#ff4d00;background:rgba(255,77,0,.15);padding:1px 5px;border-radius:3px">' + (i+1) + '</span>' +
+    '<span style="font-size:10px;font-weight:600;color:var(--text)">' + v.n + '</span></div>' +
+    '<div style="font-size:7px;color:var(--muted);margin-top:3px">' + v.t + '</div>' +
+    '<div style="font-size:7px;color:var(--ac);margin-top:2px;font-family:JetBrains Mono,monospace">' + v.f + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+// Social media voice commands
+const SOCIAL_COMMANDS = {
+  'social': 'Open social media hub',
+  'social media': 'Open social media hub',
+  'videos': 'Show video catalog',
+  'music videos': 'Show video catalog',
+  'shorts': 'Show shorts plan',
+  'youtube': 'Open YouTube channel',
+  'tiktok': 'Open TikTok',
+  'instagram': 'Open Instagram',
+  'content calendar': 'Show upload schedule',
+  'upload schedule': 'Show upload schedule',
+};
+
+// Add social commands to VOICE_COMMANDS
+Object.assign(VOICE_COMMANDS, SOCIAL_COMMANDS);
+
+// Add social video rendering when modal opens
+const origOpenM = window.openM;
+if (typeof openM === 'function') {
+  const _origOpenM = openM;
+  window.openM = function(id) {
+    _origOpenM(id);
+    if (id === 'social-m') renderSocialVideos();
+  };
+}
+
 </script>
 </body>
 </html>

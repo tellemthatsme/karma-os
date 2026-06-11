@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+      transition: all 0.3s;
+    }
+    .status-dot.online { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .status-dot.offline { background: #f87171; box-shadow: 0 0 8px #f87171; }
+    .status-text { font-size: 13px; margin-bottom: 12px; color: #94a3b8; }
+    .btn {
+      width: 100%;
+      padding: 14px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+    .btn:hover { transform: scale(1.02); }
+    .btn:active { transform: scale(0.98); }
+    .btn-start { background: #22c55e; color: #fff; box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+    .btn-start:hover { background: #16a34a; }
+    .btn-stop { background: #ef4444; color: #fff; box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+    .btn-stop:hover { background: #dc2626; }
+    .btn-connecting { background: #f59e0b; color: #fff; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+    .test-buttons { display: flex; gap: 6px; margin-top: 12px; }
+    .test-btn {
+      flex: 1; padding: 8px 0; border: 1px solid #334155; border-radius: 8px;
+      background: #1e293b; color: #94a3b8; cursor: pointer; font-size: 12px;
+      transition: all 0.2s;
+    }
+    .test-btn:hover { background: #334155; color: #e2e8f0; border-color: #475569; }
+    .footer {
+      margin-top: 14px; font-size: 11px; color: #475569; text-align: center; line-height: 1.4;
+    }
+    .bridge-info {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; background: #0f172a; border-radius: 8px;
+      margin-bottom: 12px; font-size: 12px;
+    }
+    .bridge-info .label { color: #64748b; }
+    .bridge-info .value { color: #e2e8f0; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>🤖</span>
+    <h1>AI Browser Bridge</h1>
+    <span class="status-dot offline" id="statusDot"></span>
+  </div>
+
+  <div class="status-text" id="statusText">Bridge offline — start the server</div>
+
+  <div class="bridge-info">
+    <span class="label">localhost:9876</span>
+    <span class="value" id="bridgeStatus">● Offline</span>
+  </div>
+
+  <button class="btn btn-start" id="btnBridge">▶ START BRIDGE</button>
+
+  <div class="test-buttons">
+    <button class="test-btn" id="btnYoutube">🧪 Open YouTube</button>
+    <button class="test-btn" id="btnUpload">🎬 Upload Day 1</button>
+  </div>
+
+  <div class="footer">
+    Any AI model → localhost:9876 → Your real browser<br>
+    Works with ChatGPT, Claude, Cursor, any AI
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

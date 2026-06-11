@@ -490,3 +490,39 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+
+// ══════════════════════════════════════════════
+// MEDIA HUB — Video Catalog & Social
+// ══════════════════════════════════════════════
+const TTM_VIDEOS = [
+  {n:'Dont Rush Me', t:'Patience & Persistence'},
+  {n:'Every Morning When I Wake Up', t:'Daily Motivation & Devotion'},
+  {n:'My Evil Past', t:'Redemption & Growth'},
+  {n:'I Cant Be Him', t:'Identity & Self-Worth'},
+  {n:'I Live For You', t:'Devotion & Purpose'},
+  {n:'Just Drill Me', t:'Hard Drill Energy'},
+  {n:'Like I Meant To Do', t:'Confidence & PA'},
+  {n:'My Children', t:'Family & Legacy'},
+  {n:'No Cheats', t:'Integrity & Authenticity'},
+  {n:'Tellemthatsme', t:'Signature Anthem'},
+  {n:'Till Im Done', t:'Party & Energy'},
+  {n:'Weather You Can Do', t:'Resilience & Endurance'},
+  {n:'Woods', t:'Reflection & Journey'},
+  {n:'Every Morning (MV)', t:'Music Video Visual'},
+];
+
+function renderMediaVideos() {
+  const list = document.getElementById('media-video-list');
+  if (!list) return;
+  list.innerHTML = TTM_VIDEOS.map((v, i) =>
+    '<div class="media-vid" onclick="navigator.clipboard.writeText(\'' + v.n + ' \u2014 tellemthatsme (Official Music Video)\').then(()=>af({t:\'success\',i:\'\ud83c\udfac\',m:\'Copied: ' + v.n.replace(/'/g, "\\'") + '\'}))">' +
+    '<span class="vid-num">' + (i + 1) + '</span>' +
+    '<span class="vid-name">' + v.n + '</span>' +
+    '<span class="vid-theme">' + v.t + '</span>' +
+    '</div>'
+  ).join('');
+}
+
+// Render on load
+renderMediaVideos();

@@ -8,6 +8,11 @@ services:
     environment:
       - PORT=8888
       - GH_USER=tellemthatsme
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - DISCORD_WEBHOOK_AI_BRIEF=${DISCORD_WEBHOOK_AI_BRIEF:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_AI_BRIEF_CHAT_ID=${TELEGRAM_AI_BRIEF_CHAT_ID:-}
+      - SLACK_WEBHOOK_AI_BRIEF=${SLACK_WEBHOOK_AI_BRIEF:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8888/health"]
@@ -26,3 +31,35 @@ services:
       karma-metrics:
         condition: service_healthy
     restart: unless-stopped
+
+  karma-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge
+    ports:
+      - "9876:9876"
+    environment:
+      - BRIDGE_TOKEN=${BRIDGE_TOKEN:-changeme}
+    restart: unless-stopped
+    profiles: ["full-stack"]
+
+  karma-n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD:-karma2026}
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Australia/Sydney
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./scripts/n8n-daily-ai-brief.json:/home/node/.n8n/import/daily-ai-brief.json:ro
+    restart: unless-stopped
+    profiles: ["full-stack"]
+
+volumes:
+  n8n_data:

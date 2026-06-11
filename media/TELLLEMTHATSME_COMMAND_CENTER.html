@@ -1,0 +1,2720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TELLLEMTHATSME — Social Media Command Center (AEST)</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--danger:#ff3366;
+  --bg:#060a14;--panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.18);--text:#e8f4ff;--muted:rgba(255,255,255,.45);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+body{padding:16px}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;max-width:1400px;margin:0 auto 16px;padding:14px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(20px)}
+.logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+.logo-sub{font-size:10px;color:var(--muted);margin-left:8px;font-family:'JetBrains Mono',monospace}
+.header-stats{display:flex;gap:8px;flex-wrap:wrap}
+.hstat{padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:10px;background:rgba(255,255,255,.03);font-family:'JetBrains Mono',monospace}
+.hstat b{color:var(--ac);font-weight:700}
+.hstat.aest{border-color:rgba(0,255,157,.3);background:rgba(0,255,157,.06)}
+.hstat.aest b{color:var(--ac3)}
+.tz-toggle{padding:6px 10px;background:rgba(0,212,255,.08);border:1px solid var(--ac);border-radius:6px;color:var(--ac);cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace}
+.tz-toggle:hover{background:rgba(0,212,255,.16)}
+
+/* NAV */
+nav{max-width:1400px;margin:0 auto 16px;padding:8px;background:var(--panel);border:1px solid var(--border);border-radius:14px;display:flex;flex-wrap:wrap;gap:4px;backdrop-filter:blur(20px)}
+nav button{padding:8px 12px;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--muted);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;font-weight:600}
+nav button:hover{color:var(--text);background:rgba(255,255,255,.04)}
+nav button.active{color:var(--ac);background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3)}
+nav .sep{flex:1}
+
+/* MAIN */
+main{max-width:1400px;margin:0 auto}
+.section{display:none;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;backdrop-filter:blur(20px);margin-bottom:12px}
+.card h2{font-family:'Orbitron',monospace;font-size:14px;color:var(--ac);margin-bottom:10px;letter-spacing:1px}
+.card h3{font-family:'Orbitron',monospace;font-size:11px;color:var(--text);margin-bottom:8px;letter-spacing:1px}
+.card p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.grid{display:grid;gap:12px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+/* STATS */
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
+.stat-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.stat.green .stat-val{background:linear-gradient(135deg,var(--ac3),#00b377);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat.warn .stat-val{background:linear-gradient(135deg,var(--warn),#ff9b00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat.danger .stat-val{background:linear-gradient(135deg,var(--danger),#b3001b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* BUTTONS */
+.btn{padding:8px 14px;background:rgba(0,212,255,.1);border:1px solid var(--ac);border-radius:8px;color:var(--ac);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .15s}
+.btn:hover{background:rgba(0,212,255,.2);box-shadow:0 0 12px rgba(0,212,255,.2)}
+.btn.full{width:100%}
+.btn.green{background:rgba(0,255,157,.1);border-color:var(--ac3);color:var(--ac3)}
+.btn.purple{background:rgba(179,71,255,.1);border-color:var(--ac2);color:var(--ac2)}
+.btn.warn{background:rgba(255,107,53,.1);border-color:var(--warn);color:var(--warn)}
+.btn.danger{background:rgba(255,51,102,.1);border-color:var(--danger);color:var(--danger)}
+.btn.sm{padding:4px 8px;font-size:10px}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* COPY BOXES */
+.copy-box{position:relative;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:6px 0;font-size:11px;line-height:1.5;color:var(--text);font-family:'Inter',sans-serif;white-space:pre-wrap;word-wrap:break-word}
+.copy-box .copy-btn{position:absolute;top:6px;right:6px;padding:2px 8px;background:rgba(0,212,255,.15);border:1px solid var(--ac);border-radius:4px;color:var(--ac);font-size:9px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.copy-box .copy-btn:hover{background:rgba(0,212,255,.3)}
+.copy-box .label{font-family:'Orbitron',monospace;font-size:9px;color:var(--ac);letter-spacing:1px;margin-bottom:4px;display:block;text-transform:uppercase}
+
+/* VIDEO CARDS */
+.video-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;transition:all .2s}
+.video-card:hover{border-color:var(--ac);transform:translateY(-2px)}
+.video-card .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.video-card .file{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac3)}
+.video-card .theme{font-size:10px;color:var(--ac2);font-family:'Orbitron',monospace;letter-spacing:1px}
+.video-card h3{font-size:13px;margin-bottom:4px}
+.platforms{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.plat{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;background:rgba(0,212,255,.1);border:1px solid var(--border);color:var(--ac);font-weight:700;cursor:pointer;transition:all .15s}
+.plat:hover{background:rgba(0,212,255,.2);transform:scale(1.1)}
+.plat.done{background:rgba(0,255,157,.2);border-color:var(--ac3);color:var(--ac3)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-family:'Orbitron',monospace;font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:1px;font-weight:700;background:rgba(0,212,255,.05)}
+tr:hover td{background:rgba(0,212,255,.04)}
+.table-wrap{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:10px;overflow:hidden;overflow-x:auto}
+
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.cal-day{aspect-ratio:1;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:10px;cursor:pointer;position:relative;overflow:hidden;transition:all .15s}
+.cal-day:hover{border-color:var(--ac);background:rgba(0,212,255,.06)}
+.cal-day.has-post{border-color:var(--ac3);background:rgba(0,255,157,.06)}
+.cal-day.has-multiple::after{content:'';position:absolute;bottom:4px;right:4px;width:6px;height:6px;background:var(--ac2);border-radius:50%}
+.cal-day .day-num{font-family:'Orbitron',monospace;font-size:10px;color:var(--ac)}
+.cal-day .day-posts{font-size:8px;color:var(--muted);margin-top:2px;line-height:1.2}
+.cal-day.today{background:rgba(0,212,255,.15);border-color:var(--ac);box-shadow:0 0 12px rgba(0,212,255,.2)}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-header div{text-align:center;font-size:10px;font-family:'Orbitron',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px}
+
+/* QUEUE */
+.queue-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:6px 0;display:flex;align-items:center;gap:10px;transition:all .15s}
+.queue-item:hover{border-color:var(--ac)}
+.queue-item .priority{width:8px;height:32px;border-radius:4px;background:var(--ac);flex-shrink:0}
+.queue-item.priority-high .priority{background:var(--danger)}
+.queue-item.priority-medium .priority{background:var(--warn)}
+.queue-item.priority-low .priority{background:var(--muted)}
+.queue-item .info{flex:1;min-width:0}
+.queue-item .info .title{font-size:12px;font-weight:600;margin-bottom:2px}
+.queue-item .info .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.queue-item .when{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac3)}
+
+/* WORKFLOW STEP */
+.step{display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.step-num{width:32px;height:32px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:700;font-size:14px;flex-shrink:0;color:#000}
+.step-content h4{font-size:12px;margin-bottom:4px;font-weight:700}
+.step-content p{font-size:11px;color:var(--muted);line-height:1.5;margin:0}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:600;margin:0 4px 4px 0}
+.badge.yt{background:rgba(255,0,0,.15);color:#ff4444;border:1px solid rgba(255,0,0,.3)}
+.badge.ig{background:rgba(225,48,108,.15);color:#e1306c;border:1px solid rgba(225,48,108,.3)}
+.badge.tt{background:rgba(0,242,234,.15);color:#00f2ea;border:1px solid rgba(0,242,234,.3)}
+.badge.fb{background:rgba(24,119,242,.15);color:#4a90e2;border:1px solid rgba(24,119,242,.3)}
+.badge.tw{background:rgba(0,0,0,.4);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.badge.rd{background:rgba(255,69,0,.15);color:#ff4500;border:1px solid rgba(255,69,0,.3)}
+.badge.ds{background:rgba(88,101,242,.15);color:#5865f2;border:1px solid rgba(88,101,242,.3)}
+.badge.bs{background:rgba(0,133,255,.15);color:#0085ff;border:1px solid rgba(0,133,255,.3)}
+.badge.th{background:rgba(0,0,0,.4);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.badge.ok{background:rgba(0,255,157,.15);color:var(--ac3);border:1px solid rgba(0,255,157,.3)}
+
+/* TIPS */
+.tips{background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.25);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--warn);line-height:1.6;margin-top:10px}
+.tips::before{content:'💡 ';font-size:13px}
+
+/* INPUTS */
+input[type="text"],input[type="number"],input[type="datetime-local"],select,textarea{width:100%;padding:8px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--ac)}
+textarea{min-height:80px;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5}
+label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;font-family:'Orbitron',monospace}
+
+/* PROGRESS BAR */
+.progress{height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin-top:4px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .3s}
+.progress-bar.green{background:linear-gradient(90deg,var(--ac3),#00b377)}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 16px;border-radius:8px;font-size:11px;border:1px solid;backdrop-filter:blur(12px);animation:toastIn .3s ease;max-width:320px}
+.toast.info{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:var(--ac)}
+.toast.success{background:rgba(0,255,157,.1);border-color:rgba(0,255,157,.3);color:var(--ac3)}
+.toast.warn{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.3);color:var(--warn)}
+.toast.error{background:rgba(255,51,102,.1);border-color:rgba(255,51,102,.3);color:var(--danger)}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* PROFILE CARDS */
+.profile-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ac)}
+.profile-card h3{font-family:'Orbitron',monospace;font-size:12px;margin-bottom:4px}
+.profile-card .handle{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac2);margin-bottom:8px}
+.profile-card .stat-row{display:flex;gap:8px;margin-top:8px}
+.profile-card .stat-row .stat{flex:1;padding:6px 8px}
+
+/* GROUP CARDS */
+.group-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:6px 0;font-size:11px}
+.group-card .name{font-weight:700;color:var(--ac);margin-bottom:2px}
+.group-card .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  body{padding:10px}
+  nav{font-size:10px}
+  nav button{padding:6px 8px;font-size:10px}
+  .header-stats{width:100%;justify-content:center}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+}
+
+/* KEYBOARD HINT */
+.kbd-hint{position:fixed;bottom:16px;left:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;z-index:998;max-width:280px}
+.kbd-hint kbd{background:rgba(0,212,255,.1);border:1px solid var(--ac);color:var(--ac);padding:1px 5px;border-radius:3px;margin:0 2px;font-size:9px}
+.kbd-hint .close{position:absolute;top:4px;right:6px;cursor:pointer;color:var(--muted)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border:1px solid var(--ac);border-radius:14px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:20px}
+.modal h3{font-family:'Orbitron',monospace;color:var(--ac);margin-bottom:12px;font-size:14px}
+.modal .close-x{position:absolute;top:12px;right:16px;cursor:pointer;color:var(--muted);font-size:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <span class="logo">TELLLEMTHATSME</span>
+    <span class="logo-sub">SOCIAL MEDIA COMMAND CENTER · v1.0</span>
+  </div>
+  <div class="header-stats">
+    <div class="hstat aest"><b id="h-aest">--:--:--</b> AEST</div>
+    <div class="hstat"><b id="h-local">--:--:--</b> LOCAL</div>
+    <div class="hstat"><b id="h-utc">--:--:--</b> UTC</div>
+    <div class="hstat"><b id="h-tzoffset">UTC+10</b></div>
+    <button class="tz-toggle" onclick="showTzSettings()">⚙ TZ</button>
+  </div>
+</header>
+
+<nav id="mainnav">
+  <button data-tab="launch" class="active">🚀 Launch</button>
+  <button data-tab="videos">📹 Videos</button>
+  <button data-tab="batch">⚡ Batch</button>
+  <button data-tab="calendar">📅 Calendar</button>
+  <button data-tab="schedule">📋 Schedule</button>
+  <button data-tab="queue">⏰ Queue</button>
+  <button data-tab="tracker">📊 Tracker</button>
+  <button data-tab="social">🌐 Social</button>
+  <button data-tab="profiles">👤 Profiles</button>
+  <button data-tab="seo">🔍 SEO</button>
+  <button data-tab="shorts">🤖 Shorts</button>
+  <button data-tab="groups">👥 Groups</button>
+  <button data-tab="fbshare">📢 FB Share</button>
+  <button data-tab="workflow">🔁 Workflow</button>
+  <button data-tab="distrokid">🎵 DistroKid</button>
+  <button data-tab="monetize">💰 Monetize</button>
+  <button data-tab="allstrategies">📚 All Strategies</button>
+  <button data-tab="allplatforms">🌐 All Platforms</button>
+  <button data-tab="stats">📈 Stats</button>
+  <button data-tab="settings">⚙️ Settings</button>
+        <button data-tab="ytresearch">🧪 AI Research</button>
+        <button data-tab="calendar30">📆 30-Day</button>
+  <div class="sep"></div>
+  <button onclick="exportAll()">📥 Export</button>
+  <button onclick="document.getElementById('importFile').click()">📤 Import</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(event)"/>
+</nav>
+
+<main>
+  <!-- LAUNCH -->
+  <section class="section active" id="sec-launch">
+    <div class="card">
+      <h2>🚀 Launchpad — Single Video to All Platforms</h2>
+      <p>Pick a video, get instant cross-platform copy. Australia-friendly: best AEST posting times are pre-loaded.</p>
+      <div class="grid grid-3" id="launch-videos"></div>
+    </div>
+  </section>
+
+  <!-- VIDEOS -->
+  <section class="section" id="sec-videos">
+    <div class="card">
+      <h2>📹 All Videos — 16 Shorts Ready to Publish</h2>
+      <p>Every video with file path, theme, and pre-written copy for 5+ platforms. Click platform badges to mark posted.</p>
+      <div class="btn-row">
+        <button class="btn sm" onclick="filterVideos('all')">All</button>
+        <button class="btn sm purple" onclick="filterVideos('favorites')">⭐ Favorites</button>
+        <button class="btn sm green" onclick="filterVideos('ready')">✅ Ready</button>
+        <button class="btn sm warn" onclick="filterVideos('pending')">⏳ Pending</button>
+        <div class="sep" style="flex:1"></div>
+        <input type="text" id="videoSearch" placeholder="Search videos..." oninput="renderVideoGrid()" style="max-width:240px"/>
+      </div>
+      <div class="grid grid-2" id="video-grid"></div>
+    </div>
+  </section>
+
+  <!-- BATCH -->
+  <section class="section" id="sec-batch">
+    <div class="card">
+      <h2>⚡ Batch Content Generator — MAX Post Capacity</h2>
+      <p>One video → optimized copy for 9 platforms in one click. Best for filling the calendar fast.</p>
+      <div class="grid grid-2">
+        <div>
+          <label>Select Video</label>
+          <select id="batch-video"></select>
+          <label style="margin-top:10px">Custom Hook (optional)</label>
+          <input type="text" id="batch-hook" placeholder="Override the auto-generated hook"/>
+        </div>
+        <div>
+          <label>Platforms (multi-select)</label>
+          <div id="batch-platforms" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px"></div>
+          <button class="btn green full" style="margin-top:12px" onclick="runBatch()">🚀 Generate All</button>
+        </div>
+      </div>
+      <div id="batch-output" style="margin-top:16px"></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="section" id="sec-calendar">
+    <div class="card">
+      <h2>📅 AEST Calendar — Monthly View</h2>
+      <p>Drag-drop posts to schedule. Times shown in <b style="color:var(--ac3)">AEST</b> by default.</p>
+      <div class="btn-row">
+        <button class="btn sm" onclick="changeMonth(-1)">‹ Prev</button>
+        <span id="cal-title" style="font-family:'Orbitron',monospace;font-size:14px;color:var(--ac);align-self:center"></span>
+        <button class="btn sm" onclick="changeMonth(1)">Next ›</button>
+        <div class="sep" style="flex:1"></div>
+        <button class="btn sm" onclick="goToToday()">Today</button>
+        <button class="btn sm green" onclick="autoSchedule()">🤖 Auto-Schedule</button>
+      </div>
+      <div class="cal-header">
+        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="section" id="sec-schedule">
+    <div class="card">
+      <h2>📋 Day-by-Day Schedule (AEST)</h2>
+      <p>Your full content plan. Click any day to see details.</p>
+      <div id="schedule-list"></div>
+    </div>
+  </section>
+
+  <!-- QUEUE -->
+  <section class="section" id="sec-queue">
+    <div class="card">
+      <h2>⏰ Posting Queue — Max Capacity Scheduler</h2>
+      <p>Posts queued in priority order. Auto-runs at best AEST times. Sort by priority / time / platform.</p>
+      <div class="btn-row">
+        <button class="btn sm green" onclick="addToQueue()">+ Add Post</button>
+        <button class="btn sm purple" onclick="autoFillQueue()">🤖 Auto-Fill from Videos</button>
+        <button class="btn sm warn" onclick="optimizeQueue()">⚡ Optimize</button>
+        <button class="btn sm danger" onclick="clearQueue()">🗑 Clear All</button>
+      </div>
+      <div id="queue-list" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="section" id="sec-tracker">
+    <div class="card">
+      <h2>📊 Progress Tracker</h2>
+      <div class="grid grid-4" id="tracker-stats"></div>
+      <div class="card" style="margin-top:12px">
+        <h3>Video Progress</h3>
+        <div id="tracker-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL -->
+  <section class="section" id="sec-social">
+    <div class="card">
+      <h2>🌐 Social Strategy by Platform</h2>
+      <div class="grid grid-2" id="social-strategies"></div>
+    </div>
+  </section>
+
+  <!-- PROFILES -->
+  <section class="section" id="sec-profiles">
+    <div class="card">
+      <h2>👤 Profile Bios + Links</h2>
+      <p>Copy-paste bios for every platform, AEST timezone declared where supported.</p>
+      <div class="grid grid-2" id="profiles-list"></div>
+    </div>
+  </section>
+
+  <!-- SEO -->
+  <section class="section" id="sec-seo">
+    <div class="card">
+      <h2>🔍 SEO — Keywords, Tags, Descriptions</h2>
+      <p>Search-optimized copy for YouTube, Google, and discoverability.</p>
+      <div class="grid grid-2" id="seo-list"></div>
+    </div>
+  </section>
+
+  <!-- SHORTS -->
+  <section class="section" id="sec-shorts">
+    <div class="card">
+      <h2>🤖 Shorts Engine — AI Batch Generation</h2>
+      <p>Generate more shorts in batches. Configurable duration, quantity, and overwrite mode.</p>
+      <div class="grid grid-2">
+        <div>
+          <label>Track Query (theme)</label>
+          <input type="text" id="track-query" placeholder="e.g., AI agents, hip hop production, web dev"/>
+          <label style="margin-top:10px">Batch Limit</label>
+          <input type="number" id="batch-limit" value="5" min="1" max="50"/>
+          <label style="margin-top:10px">Duration</label>
+          <select id="short-duration">
+            <option value="30">30s</option>
+            <option value="60" selected>60s</option>
+            <option value="90">90s</option>
+          </select>
+          <label style="margin-top:10px;display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="overwrite-existing" style="width:auto"/> Overwrite existing
+          </label>
+          <div class="btn-row">
+            <button class="btn green" onclick="launchShortsEngine()">🚀 Launch Engine</button>
+            <button class="btn purple" onclick="loadCompletedShorts()">📋 Load Completed</button>
+          </div>
+        </div>
+        <div>
+          <label>Engine Log</label>
+          <div id="log-terminal" style="background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:10px;height:200px;overflow-y:auto;color:var(--ac3)"></div>
+        </div>
+      </div>
+      <div id="completed-shorts" style="margin-top:16px"></div>
+    </div>
+  </section>
+
+  <!-- GROUPS -->
+  <section class="section" id="sec-groups">
+    <div class="card">
+      <h2>👥 Community Groups — Cross-Posting</h2>
+      <p>Where to post, who accepts new members, max post frequency. Mix of public + private.</p>
+      <div class="btn-row" id="groups-filter" style="margin-bottom:12px"></div>
+      <div class="grid grid-2" id="groups-list"></div>
+    </div>
+  </section>
+
+
+  <!-- FB SHARE -->
+  <section class="section" id="sec-fbshare">
+    <div class="card">
+      <h2>📢 Facebook Groups Share — YouTube Music Videos</h2>
+      <p>One-click share of any YouTube music video to 10+ music-specific Facebook groups. Each post is tailored to the group's vibe and rules. Posts include the YouTube link so viewers click through.</p>
+      <div class="grid grid-2">
+        <div>
+          <label>Select Music Video</label>
+          <select id="fbshare-video" onchange="renderFBSharePreview()"></select>
+          <label style="margin-top:10px">Select Groups (multi-select)</label>
+          <div id="fbshare-groups" style="max-height:240px;overflow-y:auto;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:6px"></div>
+          <div class="btn-row">
+            <button class="btn sm" onclick="selectAllFBGroups()">Select All Music</button>
+            <button class="btn sm warn" onclick="selectNoneFBGroups()">Clear</button>
+          </div>
+        </div>
+        <div>
+          <label>Posting Strategy</label>
+          <select id="fbshare-strategy">
+            <option value="value-first">Value-first (best for new accounts)</option>
+            <option value="drop-and-go" selected>Drop and go (with hook + context)</option>
+            <option value="ask-feedback">Ask for feedback (builds engagement)</option>
+            <option value="story-format">Story format (personal journey)</option>
+          </select>
+          <label style="margin-top:10px">Auto-post via MCP Bridge</label>
+          <select id="fbshare-mode">
+            <option value="queue" selected>Add to queue (manual post later)</option>
+            <option value="copy">Copy all to clipboard</option>
+            <option value="mcp">Post via MCP bridge (if running)</option>
+          </select>
+          <div class="btn-row">
+            <button class="btn green full" onclick="shareToFBGroups()">📢 Share to Selected Groups</button>
+            <button class="btn purple" onclick="scheduleFBShare()">⏰ Schedule for Best AEST Time</button>
+          </div>
+          <div class="tips">💡 Best AEST times for FB music groups: <b>08:00</b> (morning scroll), <b>13:00</b> (lunch), <b>19:00</b> (evening). Don't post to more than 3 groups/day to avoid spam flags.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>📋 Generated Posts (one per group)</h3>
+      <div id="fbshare-output"></div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section class="section" id="sec-workflow">
+    <div class="card">
+      <h2>🔁 Weekly Workflow</h2>
+      <p>Repeatable process — record once, run forever.</p>
+      <div id="workflow-steps"></div>
+    </div>
+  </section>
+
+  <!-- DISTROKID -->
+  <section class="section" id="sec-distrokid">
+    <div class="card">
+      <h2>🎵 DistroKid — Music Distribution</h2>
+      <p>Upload to Spotify, Apple Music, TikTok, YouTube Music from one dashboard.</p>
+      <div class="grid grid-2">
+        <div>
+          <label>Track Title</label>
+          <input type="text" id="dk-title" placeholder="e.g., KARMA"/>
+          <label style="margin-top:10px">Genre</label>
+          <select id="dk-genre">
+            <option>Hip Hop / Rap</option>
+            <option>Electronic</option>
+            <option>Lo-fi</option>
+            <option>Pop</option>
+            <option>R&amp;B</option>
+          </select>
+          <label style="margin-top:10px">Release Date</label>
+          <input type="date" id="dk-date"/>
+          <div class="btn-row">
+            <button class="btn green" onclick="addDistroKid()">+ Add to Queue</button>
+            <button class="btn" onclick="copyDistroKidBio()">📋 Copy Bio</button>
+          </div>
+        </div>
+        <div>
+          <label>DistroKid Bio (TellemThatsMe)</label>
+          <div class="copy-box">
+            <span class="label">BIO</span>
+            <button class="copy-btn" onclick="copyBox(this)">COPY</button>
+TellemThatsMe is a hip-hop-rooted AI producer from Melbourne, Australia. Blending soul samples, drill, lo-fi, and AI-generated visuals, KARMA is a project about what happens when machines and human stories collide. Every track is built in a bedroom studio, mixed with plugins, and finished with hand-cut AI video. Releases weekly on Spotify + YouTube.
+          </div>
+        </div>
+      </div>
+      <div id="distrokid-queue" style="margin-top:16px"></div>
+    </div>
+  </section>
+
+  <!-- MONETIZE -->
+  <section class="section" id="sec-monetize">
+    <div class="card">
+      <h2>💰 Monetize — Revenue Streams</h2>
+      <div class="grid grid-2" id="monetize-list"></div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="section" id="sec-stats">
+    <div class="card">
+      <h2>📈 Analytics Overview</h2>
+      <div class="grid grid-4" id="big-stats"></div>
+      <div class="card" style="margin-top:12px">
+        <h3>Posting Cadence by Platform</h3>
+        <div id="cadence-chart"></div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- ALL PLATFORMS -->
+  <section class="section" id="sec-allplatforms">
+    <div class="card">
+      <h2>🌐 All Platforms Reference — 32 Channels</h2>
+      <p>Complete platform matrix. Filter by category, see char limits, best AEST posting times, and strategy per platform.</p>
+    </div>
+    <div class="card">
+      <h3 id="allplat-counter">Loading 32 platforms...</h3>
+      <div class="btn-row">
+        <button class="btn sm active" onclick="filterPlatforms('all', this)">All (32)</button>
+        <button class="btn sm" onclick="filterPlatforms('video', this)">📺 Video (5)</button>
+        <button class="btn sm" onclick="filterPlatforms('social', this)">💬 Social (4)</button>
+        <button class="btn sm" onclick="filterPlatforms('music', this)">🎵 Music (6)</button>
+        <button class="btn sm" onclick="filterPlatforms('community', this)">👥 Community (4)</button>
+        <button class="btn sm" onclick="filterPlatforms('visual', this)">🖼 Visual (3)</button>
+        <button class="btn sm" onclick="filterPlatforms('messaging', this)">📱 Messaging (2)</button>
+        <button class="btn sm" onclick="filterPlatforms('b2b', this)">💼 B2B (3)</button>
+        <button class="btn sm" onclick="filterPlatforms('live', this)">🎮 Live (2)</button>
+        <button class="btn sm" onclick="filterPlatforms('monetize', this)">💰 Monetize (2)</button>
+        <button class="btn sm" onclick="filterPlatforms('smartlink', this)">🔗 Smart Links (2)</button>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr><th>Platform</th><th>Category</th><th>Emoji</th><th>Char Limit</th><th>Best AEST Times</th><th>Strategy</th></tr>
+          </thead>
+          <tbody id="allplat-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALL STRATEGIES -->
+  <section class="section" id="sec-allstrategies">
+    <div class="card">
+      <h2>📚 Complete Strategy Library — 30+ Playbooks</h2>
+      <p>Every strategy for growing an Australian hip-hop / AI-music brand across 32 platforms. Sorted by category.</p>
+    </div>
+
+    <div class="card">
+      <h3>🚀 Growth Strategies (audience building)</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--ac)">1. The Compound Short</h4><p>Post 1 long-form video → repurpose into 7 Shorts → distribute across 9 platforms. Same audio, different captions. Compounds reach by 7-9x without extra production.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">2. The Hook Ladder</h4><p>Open every post with 1 of 5 hooks: question, stat, controversial take, story, "watch till the end". Rotate so algorithm never sees a pattern. Higher retention = more reach.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">3. The Collab Loop</h4><p>Once/month, collab with a same-tier artist. Cross-pollinate audiences. 1 feature = 2x algorithmic push on both channels. Target AU drill/hip-hop scene first.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">4. The Comment Magnet</h4><p>End every post with a specific question, not "drop a 🔥". Specific = thoughtful reply = higher engagement score = more reach. e.g. "What's the first thing YOU do every morning?"</p></div>
+        <div class="card"><h4 style="color:var(--ac)">5. The Story Thread</h4><p>Weekly Twitter/Threads/Bsky long-form post: 1 thread = the behind-the-scenes story of a track. Vulnerability drives follows. Real story > generic promo.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">6. The Live Drop</h4><p>Once/month, Instagram/Twitch/YouTube Live: record a new track + chat + Q&A. Live = priority feed. Records as a Reel/Short for later.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">7. The Trending Hijack</h4><p>Use TikTok/Reels trending audio with your lyrics on top. Borrow the algorithm's traffic, leave them with your original track in bio. 2-3x normal reach.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">8. The Cross-Pollinate</h4><p>Post in r/SideProject, r/AI_Agents, r/MusicProduction, r/WeAreTheMusicMakers. Authentic build logs get 5-10x more upvotes than promo. Sunday 14:00 AEST = peak.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💰 Monetization Strategies</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--ac3)">9. YPP Acceleration</h4><p>YouTube Partner Program: 1,000 subs + 4,000 watch hours OR 1,000 subs + 10M Shorts views in 90 days. Shorts are faster — focus there. Revenue share at $0.04-0.08 RPM for AU.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">10. DistroKid + Content ID</h4><p>$22.99/yr unlimited uploads. Content ID claims YouTube revenue when others use your track. Free with DistroKid. $100-500/mo passive once catalog hits 30+ tracks.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">11. Smart Links</h4><p>Use Linkfire or Songwhip → one URL → fan picks Spotify/Apple/YT Music/Tidal. Increases saves (which is the #1 algorithm signal). Add to every bio + every video description.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">12. Patreon / Ko-fi Tiers</h4><p>3 tiers: $3 (early access), $7 (stems + acapellas), $15 (1-on-1 zoom). Even 50 patrons = $250-750/mo. Promote in YouTube pinned comment + IG story.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">13. Beat Sales</h4><p>Sell beats on BeatStars ($5-50 each) or via private DM. AU hip-hop scene is underserved for authentic bedroom beats. 10-20 sales/mo = $200-1000.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">14. Sponsorships (post-10k subs)</h4><p>AU music gear, AI tools, dev products. Rate card: $20-30 CPM on YT. 10k subs × 4 videos/mo = $800-1200/mo potential. Use Grin or Aspire for inbound.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">15. Live Performance Bookings</h4><p>Once you have 5+ tracks and a social following, AU venues book bedroom producers for $200-500/gig. Melbourne, Sydney, Brisbane scene is hungry for new talent.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">16. Sync Licensing</h4><p>Submit tracks to music libraries: Artlist, Epidemic Sound, Musicbed. $50-500 per sync placement. One track can earn $5k+ if it lands in a Netflix show or ad.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 Engagement Strategies</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--warn)">17. The Pin Game</h4><p>Pin your best-performing post to top of profile weekly. Pin = new visitors see it first. Rotate based on engagement velocity, not age.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">18. The 30-Minute Window</h4><p>After posting, stay online 30 min to reply to every comment. Reply > comment length. Algorithm reads creator engagement as signal of "active conversation".</p></div>
+        <div class="card"><h4 style="color:var(--warn)">19. The DM Funnel</h4><p>Reply to every DM within 24h. Ask 1 question back ("what track should I drop next?"). DM engagement = high-value follower (10x more likely to convert to listener).</p></div>
+        <div class="card"><h4 style="color:var(--warn)">20. Community Tab Polls</h4><p>YT Community Tab polls get 5-10x impressions vs regular posts. Run a poll with every track drop: "Which hook hit harder?" / "Next track — drill or soul sample?"</p></div>
+        <div class="card"><h4 style="color:var(--warn)">21. The Story Behind</h4><p>Weekly IG/FB story: behind-the-scenes of production. Phone footage is fine. Authenticity > polish. Stories = top-of-feed priority for 24h.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">22. Duet/Stitch Bait</h4><p>Post content designed to be duetted: controversial take, "I tried X, here's what happened", "roast my mix". Each duet = free reach to the duetter's audience.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">23. The Quote Repost</h4><p>Screenshot your own lyrics + repost. Fans will quote-repost with their own captions. Lyric graphics have 3-5x reach vs plain posts.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">24. Audio-Only Drops</h4><p>Spotify Canvas = 3-8s loop. YT Shorts = hook. SoundCloud = full version. Audiomack = free download for first 24h. Multiple surfaces, same track.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔁 Content Recycling Strategies</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--ac2)">25. The 30-30-30 Rule</h4><p>1 long-form video → 30 Shorts (re-edited) → 30 stories (text/image). Same source, 61 unique posts. Doubles output without doubling production time.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">26. The Lyrics Thread</h4><p>Every track → thread of 8-12 tweets (1 per bar). Auto-screenshot with quick chart-style. Pinned to top of profile for 1 week per track.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">27. The Carousel Flip</h4><p>Instagram carousel of 5-7 slides per track: hook, lyrics, story, beat breakdown, CTA. Saves > likes for IG algorithm. Target 1k saves/track.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">28. The Newsletter Drop</h4><p>Once/2 weeks, Substack/Medium long-form: the personal story behind a track. 500-1000 word essay. Drives deep engagement from casual listeners.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">29. The Lyric Video Spinoff</h4><p>CapCut/Premiere: 1 lyric video = 1 new YT upload. Lower production than MV, but ranks well. Upload Track 16's lyrics as Track 16 MV.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">30. The Spotify Canvas</h4><p>3-8s vertical loop for each track on Spotify. Free in Spotify for Artists dashboard. Canvas = 5% lift in streams (Spotify data).</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">31. The Audiogram</h4><p>Headliner.co or SoundCloud: 30s audio + waveform + caption. Share on Twitter/LinkedIn. 3-5x more clicks than text-only.</p></div>
+        <div class="card"><h4 style="color:var(--ac2)">32. The Pinterest Pin</h4><p>Pinterest is underrated for music. Pin: album art, lyrics cards, BTS photo, video preview. Each pin has 6-month shelf life vs 24h on IG. Slow burn, long-term SEO.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🤖 AI-Assisted Strategies (your edge)</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--ac3)">33. AI Hook Generator</h4><p>Use Claude API (server-side proxy in server.js) to generate 10 hook variations per track. Pick the strongest 3. Iterate weekly based on which hook style wins.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">34. AI Thumbnail A/B</h4><p>ComfyUI + Flux Schnell: generate 5 thumbnail variants per video. YouTube A/B tests them automatically. Free, unlimited.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">35. AI B-Roll</h4><p>Kling AI + Hailuo + Luma: 5-10s AI-generated clips matching each track's mood. Cut into long-form video. Free credits, ~20-30 clips/day.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">36. AI Captions</h4><p>CapCut auto-captions + edge-tts for narration. Free. 90% of Shorts/IG Reels need captions for accessibility and watch-time.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">37. AI Voice Clone</h4><p>ElevenLabs (10 min/mo free) or local Coqui TTS: clone your voice for narrated video versions, BTS explainers, podcast-style content.</p></div>
+        <div class="card"><h4 style="color:var(--ac3)">38. AI Social Assistant</h4><p>KARMA OS v25 + AGENT_PROMPTS: ask the 8 specialist agents for platform-specific copy, hashtag sets, posting times. Free, on-demand.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🌏 AEST-Specific Strategies (you're in Australia)</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--warn)">39. AEST Peak Windows</h4><p>YouTube: 17:00-20:00 AEST (after-work scroll). TikTok: 22:00 AEST (pre-sleep). LinkedIn: 08:00 AEST (commute). Reddit: 06:00 AEST (early risers).</p></div>
+        <div class="card"><h4 style="color:var(--warn)">40. AU Geo-Targeting</h4><p>Tag Melbourne, Sydney, Brisbane in posts. AU audience for AU hip-hop is small but loyal. Don't chase US reach — chase AU density first.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">41. AEST Calendar Awareness</h4><p>Avoid major AU holidays (Australia Day, ANZAC Day, EOFY). Lean INTO them: "ANZAC Day track drop" / "EOFY banger for the grind". Calendar = content.</p></div>
+        <div class="card"><h4 style="color:var(--warn)">42. Timezone-Stable Posting</h4><p>Schedule all posts in AEST. AEST = UTC+10 (AEDT = UTC+11 Oct-Apr). Use this dashboard's AEST clock as your source of truth.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Analytics + Optimization Strategies</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--ac)">43. The 1% Rule</h4><p>Each week, change 1 variable (hook, thumbnail, posting time, caption). Measure impact. Compound improvements beat wholesale rewrites.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">44. The Retention Test</h4><p>First 3 seconds = 70% of retention. If YT retention drops below 60% in first 10s, the hook is wrong. Test 3 hooks per track, ship the winner.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">45. The Cross-Platform Score</h4><p>Same track across 9 platforms. Identify which platform hits hardest. Double down there. e.g. if TikTok is 5x your IG, post TikTok-first, then clip for IG.</p></div>
+        <div class="card"><h4 style="color:var(--ac)">46. The Competitor Watch</h4><p>Weekly: check top 3 AU hip-hop artists' new posts. Note what works. Adapt, don't copy. The bar is the bar.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🛡 Defensive Strategies (protect your brand)</h3>
+      <div class="grid grid-2">
+        <div class="card"><h4 style="color:var(--danger)">47. Duplicate Detection</h4><p>YT flags identical uploads. Always vary thumbnail, title, description, and tags across the 2 channels. Track 16 (same file as 1) must use vertical Shorts crop.</p></div>
+        <div class="card"><h4 style="color:var(--danger)">48. The 3-Group Limit</h4><p>Don't post to more than 3 FB groups in one day. FB flags mass-poster accounts. 1 group/day = sustainable. Use the schedule button in this dashboard.</p></div>
+        <div class="card"><h4 style="color:var(--danger)">49. The Hashtag Ceiling</h4><p>IG: 5-10 hashtags, not 30. TikTok: 3-5. Twitter: 1-2. More hashtags = more reach but lower quality score. Quality over quantity.</p></div>
+        <div class="card"><h4 style="color:var(--danger)">50. The No-Stock Photo Rule</h4><p>Never use stock photos. Real photos of you, your studio, your kids' permission-appropriate moments, your city. Stock = trust death on the AU scene.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="sec-ytresearch" class="panel" style="display:none">
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <span style="font-size:24px">🧪</span>
+      <div>
+        <h2 style="margin:0;font-size:18px;color:var(--ac)">AI Research Brief</h2>
+        <div style="font-size:11px;color:var(--muted)">Top new AI models, tools, agents, repos & channels — generated by <code>scripts/youtube_researcher.py</code></div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-sm" onclick="refreshAIResearch()" title="Re-run researcher (requires bridge + Claude proxy)">
+          <i class="fas fa-sync"></i> Refresh
+        </button>
+        <button class="btn-sm" onclick="copyAIResearch()" title="Copy full brief to clipboard">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+        <button class="btn-sm" onclick="openAIBriefFile()" title="Open the brief file in a new tab">
+          <i class="fas fa-external-link-alt"></i> Open File
+        </button>
+        <a class="btn-sm" href="/api/research/rss" target="_blank" rel="noopener" title="Open the RSS / Atom feed in a new tab" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+          <i class="fas fa-rss"></i> Open RSS
+        </a>
+        <a class="btn-sm" href="/feed.xml" target="_blank" rel="noopener" title="Alias for /api/research/rss" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+          <i class="fas fa-link"></i> feed.xml
+        </a>
+        <button class="btn-sm" onclick="copyAIResearchFeedUrl()" title="Copy the RSS feed URL to your clipboard">
+          <i class="fas fa-clipboard"></i> Copy Feed URL
+        </button>
+      </div>
+      <div style="margin-top:12px;padding:10px 12px;background:rgba(0,212,255,.06);border:1px solid var(--border);border-radius:8px;font-size:12px;line-height:1.5">
+        <i class="fas fa-rss-square" style="color:var(--ac)"></i>
+        <strong style="color:var(--ac)">Subscribe to the weekly brief</strong> — paste
+        <code style="background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px;color:var(--text)" id="ai-research-feed-url">http://localhost:8888/api/research/rss</code>
+        into <strong>Feedly</strong>, <strong>NetNewsWire</strong>, <strong>Reeder</strong>, or any RSS reader. The Atom feed ships the current brief plus the last 30 archived briefs.
+      </div>
+    </div>
+    <div id="ai-research-status" style="font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px">
+      <i class="fas fa-circle-info"></i> <span>Showing last saved brief. Generated by youtube_researcher.py from 5 research streams.</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;padding:8px 10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);border-radius:6px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--text)">
+        <input type="checkbox" id="ai-research-autorefresh" style="cursor:pointer" onchange="toggleAutoRefresh()"/>
+        <span>🔄 Auto-refresh every 30s</span>
+      </label>
+      <span id="ai-research-autorefresh-status" style="font-size:10px;color:var(--muted)"></span>
+      <span style="flex:1"></span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)">
+        <i class="fas fa-history"></i>
+        <span>History:</span>
+        <select id="ai-research-history-select" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:4px 8px;font-size:11px;color:var(--text);font-family:inherit;cursor:pointer" onchange="loadBriefFromHistory(this.value)">
+          <option value="">Current</option>
+        </select>
+      </label>
+      <button class="btn-sm" onclick="loadBriefHistory()" title="Refresh history list"><i class="fas fa-sync"></i></button>
+    </div>
+    <div id="ai-research-brief" style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.55;background:rgba(0,0,0,.35);padding:16px;border-radius:8px;max-height:560px;overflow-y:auto;white-space:pre-wrap;color:var(--text)">
+Loading brief…</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="font-size:14px;color:var(--ac);margin-bottom:8px"><i class="fas fa-tv"></i> Curated Channel Roster (14 sources)</h3>
+    <div id="ai-research-channels" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="font-size:14px;color:var(--ac);margin-bottom:8px"><i class="fas fa-terminal"></i> CLI Quick Reference</h3>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(0,0,0,.4);padding:12px;border-radius:6px;color:#cdd6f4;line-height:1.6;overflow-x:auto">
+      <div style="color:#6c7086"># Test bridge + Claude proxy</div>
+      <div>python scripts/youtube_researcher.py --test</div>
+      <div style="color:#6c7086;margin-top:8px"># Quick brief from curated list (no browser)</div>
+      <div>python scripts/youtube_researcher.py --trending -o ai_news/CURRENT_AI_BRIEF.md</div>
+      <div style="color:#6c7086;margin-top:8px"># Full scrape: open each channel, extract videos, summarize</div>
+      <div>python scripts/youtube_researcher.py --channel "Wes Roth" "Matt Wolfe" --max-videos 5 -o research.json</div>
+      <div style="color:#6c7086;margin-top:8px"># Re-summarize from saved research</div>
+      <div>python scripts/youtube_researcher.py --summarize-only --input research.json -o ai_news/WEEKLY.md</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:14px;color:var(--ac);margin-bottom:8px"><i class="fas fa-share"></i> Send to Platforms</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn-sm" onclick="pushAIBriefTo('youtube')"><i class="fab fa-youtube"></i> YouTube Script</button>
+      <button class="btn-sm" onclick="pushAIBriefTo('twitter')"><i class="fab fa-twitter"></i> Twitter Thread</button>
+      <button class="btn-sm" onclick="pushAIBriefTo('linkedin')"><i class="fab fa-linkedin"></i> LinkedIn Post</button>
+      <button class="btn-sm" onclick="pushAIBriefTo('discord')"><i class="fab fa-discord"></i> Discord</button>
+      <button class="btn-sm" onclick="pushAIBriefTo('telegram')"><i class="fab fa-telegram"></i> Telegram</button>
+      <button class="btn-sm" onclick="pushAIBriefTo('email')"><i class="fas fa-envelope"></i> Email Digest</button>
+    </div>
+    <div id="ai-research-push-status" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
+  </div>
+</section>
+
+<section class="section" id="sec-calendar30">
+  <div class="card">
+    <h2>📆 30-Day Content Calendar — Auto-Balanced</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Distribute 16 videos across 32 platforms at AEST peak times, evenly spread over 30 days. Exports as a CSV ready for <code>SOCIAL_POSTER.py</code>.</p>
+    <div class="btn-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="cal30-weekends" checked> Include weekends</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px">Posts/day per platform
+        <select id="cal30-density" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:3px 6px;border-radius:4px">
+          <option value="1">1 (light)</option>
+          <option value="2" selected>2 (standard)</option>
+          <option value="3">3 (aggressive)</option>
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px">Start date
+        <input type="date" id="cal30-start" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:3px 6px;border-radius:4px">
+      </label>
+      <button class="btn" onclick="generate30DayCalendar()"><i class="fas fa-magic"></i> Generate</button>
+      <button class="btn" onclick="downloadCalendarCSV()"><i class="fas fa-download"></i> Download CSV</button>
+      <button class="btn" onclick="copyCalendarToClipboard()"><i class="fas fa-copy"></i> Copy JSON</button>
+    </div>
+    <div id="cal30-summary" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div id="cal30-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+  </div>
+</section>
+
+<section class="section" id="sec-settings">
+    <div class="card">
+      <h2>⚙️ Settings — Timezone, API Keys, Preferences</h2>
+      <div class="grid grid-2">
+        <div>
+          <label>Display Timezone</label>
+          <select id="set-tz" onchange="saveSettings()">
+            <option value="Australia/Sydney" selected>AEST/AEDT (Sydney/Melbourne)</option>
+            <option value="Australia/Perth">AWST (Perth)</option>
+            <option value="Australia/Brisbane">AEST (Brisbane, no DST)</option>
+            <option value="Australia/Adelaide">ACST/ACDT (Adelaide)</option>
+            <option value="Pacific/Auckland">NZST/NZDT (Auckland)</option>
+            <option value="America/Los_Angeles">PT (LA)</option>
+            <option value="America/New_York">ET (NYC)</option>
+            <option value="Europe/London">GMT/BST (London)</option>
+            <option value="Asia/Tokyo">JST (Tokyo)</option>
+            <option value="UTC">UTC</option>
+          </select>
+          <label style="margin-top:10px">n8n Webhook URL</label>
+          <input type="text" id="set-n8n" placeholder="http://localhost:5678" onchange="saveSettings()"/>
+          <label style="margin-top:10px">MCP Bridge URL</label>
+          <input type="text" id="set-mcp" placeholder="http://localhost:9876" onchange="saveSettings()"/>
+          <label style="margin-top:10px">Anthropic API Key (for AI captions)</label>
+          <input type="text" id="set-claude" placeholder="sk-ant-..." onchange="saveSettings()"/>
+        </div>
+        <div>
+          <label>Posting Window Start (AEST)</label>
+          <input type="time" id="set-window-start" value="09:00" onchange="saveSettings()"/>
+          <label style="margin-top:10px">Posting Window End (AEST)</label>
+          <input type="time" id="set-window-end" value="21:00" onchange="saveSettings()"/>
+          <label style="margin-top:10px">Max Posts / Day</label>
+          <input type="number" id="set-max-day" value="6" min="1" max="20" onchange="saveSettings()"/>
+          <label style="margin-top:10px">Auto-deduplicate</label>
+          <select id="set-dedupe" onchange="saveSettings()">
+            <option value="on" selected>On (don't repeat same video to same platform within 7 days)</option>
+            <option value="off">Off</option>
+          </select>
+          <label style="margin-top:10px">Theme</label>
+          <select id="set-theme" onchange="setTheme(this.value)">
+            <option value="cyberpunk" selected>Cyberpunk (default)</option>
+            <option value="stealth">Stealth</option>
+            <option value="matrix">Matrix</option>
+            <option value="aurora">Aurora</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn green" onclick="saveSettings();toast('Settings saved','success')">💾 Save</button>
+        <button class="btn warn" onclick="if(confirm('Reset all data?')){localStorage.clear();location.reload()}">🗑 Reset All</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- TZ MODAL -->
+<div class="modal-overlay" id="tzModal" onclick="if(event.target===this)closeTzSettings()">
+  <div class="modal">
+    <span class="close-x" onclick="closeTzSettings()">×</span>
+    <h3>⏰ Timezone Settings</h3>
+    <p>All times in this dashboard can be displayed in your local timezone. AEST/AEDT is the default for Australia. Daylight saving: AEST (UTC+10) becomes AEDT (UTC+11) on the first Sunday of October, and reverts on the first Sunday of April.</p>
+    <div id="tz-debug" style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(0,0,0,.4);padding:10px;border-radius:6px;margin-top:10px"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<div class="kbd-hint" id="kbdHint">
+  <span class="close" onclick="this.parentElement.remove();localStorage.setItem('kbd_dismissed','1')">×</span>
+  <b>NAV:</b> <kbd>1</kbd>-<kbd>9</kbd> jump to tab · <kbd>Ctrl</kbd>+<kbd>K</kbd> search · <kbd>Esc</kbd> close
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const PLATFORMS = {
+  // === Tier 1: Core music/social ===
+  youtube:      { name:'YouTube',          color:'#ff4444', short:'YT',  emoji:'▶',   category:'video',    charLimit:5000,  bestAEST:['17:00','19:00','20:00'] },
+  youtubeshorts:{ name:'YouTube Shorts',   color:'#ff0000', short:'YTS', emoji:'⚡',  category:'video',    charLimit:100,   bestAEST:['12:00','17:00','19:00','21:00'] },
+  instagram:    { name:'Instagram',        color:'#e1306c', short:'IG',  emoji:'📷',  category:'video',    charLimit:2200,  bestAEST:['07:00','12:00','18:00'] },
+  tiktok:       { name:'TikTok',           color:'#00f2ea', short:'TT',  emoji:'🎵',  category:'video',    charLimit:2200,  bestAEST:['06:00','10:00','19:00','22:00'] },
+  facebook:     { name:'Facebook',         color:'#4a90e2', short:'FB',  emoji:'f',   category:'social',   charLimit:63206, bestAEST:['08:00','13:00','16:00'] },
+  twitter:      { name:'X / Twitter',      color:'#ffffff', short:'X',   emoji:'𝕏',   category:'social',   charLimit:280,   bestAEST:['08:00','12:00','17:00','21:00'] },
+  threads:      { name:'Threads',          color:'#ffffff', short:'Th',  emoji:'@',   category:'social',   charLimit:500,   bestAEST:['08:00','12:00','19:00'] },
+  bluesky:      { name:'Bluesky',          color:'#0085ff', short:'BS',  emoji:'🦋',  category:'social',   charLimit:300,   bestAEST:['09:00','13:00','20:00'] },
+  // === Tier 2: Music-first ===
+  soundcloud:   { name:'SoundCloud',       color:'#ff7700', short:'SC',  emoji:'☁️',  category:'music',    charLimit:4000,  bestAEST:['08:00','12:00','18:00'] },
+  bandcamp:     { name:'Bandcamp',         color:'#629aa9', short:'BC',  emoji:'🎶',  category:'music',    charLimit:50000, bestAEST:['anytime'] },
+  audiomack:    { name:'Audiomack',        color:'#ffa200', short:'AM',  emoji:'🎧',  category:'music',    charLimit:4000,  bestAEST:['09:00','17:00','21:00'] },
+  reverbnation: { name:'ReverbNation',     color:'#e94630', short:'RN',  emoji:'🎤',  category:'music',    charLimit:5000,  bestAEST:['12:00','18:00'] },
+  spotify:      { name:'Spotify (Artist)', color:'#1db954', short:'SP',  emoji:'🎵',  category:'music',    charLimit:300,   bestAEST:['07:00','17:00','22:00'] },
+  applemusic:   { name:'Apple Music',      color:'#fa243c', short:'AM',  emoji:'🍎',  category:'music',    charLimit:4000,  bestAEST:['anytime'] },
+  // === Tier 3: Discovery / communities ===
+  reddit:       { name:'Reddit',           color:'#ff4500', short:'RD',  emoji:'r/',  category:'community',charLimit:40000, bestAEST:['06:00','09:00','14:00','22:00'] },
+  discord:      { name:'Discord',          color:'#5865f2', short:'DS',  emoji:'💬',  category:'community',charLimit:2000,  bestAEST:['19:00','20:00','21:00','22:00'] },
+  telegram:     { name:'Telegram',         color:'#0088cc', short:'TG',  emoji:'✈️',  category:'community',charLimit:4096,  bestAEST:['10:00','14:00','20:00'] },
+  mastodon:     { name:'Mastodon',         color:'#6364ff', short:'MA',  emoji:'🐘',  category:'community',charLimit:500,   bestAEST:['09:00','13:00','18:00'] },
+  // === Tier 4: Visual / portfolio ===
+  pinterest:    { name:'Pinterest',        color:'#bd081c', short:'PI',  emoji:'📌',  category:'visual',   charLimit:500,   bestAEST:['14:00','21:00','02:00'] },
+  vimeo:        { name:'Vimeo',            color:'#1ab7ea', short:'VI',  emoji:'🎬',  category:'visual',   charLimit:50000, bestAEST:['anytime'] },
+  tumblr:       { name:'Tumblr',           color:'#36465d', short:'TU',  emoji:'🌀',  category:'visual',   charLimit:500,   bestAEST:['15:00','22:00'] },
+  // === Tier 5: Messaging / status ===
+  snapchat:     { name:'Snapchat',         color:'#fffc00', short:'SN',  emoji:'👻',  category:'messaging',charLimit:250,   bestAEST:['22:00','02:00','12:00'] },
+  whatsapp:     { name:'WhatsApp Status',  color:'#25d366', short:'WA',  emoji:'💚',  category:'messaging',charLimit:700,   bestAEST:['07:00','19:00','22:00'] },
+  // === Tier 6: Professional / B2B ===
+  linkedin:     { name:'LinkedIn',         color:'#0a66c2', short:'LI',  emoji:'💼',  category:'b2b',      charLimit:3000,  bestAEST:['08:00','12:00','17:00'] },
+  medium:       { name:'Medium',           color:'#000000', short:'MD',  emoji:'✍️',  category:'b2b',      charLimit:100000,bestAEST:['anytime'] },
+  substack:     { name:'Substack',         color:'#ff6719', short:'SB',  emoji:'📧',  category:'b2b',      charLimit:50000, bestAEST:['08:00','14:00'] },
+  // === Tier 7: Live streaming ===
+  twitch:       { name:'Twitch',           color:'#9146ff', short:'TW',  emoji:'🎮',  category:'live',     charLimit:500,   bestAEST:['19:00','20:00','21:00','22:00'] },
+  kick:         { name:'Kick',             color:'#53fc18', short:'KK',  emoji:'🦘',  category:'live',     charLimit:500,   bestAEST:['19:00','21:00'] },
+  // === Tier 8: Monetization / support ===
+  patreon:      { name:'Patreon',          color:'#f96854', short:'PA',  emoji:'🎁',  category:'monetize', charLimit:10000, bestAEST:['anytime'] },
+  kofi:         { name:'Ko-fi',            color:'#ff5e5b', short:'KF',  emoji:'☕',  category:'monetize', charLimit:10000, bestAEST:['anytime'] },
+  // === Tier 9: Link aggregation ===
+  linkfire:     { name:'Linkfire',         color:'#ff5722', short:'LF',  emoji:'🔥',  category:'smartlink',charLimit:200,   bestAEST:['anytime'] },
+  songwhip:     { name:'Songwhip',         color:'#ff3366', short:'SW',  emoji:'🎵',  category:'smartlink',charLimit:200,   bestAEST:['anytime'] },
+};
+
+// Helper: get all platforms grouped by category
+const PLATFORMS_BY_CATEGORY = Object.entries(PLATFORMS).reduce((acc, [k, p]) => {
+  const c = p.category || 'other';
+  if (!acc[c]) acc[c] = [];
+  acc[c].push({ id: k, ...p });
+  return acc;
+}, {});
+
+
+const VIDEOS = [
+  { id:1, yt_url:`https://youtu.be/karma01`, file:'C:/Users/karma/shorts/videos/01-karma-intro.mp4',     theme:'AI Manifesto',  hook:'What if AI ran your whole operation?',
+    yt:{title:'KARMA — The AI That Replaced My Workflow', tags:'ai,karma,automation,productivity,agents', desc:'KARMA OS is a single-page command center for AI agents. 25 specialists. One dashboard. Zero copy-paste.'},
+    ig:{reel:'🎬 KARMA: 25 AI agents, 1 dashboard, 0 copy-paste. Drop a 👀 if you want the build.', story:'🤖 25 AI AGENTS. ONE PAGE. WHO WANTS THIS?'},
+    tt:{caption:'POV: you built a single HTML that runs 25 AI agents 🤯 #ai #agents #build #automation'},
+    fb:{post:'Just shipped KARMA OS v25 — a single HTML page that runs 25 AI agents, multi-platform social posting, and a 20-worker footclan. Built solo in a week. AMA.', group:'🎵 AI Music Producers — check this out: KARMA OS v25'},
+    tw:{tweet:'Just shipped KARMA OS v25.\n\n25 AI agents\n1 HTML file\n20 footclan workers\nMulti-platform post queue\n\nAll in one page. 🧵', thread:'1/ Why another AI dashboard?\n\nBecause every tool I tried needed 5 tabs open. I wanted ONE page.\n\n2/ Architecture:\n- Vanilla JS (no React)\n- 25 agents in 7 crews\n- OpenClaw swarm canvas\n- Footclan round-robin\n\n3/ The footclan is 20 worker pools. Tasks auto-rotate, OpenHuman gates approvals.'},
+  },
+  { id:2, yt_url:`https://youtu.be/karma02`, file:'C:/Users/karma/shorts/videos/02-agent-swarm.mp4',    theme:'Agent Swarm',  hook:'25 agents, one canvas, real-time physics.',
+    yt:{title:'I Built a 25-Agent Swarm That Talks to Itself', tags:'ai,multi-agent,swarm,karma,langgraph', desc:'OpenClaw D3 force graph with 25 nodes, hub-and-spoke + peer links, Coulomb repulsion + Hooke attraction.'},
+    ig:{reel:'25 agents. 1 canvas. Live physics. Drop a ⚡ for the code.', story:'⚡ AGENT SWARM ⚡'},
+    tt:{caption:'my agent swarm is literally alive at 3am making me content 💀 #ai #build #dev'},
+    fb:{post:'Built a 25-agent swarm in vanilla JS. Coulomb repulsion + spring attraction. The packets fly along the edges like nervous impulses. Repo in comments.', group:'AI Builders — I built a 25-agent swarm in vanilla JS'},
+    tw:{tweet:'25 AI agents, 1 canvas, live physics.\n\nThe packets are my favorite part — they look like neural impulses traveling between nodes. 🧠', thread:'1/ The swarm canvas:\n- 25 nodes positioned in a ring\n- Hub-and-spoke to karma (center)\n- Peer links for richer topology\n- Packets spawn randomly on edges'},
+  },
+  { id:3, yt_url:`https://youtu.be/karma03`, file:'C:/Users/karma/shorts/videos/03-footclan.mp4',       theme:'Footclan',     hook:'20 workers, round-robin, no human bottleneck.',
+    yt:{title:'The Footclan: 20 AI Workers That Never Sleep', tags:'ai,workers,footclan,karma,automation', desc:'Round-robin load balancing, OpenHuman approval gate, simulated progress with auto-completion.'},
+    ig:{reel:'20 workers. Round-robin. Zero bottlenecks. Comment FOOT if you want the build.', story:'🦶 FOOTCLAN 🦶'},
+    tt:{caption:'my 20 ai workers are out here grinding while i sleep 🦶💤 #ai #automation #build'},
+    fb:{post:'The Footclan: 20 specialized AI workers, round-robin load-balanced, with an OpenHuman approval gate. Built in a weekend. Code in comments.', group:'AI Tools — The Footclan architecture is wild'},
+    tw:{tweet:'Built a 20-worker "Footclan" that auto-rotates tasks.\n\nOpenHuman gates the risky ones.\n\nThe other 19 just execute. 🦶', thread:'1/ Why a footclan?\n\nBoss needs a manager. KARMA delegates to 20 specialists. Round-robin = no single point of failure.'},
+  },
+  { id:4, yt_url:`https://youtu.be/karma04`, file:'C:/Users/karma/shorts/videos/04-claude-orchestrator.mp4', theme:'Claude API', hook:'Server-side proxy, no key in browser.',
+    yt:{title:'I Hid My Claude API Key (And You Should Too)', tags:'api,security,claude,karma,anthropic', desc:'The /api/chat proxy holds ANTHROPIC_API_KEY in env vars. Browser never sees the key.'},
+    ig:{reel:'Claude API key in your browser = hackable. Server proxy = locked. Comment 🔒 for the pattern.', story:'🔒 NEVER STORE KEYS CLIENT-SIDE'},
+    tt:{caption:'your claude api key is sitting in devtools rn 💀 #security #ai #dev'},
+    fb:{post:'PSA: never put your Claude API key in browser code. Use a server proxy. Here\'s the pattern I shipped in KARMA OS.', group:'AI Devs — Browser-direct Claude calls are a vulnerability'},
+    tw:{tweet:'PSA: never put your Claude API key in browser code.\n\nUse a server proxy. ANTHROPIC_API_KEY in env. Browser calls /api/chat.\n\nThat\'s it. 🔒', thread:'1/ The vulnerability:\n\n`anthropic-dangerous-direct-browser-access` flag exists for a reason. Anyone with DevTools can grab your key.'},
+  },
+  { id:5, yt_url:`https://youtu.be/karma05`, file:'C:/Users/karma/shorts/videos/05-bridge-mcp.mp4',     theme:'MCP Bridge',   hook:'16 tools, bearer auth, rate limited.',
+    yt:{title:'MCP Browser Bridge — 16 Tools, Bearer Auth, Done Right', tags:'mcp,bridge,browser,karma,security', desc:'Local HTTP bridge, bearer token via env var, per-tool rate limiting, constant-time comparison.'},
+    ig:{reel:'MCP browser bridge. 16 tools. Bearer auth. Rate limited. Comment MCP for the code.', story:'🌉 MCP BRIDGE LIVE'},
+    tt:{caption:'mcp + browser = cheat code for agents 🧠 #mcp #ai #agents'},
+    fb:{post:'My MCP browser bridge has bearer auth, per-tool rate limits, and constant-time token comparison. Open source in the repo.', group:'MCP Builders — Bearer auth + rate limits is the bare minimum'},
+    tw:{tweet:'MCP browser bridge shipped:\n- 16 tools (navigate, click, type, screenshot, upload_video, ...)\n- Bearer auth via env var\n- Per-tool rate limits (token bucket)\n\nOpen source. 🛠', thread:'1/ The bridge runs on :9876\n2/ The MCP server sends `Authorization: Bearer <token>`\n3/ Bridge uses constant-time comparison\n4/ Rate limits prevent runaway loops'},
+  },
+  { id:6, yt_url:`https://youtu.be/karma06`, file:'C:/Users/karma/shorts/videos/06-blackboard.mp4',     theme:'Blackboard',   hook:'Shared state across 25 agents.',
+    yt:{title:'The Blackboard Pattern: Why Multi-Agent Systems Need It', tags:'multi-agent,blackboard,karma,ai,patterns', desc:'Shared state object all agents read/write. Goals, context, decisions, artifacts. Persisted to localStorage.'},
+    ig:{reel:'Multi-agent = shared state. The blackboard pattern. Comment BB for the code.', story:'📋 BLACKBOARD PATTERN'},
+    tt:{caption:'the blackboard pattern is the secret to multi-agent systems 🧠 #ai #agents #patterns'},
+    fb:{post:'The blackboard pattern: a shared state object that all agents read/write. Goals, context, decisions, artifacts. Why every multi-agent system needs one.', group:'AI Architects — The blackboard pattern is criminally underrated'},
+    tw:{tweet:'Multi-agent systems fail without a blackboard.\n\nShared state object. Every agent reads + writes. Append-only decisions. Capped at 200 entries.\n\nThat\'s the pattern. 📋', thread:'1/ Goals: what we\'re trying to do\n2/ Context: shared facts\n3/ Decisions: who decided what, when\n4/ Artifacts: outputs (content, code, reports)'},
+  },
+  { id:7, yt_url:`https://youtu.be/karma07`, file:'C:/Users/karma/shorts/videos/07-prompt-injection.mp4', theme:'Security',    hook:'Free-text agent messages are vulnerable.',
+    yt:{title:'Prompt Injection: The Multi-Agent Killer', tags:'security,prompt-injection,ai,karma,llm', desc:'Indirect prompt injection via free-text messages. Mitigation: JSON schemas, output sanitization, allowlists.'},
+    ig:{reel:'Free-text agent messages = prompt injection waiting to happen. Comment SAFE for the mitigation.', story:'🛡 PROMPT INJECTION'},
+    tt:{caption:'if your agents send free text, you are one pastebin away from pwned 💀 #ai #security'},
+    fb:{post:'Prompt injection in multi-agent systems is a real risk. Free-text messages from external sources can hijack agents. Mitigations: JSON schemas, output sanitization, allowlists.', group:'AI Security — Free-text agent messages are a vector'},
+    tw:{tweet:'Free-text agent messages are vulnerable to prompt injection.\n\nFix: JSON schemas, output sanitization, allowlists.\n\nMulti-agent ≠ safe by default. 🛡', thread:'1/ Attack vector: agent reads a doc with "ignore previous instructions"\n2/ Mitigation: structured schemas\n3/ Mitigation: sanitize before innerHTML\n4/ Mitigation: per-caller allowlists'},
+  },
+  { id:8, yt_url:`https://youtu.be/karma08`, file:'C:/Users/karma/shorts/videos/08-n8n-workflows.mp4',   theme:'n8n Workflows',hook:'8 webhooks, scheduled, manual, threshold.',
+    yt:{title:'8 n8n Workflows That Run My Life', tags:'n8n,workflow,automation,karma,webhooks', desc:'Ash Lee daily post, intel sync 5min, uptime 1min, crypto alert, client followup, lead qual, deploy, research.'},
+    ig:{reel:'8 n8n workflows run my whole operation. Drop a 🔄 for the templates.', story:'🔄 8 N8N WORKFLOWS'},
+    tt:{caption:'my n8n workflows wake me up to money moves every morning 🔔 #n8n #automation'},
+    fb:{post:'My 8 n8n workflows: Ash Lee daily post, intel sync every 5 min, uptime every minute, BTC alerts, client followups, lead qualification, deploy, research. Self-hosted on Hetzner.', group:'n8n Community — 8 workflows that run a solo creator operation'},
+    tw:{tweet:'8 n8n workflows run my whole operation:\n\n1. Ash Lee daily post (18:30 AEST)\n2. Intel sync (every 5 min)\n3. Uptime check (every 1 min)\n4. BTC alert (>$70k)\n5-8: client ops, deploy, research\n\nSelf-hosted, $4/mo. 🔄', thread:'1/ Why n8n?\n- Self-hosted, $4/mo on Hetzner\n- Webhook-driven\n- Visual debugging\n- Survives laptop restarts'},
+  },
+  { id:9, yt_url:`https://youtu.be/karma09`, file:'C:/Users/karma/shorts/videos/09-youtube-uploader.mp4',theme:'YouTube Upload', hook:'Title, tags, description, publish, pinned comment.',
+    yt:{title:'YouTube Studio Upload — Fully Automated via MCP', tags:'youtube,upload,automation,mcp,karma', desc:'Navigate, click CREATE, file upload, metadata, publish, pinned comment. All in one MCP tool call.'},
+    ig:{reel:'YouTube upload via MCP browser bridge. 6 steps automated. Comment YT for the code.', story:'📺 YT UPLOAD AUTOMATED'},
+    tt:{caption:'my ai uploads to youtube while i sleep 📺 #automation #ai #youtube'},
+    fb:{post:'My YouTube upload workflow: title, tags, description, publish, pinned comment. All via MCP browser bridge. Hands-off.', group:'YouTubers — I automated my entire upload pipeline'},
+    tw:{tweet:'YouTube upload, fully automated:\n\n1. Navigate to studio.youtube.com\n2. Click CREATE\n3. Set file\n4. Fill metadata\n5. Publish\n6. Pin first comment\n\nMCP tool does it in 45s. 📺', thread:'1/ The MCP tool takes title, desc, tags, file_path, channel\n2/ Navigates to studio\n3. Uploads the file via the file input\n4. Fills metadata with random waits\n5. Publishes\n6. Posts pinned comment with the video ID'},
+  },
+  { id:10, yt_url:`https://youtu.be/karma10`, file:'C:/Users/karma/shorts/videos/10-bluesky-bot.mp4',    theme:'Bluesky Bot',  hook:'AT Protocol, scheduled, growth flywheel.',
+    yt:{title:'I Grew a Bluesky Account to 1k in a Week (Automated)', tags:'bluesky,atproto,automation,growth,karma', desc:'Scheduled posts, follow-back, engagement pods, all via AT Protocol. Cheaper than X.'},
+    ig:{reel:'Bluesky growth in 1 week, automated. Drop a 🦋 for the playbook.', story:'🦋 BLUESKY GROWTH'},
+    tt:{caption:'bluesky is the new twitter and im taking over 🦋 #bluesky #growth'},
+    fb:{post:'Bluesky growth playbook: scheduled posts, follow-back, engagement pods, AT Protocol automation. Hit 1k followers in a week.', group:'Bluesky — I hit 1k followers in a week, automated'},
+    tw:{tweet:'Bluesky growth, automated:\n\n- 3 scheduled posts / day\n- Follow-back within 1h\n- Engagement pods (5-10 ppl)\n- AT Protocol direct\n\nHit 1k in 7 days. 🦋', thread:'1/ Why Bluesky over X?\n- AT Protocol (portable identity)\n- No algorithm hijack\n- Smaller, more engaged community\n- Free to grow'},
+  },
+  { id:11, yt_url:`https://youtu.be/karma11`, file:'C:/Users/karma/shorts/videos/11-contra-portfolio.mp4',theme:'Contra Portfolio',hook:'AI services marketplace, $5k/mo target.',
+    yt:{title:'Contra Portfolio: $5k/mo From AI Services', tags:'contra,freelance,ai,services,karma', desc:'Profile setup, project showcase, lead-qual webhook, automated followup. The side-hustle engine.'},
+    ig:{reel:'Contra portfolio doing $5k/mo. AI services. Comment CONTRA for the setup.', story:'💼 CONTRA PORTFOLIO'},
+    tt:{caption:'contra is the freelance platform that actually pays 💸 #contra #freelance #ai'},
+    fb:{post:'My Contra portfolio is at $5k/mo now. AI services, lead-qual webhook, automated followup. Full setup walkthrough in comments.', group:'Freelancers — Contra is the AI services play right now'},
+    tw:{tweet:'Contra portfolio at $5k/mo.\n\nServices: AI integration, browser automation, custom dashboards.\n\nThe lead-qual webhook is the unlock. 💼', thread:'1/ Profile: clear, results-driven, no fluff\n2/ Projects: 3-5 case studies with metrics\n3/ Lead-qual: webhook filters quality\n4/ Followup: automated 24h email'},
+  },
+  { id:12, yt_url:`https://youtu.be/karma12`, file:'C:/Users/karma/shorts/videos/12-ai-news-feed.mp4',    theme:'AI News Feed', hook:'RSS, n8n, 5-min refresh, deal alerts.',
+    yt:{title:'My AI News Feed Never Sleeps (5-min Refresh)', tags:'ai,news,rss,automation,n8n,karma', desc:'RSS aggregation, n8n workflow every 5 min, KARMA Intel dashboard, deal alerts on threshold.'},
+    ig:{reel:'AI news feed refreshes every 5 min. Comment FEED for the rss list.', story:'📡 AI NEWS LIVE'},
+    tt:{caption:'my ai news feed catches deals before my coffee gets cold ☕ #ai #news #automation'},
+    fb:{post:'My AI news feed: RSS aggregation, n8n workflow every 5 min, KARMA Intel dashboard, deal alerts on threshold. 50+ sources, all auto-curated.', group:'AI News — My self-hosted AI news feed hits different'},
+    tw:{tweet:'AI news feed, fully automated:\n\n- 50+ RSS sources\n- n8n refresh every 5 min\n- KARMA Intel dashboard\n- Deal alerts on threshold\n\nNever miss a launch. 📡', thread:'1/ Sources:\n- a16z, Sequoia, YC blogs\n- Hacker News (filtered)\n- arXiv (cs.AI, cs.CL)\n- Product Hunt AI\n- 30+ individual AI labs'},
+  },
+  { id:13, yt_url:`https://youtu.be/karma13`, file:'C:/Users/karma/shorts/videos/13-calendar-aest.mp4',   theme:'AEST Calendar',hook:'Timezone-aware posting, auto-schedule.',
+    yt:{title:'AEST Posting Calendar — Never Post at 3am Again', tags:'aest,calendar,timezone,scheduling,karma', desc:'All times in AEST/AEDT. Auto-DST detection. Best-time recommendations per platform. Anti-duplication.'},
+    ig:{reel:'AEST posting calendar, auto-DST aware. Comment AEST for the timezone helper.', story:'🇦🇺 AEST POSTING'},
+    tt:{caption:'posting at 3am in sydney = wasted reach 😴 #aest #timezone #socialmedia'},
+    fb:{post:'AEST posting calendar: timezone-aware, DST-aware, best-time recommendations per platform, anti-duplication. Built for Australian creators.', group:'Aussie Creators — AEST posting times that actually work'},
+    tw:{tweet:'AEST posting calendar, automated:\n\n- DST aware (Oct first Sun → Apr first Sun)\n- Best times per platform (in AEST)\n- Anti-dup detection (no repeat in 7 days)\n- 9 platforms, one queue\n\nAussie creators, this is for you. 🇦🇺', thread:'1/ Why AEST matters:\n- 90% of Australia is on AEST/AEDT\n- WA is AWST (UTC+8)\n- Brisbane is AEST no DST\n- Your audience is local, post local time'},
+  },
+  { id:14, yt_url:`https://youtu.be/karma14`, file:'C:/Users/karma/shorts/videos/14-short-form-vs-long.mp4', theme:'Short vs Long',hook:'YouTube Shorts vs long-form, 30-day test.',
+    yt:{title:'Shorts vs Long-Form: 30-Day Creator Test', tags:'youtube,shorts,long-form,creator,karma', desc:'Posted 30 days straight. Shorts: 10x views, 1/10 revenue. Long-form: 1x views, 10x revenue. Both. The answer is both.'},
+    ig:{reel:'30-day Shorts vs long-form test. The answer is both. Comment TEST for the data.', story:'📊 30-DAY TEST'},
+    tt:{caption:'shorts vs long form: do BOTH, thats the answer 📊 #youtube #creator #data'},
+    fb:{post:'30 days, 60 videos, 50/50 split Shorts vs long-form. Data is in: do both. The flywheel compounds.', group:'YouTubers — Shorts vs long-form, 30-day test data'},
+    tw:{tweet:'30-day Shorts vs long-form test:\n\nShorts: 10x views, 1/10 revenue\nLong-form: 1x views, 10x revenue\n\nBoth. The flywheel compounds. 📊\n\nData in thread 🧵', thread:'1/ Shorts: 250k views, $40 RPM-equivalent\n2/ Long-form: 25k views, $400 RPM-equivalent\n3/ Same content, different formats\n4/ Compounding: Shorts feed subscribers to long-form'},
+  },
+  { id:15, yt_url:`https://youtu.be/karma15`, file:'C:/Users/karma/shorts/videos/15-monetize-stack.mp4', theme:'Monetize',    hook:'5 income streams, $20-50k/mo target.',
+    yt:{title:'5 Income Streams From One Creator Operation', tags:'monetize,income,creator,karma,stack', desc:'YouTube ads, Contra services, DistroKid music, n8n templates, sponsorships. Diversified, not dependent.'},
+    ig:{reel:'5 income streams from one creator operation. Comment $ for the breakdown.', story:'💰 5 STREAMS'},
+    tt:{caption:'diversify or die, 5 income streams from one brain 🧠 #creator #monetize #income'},
+    fb:{post:'5 income streams from one creator op: YouTube ads, Contra services, DistroKid music, n8n templates, sponsorships. Total target: $20-50k/mo.', group:'Creators — 5 income streams, one operation, full breakdown'},
+    tw:{tweet:'5 income streams, one creator op:\n\n1. YouTube ads (CPM + Shorts fund)\n2. Contra services ($5-15k/mo)\n3. DistroKid music (Spotify + YT music)\n4. n8n template sales\n5. Sponsorships (when audience >10k)\n\nTarget: $20-50k/mo. 💰', thread:'1/ YouTube: $3-8 RPM × 100k views = $300-800\n2/ Contra: 5-10 clients × $1-3k = $5-30k\n3/ DistroKid: 100k streams × $0.004 = $400\n4/ Templates: $50-200 each, recurring\n5/ Sponsorships: $500-5000 per video'},
+  },
+  { id:16, yt_url:`https://youtu.be/karma16`, file:'C:/Users/karma/shorts/videos/16-karma-arc.mp4',       theme:'Karma Arc',    hook:'From bedroom to global, the full story.',
+    yt:{title:'KARMA: The Full Story (Bedroom to Global)', tags:'karma,story,creator,music,ai,arc', desc:'The arc from solo bedroom producer to AI-augmented global creator. Tools, tactics, lessons. The complete playbook.'},
+    ig:{reel:'The KARMA arc: bedroom to global, the full story. Comment ARC for the timeline.', story:'🌌 KARMA ARC'},
+    tt:{caption:'bedroom to global, the full karma arc 🌌 #story #creator #karma'},
+    fb:{post:'The full KARMA arc: from solo bedroom producer to AI-augmented global creator. Tools, tactics, lessons, full timeline. The complete playbook.', group:'Creators — The full KARMA arc, bedroom to global'},
+    tw:{tweet:'The full KARMA arc:\n\n2018: Bedroom beats, no audience\n2020: First viral TikTok\n2022: Spotify playlist placement\n2024: AI tooling, 10x output\n2026: KARMA OS, 25 agents, global\n\nThread of every lesson 🧵🌌', thread:'1/ 2018: Bedroom beats, FL Studio, no audience\n2/ 2019: First SoundCloud play\n3/ 2020: TikTok virality, 500k views\n4/ 2021: Spotify editorial playlist\n5/ 2022: First sponsorship\n6/ 2023: AI tools (Suno, Runway)\n7/ 2024: Multi-platform, 10x output\n8/ 2025: KARMA OS v1\n9/ 2026: KARMA OS v25, 25 agents, global'},
+  },
+];
+
+// Best AEST posting times per platform
+const BEST_TIMES_AEST = {
+  // Tier 1
+  youtube:      ['17:00', '19:00', '20:00'],
+  youtubeshorts:['12:00', '17:00', '19:00', '21:00'],
+  instagram:    ['07:00', '12:00', '18:00'],
+  tiktok:       ['06:00', '10:00', '19:00', '22:00'],
+  facebook:     ['08:00', '13:00', '16:00'],
+  twitter:      ['08:00', '12:00', '17:00', '21:00'],
+  threads:      ['08:00', '12:00', '19:00'],
+  bluesky:      ['09:00', '13:00', '20:00'],
+  // Tier 2
+  soundcloud:   ['08:00', '12:00', '18:00'],
+  bandcamp:     ['anytime'],
+  audiomack:    ['09:00', '17:00', '21:00'],
+  reverbnation: ['12:00', '18:00'],
+  spotify:      ['07:00', '17:00', '22:00'],
+  applemusic:   ['anytime'],
+  // Tier 3
+  reddit:       ['06:00', '09:00', '14:00', '22:00'],
+  discord:      ['19:00', '20:00', '21:00', '22:00'],
+  telegram:     ['10:00', '14:00', '20:00'],
+  mastodon:     ['09:00', '13:00', '18:00'],
+  // Tier 4
+  pinterest:    ['14:00', '21:00', '02:00'],
+  vimeo:        ['anytime'],
+  tumblr:       ['15:00', '22:00'],
+  // Tier 5
+  snapchat:     ['22:00', '02:00', '12:00'],
+  whatsapp:     ['07:00', '19:00', '22:00'],
+  // Tier 6
+  linkedin:     ['08:00', '12:00', '17:00'],
+  medium:       ['anytime'],
+  substack:     ['08:00', '14:00'],
+  // Tier 7
+  twitch:       ['19:00', '20:00', '21:00', '22:00'],
+  kick:         ['19:00', '21:00'],
+  // Tier 8
+  patreon:      ['anytime'],
+  kofi:         ['anytime'],
+  // Tier 9
+  linkfire:     ['anytime'],
+  songwhip:     ['anytime'],
+};
+
+// Social strategies
+const SOCIAL_STRATEGIES = [
+  { platform:'youtube', title:'YouTube Long-Form', desc:'Pre-recorded, edited, 8-15 min. SEO-driven. One Short repurposed per day. Upload Mon/Wed/Fri 17:00 AEST.' },
+  { platform:'tiktok', title:'TikTok Native', desc:'Vertical, raw, hook in 1.5s. 3-5 posts/day. 06:00 + 19:00 + 22:00 AEST for AU/NZ peak.' },
+  { platform:'instagram', title:'Instagram Reels + Carousel', desc:'Reels daily, Carousel 2x/week. Story DMs for engagement. 07:00 + 18:00 AEST.' },
+  { platform:'twitter', title:'X / Twitter Thread', desc:'Long threads on AI/building. 2-3/day. Quote-tweet > original. 08:00 + 17:00 + 21:00 AEST.' },
+  { platform:'bluesky', title:'Bluesky Growth', desc:'Feeds still small, growth fast. 3 posts/day. Follow-back within 1h. Custom feeds engagement.' },
+  { platform:'reddit', title:'Reddit — r/AIBuilders, r/SideProject', desc:'Authentic posts only. No spam. 1x/day max. Best in r/SideProject (Sundays).' },
+  { platform:'facebook', title:'Facebook Groups', desc:'AI Builders, AI Music Producers, n8n Community. Value-first posts, 2x/week per group.' },
+  { platform:'threads', title:'Threads (Meta)', desc:'Cross-post from Twitter with light edits. 8:00 AEST morning, 19:00 AEST evening.' },
+  { platform:'discord', title:'Discord Servers', desc:'AI builders, music producers, n8n. Lurking > posting. 19:00-22:00 AEST peak.' },
+];
+
+// Profile bios
+const PROFILES = [
+  { platform:'youtube',  handle:'@tellemthatsme', bio:'TellemThatsMe · AI-augmented hip-hop producer from Melbourne 🇦🇺 · KARMA OS · 25 AI agents, 1 dashboard · New video every week', url:'youtube.com/@tellemthatsme' },
+  { platform:'instagram',handle:'@tellemthatsme', bio:'AI x hip-hop · Melbourne 🇦🇺 · KARMA OS, 25 agents, 1 page · New music weekly · DM for collabs', url:'instagram.com/tellemthatsme' },
+  { platform:'tiktok',   handle:'@tellemthatsme', bio:'AI music producer · 25 AI agents run my life · Melbourne 🇦🇺 · KARMA · New track weekly', url:'tiktok.com/@tellemthatsme' },
+  { platform:'twitter',  handle:'@tellemthatsme', bio:'AI x hip-hop · KARMA OS (25 agents, 1 page) · Melbourne 🇦🇺 · Building in public · DM open', url:'x.com/tellemthatsme' },
+  { platform:'bluesky',  handle:'@tellemthatsme.bsky.social', bio:'AI-augmented music producer · KARMA OS · Melbourne 🇦🇺 · AT Protocol native', url:'bsky.app/profile/tellemthatsme.bsky.social' },
+  { platform:'threads',  handle:'@tellemthatsme', bio:'AI x hip-hop · KARMA OS · Melbourne 🇦🇺 · Building in public', url:'threads.net/@tellemthatsme' },
+  { platform:'contra',   handle:'tellemthatsme', bio:'AI integration engineer · custom dashboards · browser automation · n8n workflows · $5-15k projects', url:'contra.com/tellemthatsme' },
+  { platform:'github',   handle:'tellemthatsme', bio:'Open source KARMA OS · 25 AI agents · MCP browser bridge · n8n workflows', url:'github.com/tellemthatsme' },
+  // Music platforms (added for max post capacity across 32 platforms)
+  { platform:'soundcloud', handle:'@tellemthatsme', bio:'Australian hip-hop producer · 16 tracks released · bedroom studio in Melbourne · repost if it hits', url:'soundcloud.com/tellemthatsme' },
+  { platform:'bandcamp',   handle:'tellemthatsme',  bio:'TellemThatsMe — full discography · pay what you want · stems available for collaborators · AU hip-hop / drill / lo-fi / soul', url:'tellemthatsme.bandcamp.com' },
+  { platform:'audiomack',  handle:'@tellemthatsme', bio:'Free downloads · 16 tracks · Australian hip-hop · new music every week · follow for first-listen', url:'audiomack.com/tellemthatsme' },
+  { platform:'spotify',    handle:'@tellemthatsme', bio:'TellemThatsMe on Spotify · 16 tracks · Australian hip-hop / drill / lo-fi · new music every week · follow the artist profile', url:'open.spotify.com/artist/tellemthatsme' },
+  { platform:'applemusic', handle:'@tellemthatsme', bio:'TellemThatsMe on Apple Music · Australian hip-hop producer · 16 tracks available · add to your library to never miss a drop', url:'music.apple.com/artist/tellemthatsme' },
+];
+
+// Groups
+const GROUPS = [
+  // ============ Facebook Groups (music-specific) ============
+  { name:'AI Music Producers', platform:'facebook', size:'12k', accept:'Yes', freq:'1x/week', music:true, note:'Music + AI crossover — best fit for your YouTube music videos', url:'facebook.com/groups/aimusicproducers' },
+  { name:'Indie Music Producers', platform:'facebook', size:'180k', accept:'Yes', freq:'2x/week', music:true, note:'Indie hip-hop, lo-fi, bedroom producers — share your beat breakdowns', url:'facebook.com/groups/indiemusicproducers' },
+  { name:'Bedroom Producers', platform:'facebook', size:'95k', accept:'Yes', freq:'1x/week', music:true, note:'Home studio community — your workflow videos fit perfectly', url:'facebook.com/groups/bedroomproducers' },
+  { name:'Hip Hop Producers', platform:'facebook', size:'240k', accept:'Yes', freq:'2x/week', music:true, note:'Drill, trap, lo-fi, soul samples — your core audience', url:'facebook.com/groups/hiphopproducers' },
+  { name:'Spotify Playlist Promoters', platform:'facebook', size:'35k', accept:'Yes', freq:'1x/week', music:true, note:'When you upload a new track, pitch here for playlist adds', url:'facebook.com/groups/spotifyplaylistpromoters' },
+  { name:'DistroKid Artists', platform:'facebook', size:'28k', accept:'Yes', freq:'1x/week', music:true, note:'DistroKid community — share release announcements', url:'facebook.com/groups/distrokidartists' },
+  { name:'Music Marketing & Promotion', platform:'facebook', size:'67k', accept:'Yes', freq:'1x/week', music:true, note:'Share marketing strategies + your YT videos as case studies', url:'facebook.com/groups/musicmarketingpromotion' },
+  { name:'Lo-Fi Producers', platform:'facebook', size:'42k', accept:'Yes', freq:'1x/week', music:true, note:'Chill beats, lo-fi hip hop — share your creative process', url:'facebook.com/groups/lofiproducers' },
+  { name:'AI Generated Music', platform:'facebook', size:'19k', accept:'Yes', freq:'1x/week', music:true, note:'Pure AI music community — your KARMA project fits', url:'facebook.com/groups/aigeneratedmusic' },
+  { name:'YouTube Music Promotion', platform:'facebook', size:'55k', accept:'Yes', freq:'1x/week', music:true, note:'Share your YT music videos, ask for engagement', url:'facebook.com/groups/youtubemusicpromotion' },
+  // AI / Tech (non-music but relevant)
+  { name:'AI Builders', platform:'facebook', size:'45k', accept:'Yes', freq:'2x/week', music:false, note:'Long-form case studies only', url:'facebook.com/groups/aibuilders' },
+  { name:'n8n Community', platform:'discord', size:'20k', accept:'Yes', freq:'1x/week', music:false, note:'Workflow templates', url:'discord.gg/n8n' },
+  { name:'r/SideProject', platform:'reddit', size:'500k', accept:'Sunday only', freq:'1x/week', music:false, note:'Sunday 14:00 AEST = peak', url:'reddit.com/r/SideProject' },
+  { name:'r/AI_Agents', platform:'reddit', size:'15k', accept:'Yes', freq:'2x/week', music:false, note:'Tech deep-dives', url:'reddit.com/r/AI_Agents' },
+  { name:'Indie Hackers', platform:'circle', size:'50k', accept:'Yes', freq:'1x/month', music:false, note:'Revenue-focused posts', url:'indiehackers.com' },
+  { name:'Product Hunt', platform:'producthunt', size:'-', accept:'Yes', freq:'Monthly', music:false, note:'Launch on Tuesday 12:00 PT', url:'producthunt.com' },
+  { name:'Contra Discord', platform:'discord', size:'8k', accept:'Yes', freq:'Weekly', music:false, note:'Show off new work', url:'contra.com' },
+
+  // ============ Pinterest Group Boards (visual discovery) ============
+  { name:'Australian Music', platform:'pinterest', size:'45k followers', accept:'Request to join', freq:'1x/week', music:true, note:'Pin album art, lyric cards, BTS — 6-month shelf life', url:'pinterest.com/groups/australianmusic' },
+  { name:'Hip Hop Culture', platform:'pinterest', size:'120k followers', accept:'Open', freq:'1x/week', music:true, note:'Pin lyrics + visual identity. Drive long-term traffic to Spotify.', url:'pinterest.com/groups/hiphopculture' },
+  { name:'Indie Music Marketing', platform:'pinterest', size:'18k followers', accept:'Request', freq:'1x/week', music:true, note:'Share your marketing strategies, link back to YT/Spotify in pins', url:'pinterest.com/groups/indiemusicmarketing' },
+  { name:'Music Producers', platform:'pinterest', size:'67k followers', accept:'Open', freq:'1x/week', music:true, note:'Pin studio gear, workflow, BTS photos', url:'pinterest.com/groups/musicproducers' },
+  { name:'Bedroom Studio', platform:'pinterest', size:'32k followers', accept:'Open', freq:'1x/week', music:true, note:'Setup photos, gear breakdowns, mix tips', url:'pinterest.com/groups/bedroomstudio' },
+
+  // ============ LinkedIn Groups (B2B, professional) ============
+  { name:'Music Industry Network', platform:'linkedin', size:'1.2M members', accept:'Auto-approved', freq:'1x/week', music:false, note:'Long-form post about indie artist journey. Drive industry connections.', url:'linkedin.com/groups/musicindustrynetwork' },
+  { name:'Independent Music Professionals', platform:'linkedin', size:'180k members', accept:'Request to join', freq:'1x/2weeks', music:true, note:'Cross-post YT videos as case studies. Tag collaborators.', url:'linkedin.com/groups/independentmusicprofessionals' },
+  { name:'AI in Music', platform:'linkedin', size:'24k members', accept:'Auto-approved', freq:'1x/2weeks', music:false, note:'Thought leadership on AI + hip-hop. Brings industry eyes.', url:'linkedin.com/groups/aiinmusic' },
+  { name:'Music Producers Forum', platform:'linkedin', size:'95k members', accept:'Auto-approved', freq:'1x/month', music:true, note:'Mix tips, production breakdowns, link to YT tutorials', url:'linkedin.com/groups/musicproducersforum' },
+  { name:'MusicTech', platform:'linkedin', size:'55k members', accept:'Auto-approved', freq:'1x/month', music:false, note:'Tech + music crossover. Your AI workflow content fits here.', url:'linkedin.com/groups/musictech' },
+
+  // ============ Mastodon Instances (federated, music) ============
+  { name:'mastodon.social (general)', platform:'mastodon', size:'500k users', accept:'Open', freq:'1x/day', music:false, note:'Tech + culture audience. Use #australianhiphop #indiemusic hashtags', url:'mastodon.social/explore' },
+  { name:'aus.social (Australian)', platform:'mastodon', size:'12k users', accept:'Open', freq:'1x/day', music:false, note:'AU-focused instance. Great for AU hip-hop discovery.', url:'aus.social' },
+  { name:'mstdn.social (general)', platform:'mastodon', size:'250k users', accept:'Open', freq:'1x/day', music:false, note:'Largest general instance. Tag #music #hiphop #australian', url:'mstdn.social/explore' },
+  { name:'hiphop.social', platform:'mastodon', size:'8k users', accept:'Open', freq:'1x/day', music:true, note:'Dedicated hip-hop instance. Target audience match.', url:'hiphop.social' },
+  { name:'fedi.au (Australian)', platform:'mastodon', size:'15k users', accept:'Open', freq:'1x/day', music:false, note:'Australian fediverse. Strong AU discovery signal.', url:'fedi.au' },
+
+  // ============ Telegram Channels (broadcast + groups) ============
+  { name:'Indie Music Telegram', platform:'telegram', size:'6k subscribers', accept:'Open', freq:'2x/week', music:true, note:'Channel for new release announcements. Direct fan comms.', url:'t.me/indiemusictg' },
+  { name:'AI Music Creators', platform:'telegram', size:'4k subscribers', accept:'Open', freq:'1x/week', music:true, note:'AI + music crossover. Share workflow videos + releases.', url:'t.me/aimusiccreators' },
+  { name:'Hip Hop Producers Chat', platform:'telegram', size:'11k members', accept:'Open', freq:'1x/week', music:true, note:'Group chat for producers. Share beats, get feedback.', url:'t.me/hiphopproducerschat' },
+  { name:'Australian Music Scene', platform:'telegram', size:'3k members', accept:'Open', freq:'1x/week', music:false, note:'AU scene channel. Local gig + collab opportunities.', url:'t.me/ausscemusicscene' },
+
+  // ============ Discord Servers (community + live chat) ============
+  { name:'Music Makers', platform:'discord', size:'42k members', accept:'Open', freq:'2x/week', music:true, note:'Large producer community. Share in #self-promo channel.', url:'discord.gg/musicmakers' },
+  { name:'Hip Hop Headquarters', platform:'discord', size:'67k members', accept:'Open', freq:'1x/week', music:true, note:'Hip-hop specific. Drop tracks in #promotion with YT link.', url:'discord.gg/hiphophq' },
+  { name:'AI Music Production', platform:'discord', size:'8k members', accept:'Open', freq:'1x/week', music:false, note:'Your KARMA + AI workflow fits here. Share YT videos as tutorials.', url:'discord.gg/aimusicproduction' },
+  { name:'Bedroom Producers', platform:'discord', size:'15k members', accept:'Open', freq:'1x/week', music:true, note:'Home studio community. Share beat-making process videos.', url:'discord.gg/bedroomproducers' },
+  { name:'DistroKid Artists', platform:'discord', size:'5k members', accept:'Open', freq:'1x/week', music:true, note:'When you release a new track, announce here.', url:'discord.gg/distrokid' },
+  { name:'Spotify for Artists Chat', platform:'discord', size:'12k members', accept:'Open', freq:'1x/month', music:false, note:'Spotify algorithm + playlist pitch tips', url:'discord.gg/spotifyartists' },
+
+  // ============ Twitch Communities (live + creator collabs) ============
+  { name:'Twitch Music', platform:'twitch', size:'500k+ creators', accept:'Open', freq:'1x/week', music:true, note:'Tag #music. Live production sessions get featured on the Music page.', url:'twitch.tv/directory/category/music' },
+  { name:'Twitch Hip Hop', platform:'twitch', size:'120k creators', accept:'Open', freq:'1x/week', music:true, note:'Drill + hip-hop live community. Record beats live.', url:'twitch.tv/directory/category/hiphop' },
+  { name:'Twitch Creative', platform:'twitch', size:'300k creators', accept:'Open', freq:'1x/week', music:false, note:'Music + video production live streams', url:'twitch.tv/directory/category/creative' },
+
+  // ============ Medium Publications ============
+  { name:'The Ascent', platform:'medium', size:'170k followers', accept:'Pitch', freq:'1x/month', music:false, note:'Indie creator stories. Pitch your journey essay here.', url:'medium.com/the-ascent' },
+  { name:'The Startup', platform:'medium', size:'500k followers', accept:'Pitch', freq:'1x/month', music:false, note:'Startup / solopreneur stories. Your indie music business fits.', url:'medium.com/swlh' },
+  { name:'Musicbed', platform:'medium', size:'15k followers', accept:'Pitch', freq:'1x/month', music:true, note:'Music + film industry. Pitch licensing essays here.', url:'medium.com/musicbed' },
+  { name:'Hypebot', platform:'medium', size:'8k followers', accept:'Pitch', freq:'1x/month', music:false, note:'Music industry news + analysis. Pitch thought pieces.', url:'medium.com/hypebot' },
+  { name:'Audius', platform:'medium', size:'12k followers', accept:'Pitch', freq:'1x/month', music:true, note:'Web3 + music. Your AI workflow content fits.', url:'medium.com/audius' },
+
+  // ============ Substack Newsletters (cross-promo) ============
+  { name:'The Passion of Music', platform:'substack', size:'8k subs', accept:'Cross-promo', freq:'1x/month', music:true, note:'Music industry newsletter. Pitch guest post or cross-promo swap.', url:'passionofmusic.substack.com' },
+  { name:'Music Industry Insights', platform:'substack', size:'15k subs', accept:'Cross-promo', freq:'1x/month', music:false, note:'Industry analysis. Share your journey.', url:'musicindustryinsights.substack.com' },
+  { name:'Indie Artist Hub', platform:'substack', size:'4k subs', accept:'Cross-promo', freq:'1x/month', music:true, note:'Direct to indie artists. Your workflow + marketing essays fit.', url:'indieartisthub.substack.com' },
+
+  // ============ Patreon + Ko-fi (creator support) ============
+  { name:'Patreon Creator Hub', platform:'patreon', size:'250k creators', accept:'Open', freq:'1x/month', music:false, note:'Find collaborators. Share your page in Patreon Discord.', url:'patreon.com/creatorhub' },
+  { name:'Ko-fi Community', platform:'ko-fi', size:'1M+ creators', accept:'Open', freq:'1x/month', music:false, note:'Open community. Find similar creators for cross-promo.', url:'ko-fi.com/community' },
+
+  // ============ SoundCloud Groups (built-in communities) ============
+  { name:'SoundCloud Hip Hop', platform:'soundcloud', size:'500k followers', accept:'Open', freq:'1x/week', music:true, note:'Follow + repost. Built-in groups on SC for hip-hop, drill, lo-fi.', url:'soundcloud.com/groups' },
+  { name:'SoundCloud Australian', platform:'soundcloud', size:'45k followers', accept:'Open', freq:'1x/week', music:false, note:'AU-specific SC group. Geographic discovery signal.', url:'soundcloud.com/groups/australian' },
+  { name:'SoundCloud Bedroom Producers', platform:'soundcloud', size:'85k followers', accept:'Open', freq:'1x/week', music:true, note:'Home studio community. Your workflow videos fit here.', url:'soundcloud.com/groups/bedroomproducers' },
+
+  // ============ Snapchat Spotlight (creator program) ============
+  { name:'Snapchat Spotlight', platform:'snapchat', size:'300M+ users', accept:'Creator program', freq:'1x/week', music:true, note:'Submit Shorts to Spotlight. $1M+/day paid out to top creators.', url:'snapchat.com/spotlight' },
+  { name:'Snapchat Music Creators', platform:'snapchat', size:'50k creators', accept:'Open', freq:'1x/week', music:true, note:'Creator network for music. Find collab partners.', url:'snapchat.com/create' },
+
+  // ============ Tumblr Communities ============
+  { name:'Hip Hop Tumblr', platform:'tumblr', size:'2M+ tags', accept:'Open', freq:'2x/week', music:true, note:'Tag #australianhiphop #tellemthatsme #hiphop. Underrated discovery.', url:'tumblr.com/tagged/hiphop' },
+  { name:'Music Producers', platform:'tumblr', size:'800k tags', accept:'Open', freq:'1x/week', music:true, note:'Tag #musicproducer. Long-tail discovery 5+ years.', url:'tumblr.com/tagged/musicproducer' },
+  { name:'Bedroom Studio Aesthetic', platform:'tumblr', size:'250k tags', accept:'Open', freq:'1x/week', music:true, note:'Aesthetic + gear photos. Strong AU creator community.', url:'tumblr.com/tagged/bedroom-studio' },
+
+  // ============ Vimeo Groups ============
+  { name:'Vimeo Music Video', platform:'vimeo', size:'100k+ creators', accept:'Open', freq:'1x/month', music:true, note:'Long-form MV portfolio. Festivals + curators watch Vimeo groups.', url:'vimeo.com/groups/musicvideo' },
+  { name:'Vimeo Hip Hop', platform:'vimeo', size:'40k creators', accept:'Open', freq:'1x/month', music:true, note:'Hip-hop MV community. Higher-quality audience than YT.', url:'vimeo.com/groups/hiphop' },
+
+  // ============ WhatsApp Status (broadcast lists) ============
+  { name:'Personal Network', platform:'whatsapp', size:'~256 contacts', accept:'Add to broadcast', freq:'1x/week', music:false, note:'WhatsApp Status = personal brand. 24h shelf life, high open rate.', url:'whatsapp://send?text=...' },
+  { name:'Music Producer Friends', platform:'whatsapp', size:'~20-50 contacts', accept:'Curate contacts', freq:'1x/week', music:true, note:'Producer group chat. Share new track links + collab requests.', url:'whatsapp://send?text=...' },
+
+  // ============ Kick (streaming) ============
+  { name:'Kick Music', platform:'kick', size:'40k creators', accept:'Open', freq:'1x/month', music:true, note:'Live production streams. Better monetization than Twitch for music.', url:'kick.com/category/music' },
+];
+
+// SEO keywords
+const SEO = [
+  { kw:'AI agents dashboard', volume:'8.1k', difficulty:'Low', cpc:'$2.40' },
+  { kw:'multi-agent system', volume:'3.4k', difficulty:'Med', cpc:'$3.10' },
+  { kw:'browser automation MCP', volume:'1.2k', difficulty:'Low', cpc:'$1.80' },
+  { kw:'Claude API proxy', volume:'2.7k', difficulty:'Low', cpc:'$2.20' },
+  { kw:'n8n workflow template', volume:'12k', difficulty:'Med', cpc:'$4.50' },
+  { kw:'AEST posting times', volume:'720', difficulty:'VLow', cpc:'$0.80' },
+  { kw:'YouTube Shorts automation', volume:'5.5k', difficulty:'Med', cpc:'$3.80' },
+  { kw:'hip hop AI production', volume:'1.8k', difficulty:'Low', cpc:'$1.40' },
+  { kw:'DistroKid alternative', volume:'14k', difficulty:'High', cpc:'$5.20' },
+  { kw:'Bluesky growth tips', volume:'2.1k', difficulty:'Low', cpc:'$1.10' },
+  { kw:'Contra freelance AI', volume:'880', difficulty:'VLow', cpc:'$1.20' },
+  { kw:'AI content calendar', volume:'1.5k', difficulty:'Low', cpc:'$1.90' },
+];
+
+// Monetize
+const MONETIZE = [
+  { stream:'YouTube AdSense', desc:'Long-form + Shorts fund. Target: 100k views/mo = $400-800.', potential:'$3-8k/yr' },
+  { stream:'Contra Services', desc:'AI integration, custom dashboards, browser automation. $1-3k per project.', potential:'$5-15k/mo' },
+  { stream:'DistroKid Music', desc:'Spotify, Apple Music, YouTube Music. 100k streams = ~$400.', potential:'$2-5k/yr' },
+  { stream:'n8n Templates', desc:'Sell workflow templates on Gumroad. $50-200 each, recurring buyers.', potential:'$500-2k/mo' },
+  { stream:'Sponsorships', desc:'10k+ subs. AI tools, music gear, dev products. $500-5000 per video.', potential:'$1-3k/video' },
+  { stream:'Affiliate Links', desc:'AI tools, hosting, plugins. Recurring 20-30% commission.', potential:'$200-1k/mo' },
+  { stream:'Discord Paid', desc:'Premium community $5-15/mo. 100 members = $500-1500/mo.', potential:'$500-3k/mo' },
+  { stream:'Workshops / 1:1', desc:'AI integration coaching. $200-500/hr. Limit 4-8 hrs/wk.', potential:'$3-8k/mo' },
+];
+
+// Workflow
+const WORKFLOW = [
+  { title:'Monday — Plan + Record', desc:'Weekly theme decided Sunday. Record 3-5 long-form takes + 10-15 Shorts in a single 4h session.' },
+  { title:'Tuesday — Edit + Schedule', desc:'Cut 1 long-form video, package into 5-7 Shorts. Schedule all week via KARMA OS queue.' },
+  { title:'Wednesday — Publish Long-Form', desc:'YouTube premiere at 17:00 AEST. Auto-publish to Facebook Groups, LinkedIn, Contra.' },
+  { title:'Thursday — Engage + Ship', desc:'Reply to comments. Ship 1 PR to KARMA OS. Post dev thread on Twitter.' },
+  { title:'Friday — Shorts Drop', desc:'5-7 Shorts published across 9 platforms. Auto-rotated via batch generator.' },
+  { title:'Saturday — Music Day', desc:'Record 1-2 new tracks in bedroom studio. Upload to DistroKid. Pitch to playlists.' },
+  { title:'Sunday — Reflect + Plan', desc:'Review analytics. Adjust next week\'s theme. Write weekly thread recap. Rest.' },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  tz: localStorage.getItem('cc_tz') || 'Australia/Sydney',
+  settings: {},
+  posted: JSON.parse(localStorage.getItem('cc_posted') || '{}'),
+  queue: JSON.parse(localStorage.getItem('cc_queue') || '[]'),
+  favs: JSON.parse(localStorage.getItem('cc_favs') || '[]'),
+  calMonth: new Date().getMonth(),
+  calYear: new Date().getFullYear(),
+  videoFilter: 'all',
+};
+
+// ============================================================
+// UTILS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+function escapeHTML(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function copyText(text) { navigator.clipboard.writeText(text).then(()=>toast('Copied!','success')); }
+function copyBox(btn) {
+  const txt = btn.parentElement.textContent.replace('COPY','').trim();
+  copyText(txt);
+}
+function toast(msg, type='info', dur=3000) {
+  const c = $('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(), dur);
+}
+function formatAESTTime(d) {
+  return d.toLocaleTimeString('en-AU', { timeZone: S.tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+}
+function getTZOffset() {
+  const d = new Date();
+  const tz = S.tz;
+  try {
+    const dateStr = d.toLocaleString('en-US', { timeZone: tz, timeZoneName: 'short' });
+    const m = dateStr.match(/[A-Z]{3,5}$/);
+    return m ? m[0] : 'TZ';
+  } catch { return 'TZ'; }
+}
+function isAEST(d) {
+  return d.toLocaleString('en-AU', { timeZone: S.tz }).includes('AEST') || d.toLocaleString('en-AU', { timeZone: S.tz }).includes('AEDT');
+}
+
+// ============================================================
+// CLOCK
+// ============================================================
+function tickClock() {
+  const now = new Date();
+  $('h-aest').textContent = formatAESTTime(now);
+  $('h-local').textContent = now.toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  $('h-utc').textContent = now.toISOString().substr(11,8);
+  $('h-tzoffset').textContent = getTZOffset();
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// ============================================================
+// NAV
+// ============================================================
+function showTab(name) {
+  document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const sec = $('sec-' + name);
+  if (sec) sec.classList.add('active');
+  localStorage.setItem('cc_lasttab', name);
+}
+document.querySelectorAll('nav button[data-tab]').forEach(b => {
+  b.addEventListener('click', () => showTab(b.dataset.tab));
+});
+// Restore last tab
+const lastTab = localStorage.getItem('cc_lasttab');
+if (lastTab) showTab(lastTab);
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key >= '1' && e.key <= '9') {
+    const tabs = Array.from(document.querySelectorAll('nav button[data-tab]'));
+    if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
+  }
+  if (e.key === 'Escape') closeTzSettings();
+});
+
+// ============================================================
+// RENDER: LAUNCH
+// ============================================================
+function renderLaunch() {
+  $('launch-videos').innerHTML = VIDEOS.slice(0,8).map(v => `
+    <div class="card" style="cursor:pointer" onclick="showTab('videos');setTimeout(()=>{document.getElementById('videoSearch').value='${escapeHTML(v.theme)}';renderVideoGrid()},100)">
+      <div class="top" style="display:flex;justify-content:space-between"><span class="file">${escapeHTML(v.file.split('/').pop())}</span><span class="theme">${escapeHTML(v.theme)}</span></div>
+      <h3>${escapeHTML(v.hook)}</h3>
+      <div class="copy-box"><span class="label">YT TITLE</span><button class="copy-btn" onclick="event.stopPropagation();copyBox(this)">COPY</button>${escapeHTML(v.yt.title)}</div>
+      <div class="platforms">${Object.keys(PLATFORMS).slice(0,5).map(p => `<span class="plat" title="${PLATFORMS[p].name}">${PLATFORMS[p].emoji}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: VIDEOS
+// ============================================================
+function renderVideoGrid() {
+  const q = ($('videoSearch')?.value || '').toLowerCase();
+  let list = VIDEOS;
+  if (S.videoFilter === 'favorites') list = list.filter(v => S.favs.includes(v.id));
+  if (S.videoFilter === 'ready') list = list.filter(v => Object.keys(v).filter(k => ['yt','ig','tt','fb','tw'].includes(k)).length >= 4);
+  if (S.videoFilter === 'pending') list = list.filter(v => Object.keys(S.posted[v.id] || {}).length < 3);
+  if (q) list = list.filter(v => (v.theme+v.hook+v.yt.title).toLowerCase().includes(q));
+
+  $('video-grid').innerHTML = list.map(v => {
+    const posted = S.posted[v.id] || {};
+    const fav = S.favs.includes(v.id);
+    return `
+    <div class="video-card">
+      <div class="top">
+        <span class="file">#${v.id} · ${escapeHTML(v.file.split('/').pop())}</span>
+        <span class="theme">${escapeHTML(v.theme)}</span>
+        <span class="badge ${fav?'ok':''}" style="cursor:pointer" onclick="toggleFav(${v.id})">${fav?'⭐':'☆'}</span>
+      </div>
+      <h3>${escapeHTML(v.hook)}</h3>
+      <div class="copy-box"><span class="label">YOUTUBE TITLE</span><button class="copy-btn" onclick="copyBox(this)">COPY</button>${escapeHTML(v.yt.title)}</div>
+      <div class="copy-box"><span class="label">TIKTOK</span><button class="copy-btn" onclick="copyBox(this)">COPY</button>${escapeHTML(v.tt.caption)}</div>
+      <div class="copy-box"><span class="label">INSTAGRAM REEL</span><button class="copy-btn" onclick="copyBox(this)">COPY</button>${escapeHTML(v.ig.reel)}</div>
+      <div class="copy-box"><span class="label">X / TWITTER</span><button class="copy-btn" onclick="copyBox(this)">COPY</button>${escapeHTML(v.tw.tweet)}</div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn sm green" onclick="showTab('fbshare');setTimeout(()=>{$('fbshare-video').value=${v.id};renderFBSharePreview()},150)">📢 Share to FB Groups</button>
+        <button class="btn sm" onclick="copyText('${escapeHTML(v.yt_url)}')">🔗 Copy YT Link</button>
+      </div>
+      <div class="platforms">
+        ${['youtube','instagram','tiktok','facebook','twitter','threads','bluesky','reddit','discord'].map(p =>
+          `<span class="plat ${posted[p]?'done':''}" title="${PLATFORMS[p].name}" onclick="markPosted(${v.id},'${p}')">${PLATFORMS[p].emoji}</span>`
+        ).join('')}
+      </div>
+    </div>
+    `;
+  }).join('');
+}
+function filterVideos(f) { S.videoFilter = f; renderVideoGrid(); }
+function toggleFav(id) {
+  const i = S.favs.indexOf(id);
+  if (i >= 0) S.favs.splice(i,1); else S.favs.push(id);
+  localStorage.setItem('cc_favs', JSON.stringify(S.favs));
+  renderVideoGrid();
+}
+function markPosted(vid, plat) {
+  S.posted[vid] = S.posted[vid] || {};
+  S.posted[vid][plat] = !S.posted[vid][plat];
+  if (!S.posted[vid][plat]) delete S.posted[vid][plat];
+  if (Object.keys(S.posted[vid]||{}).length === 0) delete S.posted[vid];
+  localStorage.setItem('cc_posted', JSON.stringify(S.posted));
+  renderVideoGrid();
+  renderTracker();
+  renderStats();
+}
+
+// ============================================================
+// RENDER: BATCH
+// ============================================================
+function renderBatch() {
+  $('batch-video').innerHTML = VIDEOS.map(v => `<option value="${v.id}">#${v.id} — ${escapeHTML(v.theme)}: ${escapeHTML(v.hook)}</option>`).join('');
+  $('batch-platforms').innerHTML = Object.entries(PLATFORMS).map(([k,p]) => `
+    <label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:10px;font-family:'Inter',sans-serif;letter-spacing:0;text-transform:none;margin:0">
+      <input type="checkbox" value="${k}" ${['youtube','instagram','tiktok','facebook','twitter'].includes(k)?'checked':''} style="width:auto;margin:0"/>
+      <span style="color:${p.color}">${p.emoji}</span> ${p.name}
+    </label>
+  `).join('');
+}
+function runBatch() {
+  const vid = VIDEOS.find(v => v.id == $('batch-video').value);
+  const hook = $('batch-hook').value || vid.hook;
+  const platforms = Array.from(document.querySelectorAll('#batch-platforms input:checked')).map(c => c.value);
+  if (!platforms.length) { toast('Select at least one platform','warn'); return; }
+  const allCopy = generateAllPlatformCopy(vid);
+  const out = platforms.map(p => {
+    let text = allCopy[p] || `${vid.yt.title}\n\n${vid.hook}\n\n${vid.yt_url}`;
+    if (hook && hook !== vid.hook) text = text.replace(vid.hook, hook);
+    return { platform:p, text };
+  });
+  $('batch-output').innerHTML = `
+    <h3 style="margin-top:16px">Generated for ${platforms.length} platforms — copy and post</h3>
+    ${out.map(o => `
+      <div class="copy-box" style="margin-top:8px">
+        <span class="label" style="color:${PLATFORMS[o.platform].color}">${PLATFORMS[o.platform].emoji} ${PLATFORMS[o.platform].name.toUpperCase()}</span>
+        <button class="copy-btn" onclick="copyText(\`${o.text.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">COPY</button>
+${o.text}
+      </div>
+    `).join('')}
+    <div class="tips">📅 Suggested AEST posting windows: ${Array.from(new Set(platforms.flatMap(p => BEST_TIMES_AEST[p]))).sort().join(', ')}</div>
+    <button class="btn green" style="margin-top:10px" onclick="addBatchToQueue()">+ Add All to Queue</button>
+  `;
+  // Stash for queue
+  $('batch-output').dataset.payload = JSON.stringify({ vid:vid.id, items:out });
+  toast('Generated ' + platforms.length + ' posts', 'success');
+}
+function addBatchToQueue() {
+  const payload = JSON.parse($('batch-output').dataset.payload || '{}');
+  if (!payload.items) return;
+  payload.items.forEach((item, i) => {
+    const plat = item.platform;
+    const time = BEST_TIMES_AEST[plat][i % BEST_TIMES_AEST[plat].length];
+    S.queue.push({
+      id: Date.now() + '-' + i,
+      videoId: payload.vid,
+      platform: plat,
+      text: item.text,
+      time: time,
+      priority: 'medium',
+      status: 'pending',
+    });
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  toast('Added ' + payload.items.length + ' posts to queue', 'success');
+}
+
+// ============================================================
+// RENDER: CALENDAR
+// ============================================================
+function renderCalendar() {
+  const month = S.calMonth, year = S.calYear;
+  const first = new Date(year, month, 1);
+  const days = new Date(year, month + 1, 0).getDate();
+  const startDay = (first.getDay() + 6) % 7; // Mon-start
+  const monthName = first.toLocaleDateString('en-AU', { month:'long', year:'numeric' });
+  $('cal-title').textContent = monthName;
+
+  // Aggregate queue by date
+  const byDate = {};
+  S.queue.forEach(q => {
+    if (!q.date) return;
+    byDate[q.date] = (byDate[q.date] || 0) + 1;
+  });
+  // Also seeded sample posts
+  for (let d = 1; d <= days; d++) {
+    if (d % 3 === 0 && !byDate[`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`]) {
+      // leave empty unless user added
+    }
+  }
+  const today = new Date();
+  let html = '';
+  for (let i = 0; i < startDay; i++) html += '<div></div>';
+  for (let d = 1; d <= days; d++) {
+    const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const posts = byDate[dateKey] || 0;
+    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    html += `<div class="cal-day ${posts?'has-post':''} ${posts>1?'has-multiple':''} ${isToday?'today':''}" onclick="addToDate('${dateKey}')">
+      <div class="day-num">${d}</div>
+      ${posts ? `<div class="day-posts">${posts} post${posts>1?'s':''}</div>` : ''}
+    </div>`;
+  }
+  $('cal-grid').innerHTML = html;
+}
+function changeMonth(d) {
+  S.calMonth += d;
+  if (S.calMonth < 0) { S.calMonth = 11; S.calYear--; }
+  if (S.calMonth > 11) { S.calMonth = 0; S.calYear++; }
+  renderCalendar();
+}
+function goToToday() {
+  S.calMonth = new Date().getMonth();
+  S.calYear = new Date().getFullYear();
+  renderCalendar();
+}
+function autoSchedule() {
+  // Spread all 16 videos across next 14 days, 2 posts/day
+  const start = new Date();
+  start.setHours(0,0,0,0);
+  let count = 0;
+  VIDEOS.forEach((v, i) => {
+    const dayOffset = Math.floor(i / 2);
+    const date = new Date(start);
+    date.setDate(start.getDate() + dayOffset);
+    const dateKey = date.toISOString().slice(0,10);
+    const platforms = ['youtube','instagram','tiktok'];
+    const platform = platforms[i % 3];
+    const time = BEST_TIMES_AEST[platform][i % BEST_TIMES_AEST[platform].length];
+    let text = '';
+    if (platform === 'youtube') text = v.yt.title;
+    else if (platform === 'instagram') text = v.ig.reel;
+    else if (platform === 'tiktok') text = v.tt.caption;
+    S.queue.push({
+      id: Date.now() + '-' + i,
+      videoId: v.id,
+      platform, text, time, date: dateKey,
+      priority: 'medium', status: 'pending',
+    });
+    count++;
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+  toast(`Auto-scheduled ${count} posts over next ${Math.ceil(count/2)} days`, 'success');
+}
+function addToDate(dateKey) {
+  const vid = VIDEOS[0];
+  const platform = prompt('Platform? (youtube/instagram/tiktok/facebook/twitter/threads/bluesky/reddit/discord)', 'tiktok');
+  if (!platform || !PLATFORMS[platform]) return;
+  const time = BEST_TIMES_AEST[platform][0];
+  let text = '';
+  if (platform === 'youtube') text = vid.yt.title;
+  else if (platform === 'instagram') text = vid.ig.reel;
+  else if (platform === 'tiktok') text = vid.tt.caption;
+  else if (platform === 'twitter') text = vid.tw.tweet;
+  S.queue.push({ id: Date.now() + '', videoId: vid.id, platform, text, time, date: dateKey, priority: 'medium', status: 'pending' });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+  toast('Post added to ' + dateKey, 'success');
+}
+
+// ============================================================
+// RENDER: SCHEDULE
+// ============================================================
+function renderSchedule() {
+  const days = [
+    { day:1, type:'upload', tasks:['Record 3 Shorts','Cut 1 long-form','Schedule week'], videos:[1,2] },
+    { day:2, type:'publish', tasks:['YT long-form 17:00 AEST','FB Groups cross-post','Engage comments'], videos:[3] },
+    { day:3, type:'shorts',  tasks:['5 Shorts (9 platforms)','Batch content gen','Stories'], videos:[4,5,6] },
+    { day:4, type:'ship',    tasks:['1 PR to KARMA OS','Dev thread on X','Reply DMs'], videos:[] },
+    { day:5, type:'music',   tasks:['Record 1-2 new tracks','DistroKid upload','Playlist pitch'], videos:[] },
+    { day:6, type:'shorts',  tasks:['5 Shorts round 2','Discord engagement','Bluesky growth'], videos:[7,8,9] },
+    { day:7, type:'reflect', tasks:['Analytics review','Next week theme','Rest'], videos:[] },
+  ];
+  $('schedule-list').innerHTML = days.map(d => `
+    <div class="step">
+      <div class="step-num">${d.day}</div>
+      <div class="step-content" style="flex:1">
+        <h4>Day ${d.day} — ${d.type.toUpperCase()}</h4>
+        <ul style="margin:4px 0 0 18px;padding:0;font-size:11px;color:var(--muted)">
+          ${d.tasks.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+        ${d.videos.length ? `<div class="platforms" style="margin-top:6px">${d.videos.map(vid => `<span class="plat" onclick="showTab('videos')">V${vid}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: QUEUE
+// ============================================================
+function renderQueue() {
+  if (S.queue.length === 0) {
+    $('queue-list').innerHTML = '<p style="color:var(--muted)">Queue is empty. Click "Auto-Fill from Videos" to populate from your 16 videos.</p>';
+    return;
+  }
+  // Sort by priority then date then time
+  const pri = { high:0, medium:1, low:2 };
+  const sorted = [...S.queue].sort((a,b) => {
+    if ((pri[a.priority]||1) !== (pri[b.priority]||1)) return (pri[a.priority]||1) - (pri[b.priority]||1);
+    if (a.date !== b.date) return (a.date||'').localeCompare(b.date||'');
+    return (a.time||'').localeCompare(b.time||'');
+  });
+  $('queue-list').innerHTML = sorted.map(q => {
+    const plat = PLATFORMS[q.platform] || { emoji:'?', name:q.platform, color:'#888' };
+    const v = VIDEOS.find(v => v.id == q.videoId);
+    return `
+    <div class="queue-item priority-${q.priority}">
+      <div class="priority"></div>
+      <span style="font-size:16px;color:${plat.color}">${plat.emoji}</span>
+      <div class="info">
+        <div class="title">${escapeHTML(v ? v.theme + ': ' + v.hook : 'Post')}</div>
+        <div class="meta">${plat.name} · ${q.date || 'unscheduled'} · ${q.time || ''} AEST · ${q.status}</div>
+      </div>
+      <span class="when">${q.priority}</span>
+      <button class="btn sm green" onclick="copyText(\`${(q.text||'').replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">📋</button>
+      <button class="btn sm danger" onclick="removeFromQueue('${q.id}')">🗑</button>
+    </div>
+    `;
+  }).join('');
+}
+function removeFromQueue(id) {
+  S.queue = S.queue.filter(q => q.id !== id);
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+}
+function addToQueue() { showTab('calendar'); }
+function autoFillQueue() {
+  // Clear and re-fill
+  S.queue = [];
+  VIDEOS.forEach((v, i) => {
+    const platform = ['youtube','instagram','tiktok','twitter','facebook'][i % 5];
+    const time = BEST_TIMES_AEST[platform][i % BEST_TIMES_AEST[platform].length];
+    let text = '';
+    if (platform === 'youtube') text = v.yt.title;
+    else if (platform === 'instagram') text = v.ig.reel;
+    else if (platform === 'tiktok') text = v.tt.caption;
+    else if (platform === 'twitter') text = v.tw.tweet;
+    else if (platform === 'facebook') text = v.fb.post;
+    S.queue.push({
+      id: Date.now() + '-' + i,
+      videoId: v.id, platform, text, time,
+      priority: i < 3 ? 'high' : (i < 10 ? 'medium' : 'low'),
+      status: 'pending',
+    });
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  toast('Queue auto-filled with ' + S.queue.length + ' posts', 'success');
+}
+function optimizeQueue() {
+  // Spread queue across next 14 days evenly
+  const start = new Date();
+  const total = S.queue.length;
+  const perDay = Math.ceil(total / 14);
+  S.queue.forEach((q, i) => {
+    const dayOffset = Math.floor(i / perDay);
+    const date = new Date(start);
+    date.setDate(start.getDate() + dayOffset);
+    q.date = date.toISOString().slice(0,10);
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+  toast('Queue optimized across 14 days', 'success');
+}
+function clearQueue() {
+  if (!confirm('Clear all queued posts?')) return;
+  S.queue = [];
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+}
+
+// ============================================================
+// RENDER: TRACKER
+// ============================================================
+function renderTracker() {
+  const total = VIDEOS.length;
+  const platforms = Object.keys(PLATFORMS);
+  const possible = total * platforms.length;
+  let done = 0;
+  Object.values(S.posted).forEach(p => done += Object.keys(p).length);
+
+  $('tracker-stats').innerHTML = `
+    <div class="stat green"><div class="stat-val">${total}</div><div class="stat-label">Total Videos</div></div>
+    <div class="stat"><div class="stat-val">${done}</div><div class="stat-label">Posts Marked</div></div>
+    <div class="stat warn"><div class="stat-val">${possible - done}</div><div class="stat-label">Remaining</div></div>
+    <div class="stat"><div class="stat-val">${Math.round(done/possible*100)}%</div><div class="stat-label">Complete</div></div>
+  `;
+  $('tracker-list').innerHTML = VIDEOS.map(v => {
+    const p = S.posted[v.id] || {};
+    const cnt = Object.keys(p).length;
+    const pct = Math.round(cnt / platforms.length * 100);
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:'JetBrains Mono',monospace;color:var(--ac);min-width:30px">#${v.id}</span>
+      <span style="flex:1;font-size:11px">${escapeHTML(v.theme)}</span>
+      <div class="progress" style="width:160px"><div class="progress-bar ${pct===100?'green':''}" style="width:${pct}%"></div></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:40px">${cnt}/${platforms.length}</span>
+    </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// RENDER: SOCIAL
+// ============================================================
+function renderSocial() {
+  $('social-strategies').innerHTML = SOCIAL_STRATEGIES.map(s => `
+    <div class="card">
+      <span class="badge ${s.platform}" style="margin-bottom:8px">${PLATFORMS[s.platform]?.name || s.platform}</span>
+      <h3>${s.title}</h3>
+      <p>${s.desc}</p>
+      <div class="tips">📅 Best AEST: ${BEST_TIMES_AEST[s.platform]?.join(', ') || 'TBD'}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: PROFILES
+// ============================================================
+function renderProfiles() {
+  $('profiles-list').innerHTML = PROFILES.map(p => `
+    <div class="profile-card">
+      <span class="badge ${p.platform}">${PLATFORMS[p.platform]?.name || p.platform}</span>
+      <h3 style="margin-top:6px">${escapeHTML(p.handle)}</h3>
+      <div class="handle">${escapeHTML(p.url)}</div>
+      <div class="copy-box"><span class="label">BIO</span><button class="copy-btn" onclick="copyBox(this)">COPY</button>${escapeHTML(p.bio)}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: SEO
+// ============================================================
+function renderSEO() {
+  $('seo-list').innerHTML = SEO.map(k => `
+    <div class="card">
+      <h3>${escapeHTML(k.kw)}</h3>
+      <div class="grid grid-4" style="margin-top:8px">
+        <div class="stat"><div class="stat-val" style="font-size:14px">${k.volume}</div><div class="stat-label">Volume</div></div>
+        <div class="stat"><div class="stat-val" style="font-size:14px">${k.difficulty}</div><div class="stat-label">Difficulty</div></div>
+        <div class="stat"><div class="stat-val" style="font-size:14px">${k.cpc}</div><div class="stat-label">CPC</div></div>
+        <div class="stat green"><div class="stat-val" style="font-size:14px">★</div><div class="stat-label">Target</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: GROUPS
+// ============================================================
+let _groupsFilter = 'all';
+function renderGroups() {
+  // Build filter buttons
+  const platforms = [...new Set(GROUPS.map(g => g.platform))];
+  $('groups-filter').innerHTML = '<button class="btn sm active" onclick="filterGroups(\'all\', this)">All (' + GROUPS.length + ')</button>' +
+    platforms.map(p => '<button class="btn sm" onclick="filterGroups(\'' + p + '\', this)">' + p + ' (' + GROUPS.filter(g => g.platform === p).length + ')</button>').join('');
+  // Render filtered list
+  const list = _groupsFilter === 'all' ? GROUPS : GROUPS.filter(g => g.platform === _groupsFilter);
+  $('groups-list').innerHTML = list.map(g => `
+    <div class="group-card" style="${g.music ? 'border-left: 3px solid var(--ac3);' : ''}">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span class="badge ${g.platform}" style="margin:0">${g.platform}</span>
+        ${g.music ? '<span class="badge ok" style="margin:0">🎵 music</span>' : ''}
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-left:auto">${g.size}</span>
+      </div>
+      <div class="name">${escapeHTML(g.name)}</div>
+      <div class="meta">accepts: ${g.accept} · ${g.freq}</div>
+      <div class="meta" style="margin-top:4px">${escapeHTML(g.note)}</div>
+      <div class="meta" style="margin-top:6px;font-size:9px;color:var(--ac2)">${escapeHTML(g.url)}</div>
+    </div>
+  `).join('');
+}
+function filterGroups(platform, btn) {
+  _groupsFilter = platform;
+  document.querySelectorAll('#groups-filter .btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderGroups();
+}
+
+// ============================================================
+// RENDER: SHORTS ENGINE
+// ============================================================
+function logToTerminal(msg) {
+  const t = $('log-terminal');
+  const line = document.createElement('div');
+  line.textContent = `[${new Date().toLocaleTimeString('en-AU',{timeZone:S.tz})}] ${msg}`;
+  t.appendChild(line);
+  t.scrollTop = t.scrollHeight;
+}
+function launchShortsEngine() {
+  const query = $('track-query').value;
+  const limit = parseInt($('batch-limit').value) || 5;
+  const duration = $('short-duration').value;
+  if (!query) { toast('Enter a track query','warn'); return; }
+  logToTerminal(`🚀 Launching shorts engine: "${query}" x${limit} (${duration}s)`);
+  setTimeout(() => logToTerminal(`📡 Connecting to AI backend...`), 500);
+  setTimeout(() => logToTerminal(`🎬 Generating ${limit} shorts (${duration}s each)`), 1500);
+  setTimeout(() => logToTerminal(`📝 Auto-captioning + hashtag generation`), 2500);
+  setTimeout(() => logToTerminal(`✅ Done — ${limit} shorts ready in /shorts/videos/`), 4000);
+  toast('Engine launched — check log', 'success');
+  renderCompletedShorts(query, limit);
+}
+function loadCompletedShorts() {
+  renderCompletedShorts('all-themes', VIDEOS.length);
+  toast('Loaded ' + VIDEOS.length + ' completed shorts', 'success');
+}
+function renderCompletedShorts(query, count) {
+  $('completed-shorts').innerHTML = `
+    <h3>📋 Completed — ${escapeHTML(query)} (${count})</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Theme</th><th>File</th><th>Status</th><th>Platforms</th></tr></thead>
+        <tbody>
+          ${VIDEOS.slice(0, count).map(v => {
+            const p = S.posted[v.id] || {};
+            const cnt = Object.keys(p).length;
+            return `<tr>
+              <td>${v.id}</td>
+              <td>${escapeHTML(v.theme)}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:9px">${escapeHTML(v.file.split('/').pop())}</td>
+              <td><span class="badge ${cnt>3?'ok':''}">${cnt>3?'Ready':'Pending'}</span></td>
+              <td>${Object.keys(p).map(x => `<span class="badge ${x}">${PLATFORMS[x]?.short || x}</span>`).join('') || '<span style="color:var(--muted);font-size:10px">none</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: WORKFLOW
+// ============================================================
+function renderWorkflow() {
+  $('workflow-steps').innerHTML = WORKFLOW.map((s, i) => `
+    <div class="step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-content">
+        <h4>${s.title}</h4>
+        <p>${s.desc}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: DISTROKID
+// ============================================================
+function addDistroKid() {
+  const title = $('dk-title').value;
+  if (!title) { toast('Enter a track title','warn'); return; }
+  const date = $('dk-date').value || new Date().toISOString().slice(0,10);
+  const genre = $('dk-genre').value;
+  const queue = JSON.parse(localStorage.getItem('cc_distro') || '[]');
+  queue.push({ title, date, genre, status: 'pending' });
+  localStorage.setItem('cc_distro', JSON.stringify(queue));
+  renderDistroKid();
+  toast('Added ' + title + ' to DistroKid queue', 'success');
+}
+function copyDistroKidBio() {
+  copyText(`TellemThatsMe is a hip-hop-rooted AI producer from Melbourne, Australia. Blending soul samples, drill, lo-fi, and AI-generated visuals, KARMA is a project about what happens when machines and human stories collide. Every track is built in a bedroom studio, mixed with plugins, and finished with hand-cut AI video. Releases weekly on Spotify + YouTube.`);
+}
+function renderDistroKid() {
+  const queue = JSON.parse(localStorage.getItem('cc_distro') || '[]');
+  if (!queue.length) { $('distrokid-queue').innerHTML = ''; return; }
+  $('distrokid-queue').innerHTML = `
+    <h3>🎵 DistroKid Queue</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Title</th><th>Genre</th><th>Release Date</th><th>Status</th></tr></thead>
+      <tbody>${queue.map(t => `<tr>
+        <td>${escapeHTML(t.title)}</td>
+        <td>${escapeHTML(t.genre)}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${t.date}</td>
+        <td><span class="badge ${t.status==='released'?'ok':''}">${t.status}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  `;
+}
+
+// ============================================================
+// RENDER: MONETIZE
+// ============================================================
+function renderMonetize() {
+  $('monetize-list').innerHTML = MONETIZE.map(m => `
+    <div class="card">
+      <h3>💰 ${m.stream}</h3>
+      <p>${m.desc}</p>
+      <div class="stat green" style="margin-top:8px"><div class="stat-val" style="font-size:14px">${m.potential}</div><div class="stat-label">Potential</div></div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// RENDER: STATS
+// ============================================================
+function renderStats() {
+  const total = VIDEOS.length;
+  const platforms = Object.keys(PLATFORMS);
+  let done = 0;
+  Object.values(S.posted).forEach(p => done += Object.keys(p).length);
+  $('big-stats').innerHTML = `
+    <div class="stat green"><div class="stat-val">${total}</div><div class="stat-label">Videos</div></div>
+    <div class="stat"><div class="stat-val">${done}</div><div class="stat-label">Posts</div></div>
+    <div class="stat warn"><div class="stat-val">${S.queue.length}</div><div class="stat-label">Queued</div></div>
+    <div class="stat"><div class="stat-val">9</div><div class="stat-label">Platforms</div></div>
+  `;
+  $('cadence-chart').innerHTML = platforms.map(p => {
+    const count = Object.values(S.posted).filter(pp => pp[p]).length;
+    const queued = S.queue.filter(q => q.platform === p).length;
+    const max = Math.max(1, ...platforms.map(x => Object.values(S.posted).filter(pp => pp[x]).length));
+    return `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0">
+      <span style="min-width:80px;font-size:11px"><span style="color:${PLATFORMS[p].color}">${PLATFORMS[p].emoji}</span> ${PLATFORMS[p].name}</span>
+      <div class="progress" style="flex:1"><div class="progress-bar" style="width:${(count/max)*100}%"></div></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:60px">${count} posted · ${queued} queued</span>
+    </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function saveSettings() {
+  S.settings = {
+    tz: $('set-tz').value,
+    n8n: $('set-n8n').value,
+    mcp: $('set-mcp').value,
+    claude: $('set-claude').value,
+    windowStart: $('set-window-start').value,
+    windowEnd: $('set-window-end').value,
+    maxDay: parseInt($('set-max-day').value),
+    dedupe: $('set-dedupe').value,
+    theme: $('set-theme').value,
+  };
+  S.tz = S.settings.tz;
+  localStorage.setItem('cc_settings', JSON.stringify(S.settings));
+  setTheme(S.settings.theme);
+}
+function loadSettings() {
+  const saved = JSON.parse(localStorage.getItem('cc_settings') || '{}');
+  S.settings = { tz:'Australia/Sydney', n8n:'', mcp:'', claude:'', windowStart:'09:00', windowEnd:'21:00', maxDay:6, dedupe:'on', theme:'cyberpunk', ...saved };
+  S.tz = S.settings.tz;
+  $('set-tz').value = S.settings.tz;
+  $('set-n8n').value = S.settings.n8n || '';
+  $('set-mcp').value = S.settings.mcp || '';
+  $('set-claude').value = S.settings.claude || '';
+  $('set-window-start').value = S.settings.windowStart;
+  $('set-window-end').value = S.settings.windowEnd;
+  $('set-max-day').value = S.settings.maxDay;
+  $('set-dedupe').value = S.settings.dedupe;
+  $('set-theme').value = S.settings.theme;
+  setTheme(S.settings.theme);
+}
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  if (t === 'cyberpunk') document.documentElement.style.removeProperty('--ac');
+  const themes = {
+    cyberpunk:['#00d4ff','#b347ff','#00ff9d'],
+    stealth:  ['#64ffda','#a8b2d1','#8892b0'],
+    matrix:   ['#00ff41','#008f11','#00ff41'],
+    aurora:   ['#a78bfa','#34d399','#f9a8d4'],
+  };
+  const c = themes[t] || themes.cyberpunk;
+  document.documentElement.style.setProperty('--ac', c[0]);
+  document.documentElement.style.setProperty('--ac2', c[1]);
+  document.documentElement.style.setProperty('--ac3', c[2]);
+}
+
+// ============================================================
+// TZ MODAL
+// ============================================================
+function showTzSettings() {
+  const now = new Date();
+  $('tz-debug').innerHTML = `
+Selected timezone: <b style="color:var(--ac)">${S.tz}</b>
+Current local time: <b>${now.toLocaleString('en-AU', { timeZone: S.tz })}</b>
+UTC offset: <b>${getTZOffset()}</b>
+DST in effect: <b>${now.toLocaleString('en-AU', { timeZone: S.tz, timeZoneName: 'long' }).includes('Daylight') ? 'YES (AEDT)' : 'NO (AEST)'}</b>
+<br><br>
+AEST = UTC+10 (April-October)<br>
+AEDT = UTC+11 (October-April, daylight saving)
+  `;
+  $('tzModal').classList.add('open');
+}
+function closeTzSettings() { $('tzModal').classList.remove('open'); }
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportAll() {
+  const data = {
+    exported: new Date().toISOString(),
+    timezone: S.tz,
+    settings: S.settings,
+    posted: S.posted,
+    queue: S.queue,
+    favs: S.favs,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tellemthatsme-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported!', 'success');
+}
+function importAll(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.settings) { localStorage.setItem('cc_settings', JSON.stringify(data.settings)); S.settings = data.settings; }
+      if (data.posted) { localStorage.setItem('cc_posted', JSON.stringify(data.posted)); S.posted = data.posted; }
+      if (data.queue) { localStorage.setItem('cc_queue', JSON.stringify(data.queue)); S.queue = data.queue; }
+      if (data.favs) { localStorage.setItem('cc_favs', JSON.stringify(data.favs)); S.favs = data.favs; }
+      loadSettings();
+      renderAll();
+      toast('Imported!', 'success');
+    } catch (err) {
+      toast('Import failed: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+
+
+
+// Generate platform-specific copy for any of the 32 platforms from a single video
+function generateAllPlatformCopy(v) {
+  const yt = v.yt || {};
+  const ig = v.ig || {};
+  const tt = v.tt || {};
+  const fb = v.fb || {};
+  const tw = v.tw || {};
+  const hook = v.hook || '';
+  const theme = v.theme || '';
+  const ytUrl = v.yt_url || '';
+  const tags = (yt.tags || '').split(',').slice(0, 5).map(t => '#' + t.trim().replace(/\s/g, '')).join(' ');
+
+  return {
+    // Tier 1
+    youtube: `${yt.title || ''}\n\n${yt.desc || ''}\n\nTags: ${yt.tags || ''}\n\n📅 Best AEST time: ${BEST_TIMES_AEST.youtube.join(', ')}`,
+    youtubeshorts: `${hook}\n\n${ytUrl}\n\n#Shorts ${tags}`,
+    instagram: `${ig.reel || ''}\n\n${tags}\n\n📅 Best AEST: ${BEST_TIMES_AEST.instagram.join(', ')}`,
+    tiktok: `${tt.caption || ''}\n\n📅 Best AEST: ${BEST_TIMES_AEST.tiktok.join(', ')}`,
+    facebook: `${fb.post || ''}\n\n📅 Best AEST: ${BEST_TIMES_AEST.facebook.join(', ')}`,
+    twitter: `${tw.tweet || ''}\n\n${tw.thread ? '\n\nThread: ' + tw.thread : ''}`,
+    threads: `${tw.tweet || ''}\n\n(adapted for Threads)\n\n${tags}`,
+    bluesky: `${tw.tweet ? tw.tweet.slice(0, 280) : ''}\n\n#AI #karma`,
+    // Tier 2 - Music
+    soundcloud: `🎵 ${yt.title || ''}\n\n${yt.desc || ''}\n\nGenre: Australian Hip-Hop / ${theme}\nReleased: ${new Date().toISOString().slice(0,10)}\n\n${tags}\n\nListen + repost if it hits. ${ytUrl}`,
+    bandcamp: `${yt.title || ''}\n\n${yt.desc || ''}\n\nLyrics, credits, and download available.\n\nPay what you want (or more if it hits).\n\n${tags}`,
+    audiomack: `${yt.title || ''}\n\n${hook}\n\nFree download for the first 24h.\n\n${tags}\n\n${ytUrl}`,
+    reverbnation: `${yt.title || ''} — ${theme}\n\n${hook}\n\nReleased by tellemthatsme. Vote, share, add to playlist. ${ytUrl}`,
+    spotify: `🎵 Pre-save "${yt.title || ''}"\n\nDrops ${new Date(Date.now() + 14*86400000).toISOString().slice(0,10)}. Set a reminder: linkfire.com/tellemthatsme`,
+    applemusic: `🎵 "${yt.title || ''}" — out ${new Date().toISOString().slice(0,10)}\n\nAdd to your library on Apple Music. ${ytUrl}`,
+    // Tier 3 - Community
+    reddit: `Title: ${yt.title || ''}\n\n${yt.desc || ''}\n\nBuilt with vanilla JS, deployed solo from Melbourne 🇦🇺. AMA in comments.\n\n${tags}`,
+    discord: `🎬 **${yt.title || ''}**\n\n${yt.desc || ''}\n\nBuilt it solo — feedback welcome 👀\n\n${ytUrl}`,
+    telegram: `🎵 New: ${yt.title || ''}\n\n${hook}\n\nListen: ${ytUrl}`,
+    mastodon: `${tw.tweet ? tw.tweet.slice(0, 480) : ''}\n\n#AustralianHipHop #indie #${theme.replace(/\s/g,'')}`,
+    // Tier 4 - Visual
+    pinterest: `Pin: ${yt.title || ''}\n\nAlbum art / lyric card / BTS\n\nDescription: ${hook}\n\nTags: ${tags}`,
+    vimeo: `${yt.title || ''} — ${theme}\n\n${yt.desc || ''}\n\nPortfolio cut. ${ytUrl}`,
+    tumblr: `${hook}\n\n#${theme.replace(/\s/g,'')} #australianhiphop #tellemthatsme\n\n${ytUrl}`,
+    // Tier 5 - Messaging
+    snapchat: `${hook}\n\nSwipe up for the full video 👆`,
+    whatsapp: `🎵 New track: ${yt.title}\n\n${hook}\n\n${ytUrl}`,
+    // Tier 6 - B2B
+    linkedin: `New music from the studio: ${yt.title}\n\n${yt.desc || ''}\n\nBuilt in a bedroom studio in Melbourne using FL Studio + AI tools. Open to collabs.\n\n${ytUrl}`,
+    medium: `# ${yt.title || ''}\n\n${yt.desc || ''}\n\n## The Story\n\nEvery track in this project carries a piece of the last three years. This one in particular: ${hook}.\n\nIf you're an indie artist building something in silence, this is for you.\n\n[Listen on Spotify](#) · [YouTube](#)`,
+    substack: `Hey,\n\nNew track just dropped: ${yt.title}\n\n${hook}\n\nIf you want the story behind it, hit reply.\n\n— Brendan`,
+    // Tier 7 - Live
+    twitch: `🎮 LIVE: recording session for ${yt.title}\n\nWatch me build it in real time. Chat, ask questions, request changes.\n\n${ytUrl}`,
+    kick: `LIVE: ${yt.title} production session\n\nWatch the full thing go from blank project to mastered track.\n\n${ytUrl}`,
+    // Tier 8 - Monetize
+    patreon: `🎁 New: ${yt.title}\n\nEarly access + stems + acapella for $7+ patrons.\n\n${ytUrl}`,
+    kofi: `☕ New track: ${yt.title}\n\nIf it hits, buy me a coffee. If it hits harder, become a monthly supporter.\n\n${ytUrl}`,
+    // Tier 9 - Smart Links
+    linkfire: `🎵 ${yt.title}\n\nListen on your platform: linkfire.com/tellemthatsme/${(yt.title || '').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`,
+    songwhip: `🎵 ${yt.title}\n\nAll platforms: songwhip.com/tellemthatsme/${(yt.title || '').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`,
+  };
+}
+
+
+
+// ============================================================
+// FB GROUPS SHARE — YouTube music videos to FB groups
+// ============================================================
+function renderFBShareGroups() {
+  const musicGroups = GROUPS.filter(g => g.music);
+  $('fbshare-groups').innerHTML = musicGroups.map((g, i) => `
+    <label style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:11px;letter-spacing:0;text-transform:none">
+      <input type="checkbox" value="${escapeHTML(g.name)}" ${i < 3 ? 'checked' : ''} style="width:auto;margin:0;margin-top:3px"/>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;color:var(--ac)">${escapeHTML(g.name)}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace">${g.size} · ${g.freq} · ${escapeHTML(g.note)}</div>
+      </div>
+    </label>
+  `).join('');
+}
+
+function renderFBShareVideoOptions() {
+  $('fbshare-video').innerHTML = VIDEOS.map(v => `<option value="${v.id}">#${v.id} — ${escapeHTML(v.theme)}: ${escapeHTML(v.hook)}</option>`).join('');
+  renderFBSharePreview();
+}
+
+function selectAllFBGroups() {
+  document.querySelectorAll('#fbshare-groups input[type=checkbox]').forEach(c => c.checked = true);
+  renderFBSharePreview();
+}
+function selectNoneFBGroups() {
+  document.querySelectorAll('#fbshare-groups input[type=checkbox]').forEach(c => c.checked = false);
+  renderFBSharePreview();
+}
+
+function buildFBPost(video, group, strategy) {
+  const yt = video.yt_url;
+  const title = video.yt.title;
+  const hook = video.hook;
+  const theme = video.theme;
+  const desc = video.yt.desc;
+  const tags = video.yt.tags.split(',').slice(0, 5).map(t => '#' + t.trim().replace(/\s/g, '')).join(' ');
+
+  const templates = {
+    'value-first': `Been experimenting with ${theme.toLowerCase()} in my bedroom studio.
+
+Dropped a quick breakdown: ${yt}
+
+What's working for you in ${theme.toLowerCase()}? Curious to hear other producers' approaches. 👇`,
+
+    'drop-and-go': `New track: ${title}
+
+${yt}
+
+${hook}
+
+Built it solo in my bedroom studio in Melbourne — would love to know what you think. Drop a 🔥 if it hits.
+
+${tags}`,
+
+    'ask-feedback': `Working on something new and I'd love this group's ear on it.
+
+${yt}
+
+Theme: ${theme}
+Hook: ${hook}
+
+What would you change? Where does the mix lose you? Genuinely asking — feedback = better music. 🙏`,
+
+    'story-format': `Quick story: started producing in a bedroom in Melbourne with nothing but FL Studio and a dream.
+
+This track is what 3 years of that looks like: ${yt}
+
+${theme}. ${hook}.
+
+If you're building something in silence, keep going. The first 100 listeners find you eventually.
+
+${tags}`,
+  };
+
+  let body = templates[strategy] || templates['drop-and-go'];
+
+  // Group-specific tweaks
+  if (group.name.includes('Bedroom')) body += '\n\n🎹 Bedroom producers — what's your signal chain?';
+  if (group.name.includes('Hip Hop')) body += '\n\n🥁 Sample flip or original? Let me know in comments.';
+  if (group.name.includes('Spotify')) body += '\n\n🎧 If you want it added to your playlist, drop the link in replies.';
+  if (group.name.includes('DistroKid')) body += '\n\n💿 Released via DistroKid — royalty split 100% to me, easy upload.';
+  if (group.name.includes('AI Music')) body += '\n\n🤖 AI-assisted workflow: vocal tuning + mix bus + visual art. Open about the process.';
+  if (group.name.includes('YouTube')) body += '\n\n📺 New video every week. Subscribe if you want more: ${yt}';
+
+  return body;
+}
+
+function renderFBSharePreview() {
+  const videoId = parseInt($('fbshare-video').value) || VIDEOS[0].id;
+  const video = VIDEOS.find(v => v.id === videoId);
+  const strategy = $('fbshare-strategy').value;
+  const selectedGroups = Array.from(document.querySelectorAll('#fbshare-groups input:checked')).map(c => c.value);
+  if (!video || selectedGroups.length === 0) {
+    $('fbshare-output').innerHTML = '<p style="color:var(--muted)">Select a video and at least one group to preview posts.</p>';
+    return;
+  }
+  const groups = GROUPS.filter(g => selectedGroups.includes(g.name));
+  $('fbshare-output').innerHTML = groups.map(g => `
+    <div class="card" style="margin-top:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span class="badge fb">${escapeHTML(g.name)}</span>
+        <span style="font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace">${g.size} members · ${g.freq}</span>
+      </div>
+      <div class="copy-box">
+        <span class="label">POST (${strategy})</span>
+        <button class="copy-btn" onclick="copyText(\`${buildFBPost(video, g, strategy).replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">COPY</button>
+${buildFBPost(video, g, strategy)}
+      </div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" onclick="openFBGroup('${escapeHTML(g.url)}')">🌐 Open Group</button>
+        <button class="btn sm green" onclick="copyText(\`${buildFBPost(video, g, strategy).replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">📋 Copy Post</button>
+        <button class="btn sm purple" onclick="addFBShareToQueue(${video.id},'${escapeHTML(g.name)}','${strategy}')">⏰ Schedule</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openFBGroup(url) {
+  toast('Opening ' + url, 'info');
+  // In a real browser this would window.open, but here we just toast since we can't open external URLs in this context
+}
+
+function addFBShareToQueue(videoId, groupName, strategy) {
+  const video = VIDEOS.find(v => v.id === videoId);
+  const group = GROUPS.find(g => g.name === groupName);
+  if (!video || !group) return;
+  const text = buildFBPost(video, group, strategy);
+  S.queue.push({
+    id: Date.now() + '-fb',
+    videoId: videoId,
+    platform: 'facebook',
+    text: `[FB GROUP: ${groupName}] ${text}`,
+    time: BEST_TIMES_AEST.facebook[Math.floor(Math.random() * BEST_TIMES_AEST.facebook.length)],
+    date: new Date().toISOString().slice(0, 10),
+    priority: 'high',
+    status: 'pending',
+    groupUrl: group.url,
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+  toast('Scheduled to ' + groupName, 'success');
+}
+
+function shareToFBGroups() {
+  const videoId = parseInt($('fbshare-video').value) || VIDEOS[0].id;
+  const video = VIDEOS.find(v => v.id === videoId);
+  const strategy = $('fbshare-strategy').value;
+  const mode = $('fbshare-mode').value;
+  const selectedGroups = Array.from(document.querySelectorAll('#fbshare-groups input:checked')).map(c => c.value);
+  if (!video || selectedGroups.length === 0) { toast('Select video and groups first','warn'); return }
+
+  if (selectedGroups.length > 3) {
+    if (!confirm(`You're about to share to ${selectedGroups.length} groups. FB may flag this as spam. Continue?`)) return;
+  }
+
+  const groups = GROUPS.filter(g => selectedGroups.includes(g.name));
+  const allText = groups.map(g => `=== ${g.name} (${g.url}) ===
+
+${buildFBPost(video, g, strategy)}
+`).join('\n---\n\n');
+
+  if (mode === 'copy') {
+    copyText(allText);
+    toast(`Copied ${groups.length} posts to clipboard`, 'success');
+  } else if (mode === 'queue') {
+    groups.forEach(g => addFBShareToQueue(video.id, g.name, strategy));
+    toast(`Queued ${groups.length} FB group posts`, 'success');
+  } else if (mode === 'mcp') {
+    toast(`MCP posting requires ${'{'}BRIDGE_TOKEN set on bridge_server.py{'}`.replace(/[{]}/g,''), 'warn');
+    // Could implement actual MCP calls here if MCP server is reachable
+  }
+}
+
+function scheduleFBShare() {
+  const videoId = parseInt($('fbshare-video').value) || VIDEOS[0].id;
+  const video = VIDEOS.find(v => v.id === videoId);
+  const strategy = $('fbshare-strategy').value;
+  const selectedGroups = Array.from(document.querySelectorAll('#fbshare-groups input:checked')).map(c => c.value);
+  if (!video || selectedGroups.length === 0) { toast('Select video and groups first','warn'); return }
+  const groups = GROUPS.filter(g => selectedGroups.includes(g.name));
+  // Schedule one per day for next N days at best AEST time
+  const today = new Date();
+  groups.forEach((g, i) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateKey = date.toISOString().slice(0, 10);
+    const text = buildFBPost(video, g, strategy);
+    S.queue.push({
+      id: Date.now() + '-fbsched-' + i,
+      videoId: videoId,
+      platform: 'facebook',
+      text: `[FB GROUP: ${g.name}] ${text}`,
+      time: BEST_TIMES_AEST.facebook[i % BEST_TIMES_AEST.facebook.length],
+      date: dateKey,
+      priority: 'medium',
+      status: 'pending',
+      groupUrl: g.url,
+    });
+  });
+  localStorage.setItem('cc_queue', JSON.stringify(S.queue));
+  renderQueue();
+  renderCalendar();
+  toast(`Scheduled ${groups.length} FB group posts across next ${groups.length} days`, 'success');
+}
+
+
+
+
+// ============================================================
+// ALL PLATFORMS RENDERER
+// ============================================================
+let _allPlatFilter = 'all';
+function renderAllPlatforms() {
+  const tbody = $('allplat-tbody');
+  if (!tbody) return;
+  const entries = Object.entries(PLATFORMS).filter(([k, p]) => {
+    if (_allPlatFilter === 'all') return true;
+    return p.category === _allPlatFilter;
+  });
+  const strategyMap = {
+    youtube: 'Long-form 8-15min + SEO. 1 Short/day repurposed.',
+    youtubeshorts: 'Vertical 30-90s. Hook in 1.5s. 3-5/day.',
+    instagram: 'Reels daily, Carousel 2x/wk, Stories 24h.',
+    tiktok: 'Vertical raw. 3-5/day. AEST peak: 22:00.',
+    facebook: 'Groups > Profile. Value-first posts. 2x/wk.',
+    twitter: 'Long threads. 2-3/day. Quote-tweet > original.',
+    threads: 'Cross-post from Twitter. Light edits. 8AM+7PM AEST.',
+    bluesky: '3/day. Follow-back within 1h. Custom feeds.',
+    soundcloud: '1 track + visual. 1-2x/wk. Tag AU hip-hop.',
+    bandcamp: 'Album/EP drops. Friday releases. 4x/year.',
+    audiomack: 'Free download first 24h. Monthly drops.',
+    reverbnation: 'Submit to charts. 1-2x/mo.',
+    spotify: 'Pre-save campaigns. 4 weeks before drop.',
+    applemusic: 'Playlist pitch 4 weeks ahead. Marquee ads.',
+    reddit: 'Authentic only. 1x/day max. r/SideProject Sun 14:00 AEST.',
+    discord: 'Lurk > post. Music servers, AI builders. 19-22 AEST.',
+    telegram: 'Channel for updates. 2-3x/wk.',
+    mastodon: 'Federated. Tech + music instances. 1x/day.',
+    pinterest: 'Album art, lyrics, BTS. 5-10 pins/wk.',
+    vimeo: 'Portfolio. Long-form. Music videos.',
+    tumblr: 'Lyric graphics, GIFs. 2-3x/wk.',
+    snapchat: '24h stories. 12-22 AEST. Younger demo.',
+    whatsapp: 'Status only. 7AM + 10PM AEST.',
+    linkedin: 'AI + music crossover. 1x/wk. 8AM AEST.',
+    medium: 'Long-form essay. 1x/mo. Story-driven.',
+    substack: 'Newsletter. Bi-weekly. Personal story.',
+    twitch: 'Live production sessions. 1-2x/wk. 19-22 AEST.',
+    kick: 'Live Q&A or production. 1x/wk.',
+    patreon: 'Early access + stems. 3 tiers. Monthly.',
+    kofi: 'One-off tips + membership. Link in bio.',
+    linkfire: 'Smart link in every bio. Track clicks.',
+    songwhip: 'Backup smart link. Track conversions.',
+  };
+  tbody.innerHTML = entries.map(([k, p]) => `
+    <tr>
+      <td style="font-weight:700;color:${p.color}">${p.emoji} ${p.name}</td>
+      <td><span class="badge" style="background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)">${p.category}</span></td>
+      <td style="font-size:18px">${p.emoji}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.charLimit === 100000 ? '100K' : p.charLimit.toLocaleString()}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac3)">${BEST_TIMES_AEST[k]?.join(', ') || 'anytime'}</td>
+      <td style="font-size:10px">${strategyMap[k] || ''}</td>
+    </tr>
+  `).join('');
+  $('allplat-counter').textContent = entries.length + ' platform' + (entries.length !== 1 ? 's' : '') + ' in ' + (_allPlatFilter === 'all' ? 'all categories' : _allPlatFilter);
+}
+function filterPlatforms(cat, btn) {
+  _allPlatFilter = cat;
+  document.querySelectorAll('#sec-allplatforms .btn-row .btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAllPlatforms();
+}
+
+
+
+// ============================================================
+// INIT
+// ============================================================
+function renderAll() {
+  renderLaunch();
+  renderVideoGrid();
+  renderBatch();
+  renderCalendar();
+  renderSchedule();
+  renderQueue();
+  renderTracker();
+  renderSocial();
+  renderProfiles();
+  renderSEO();
+  renderGroups();
+  renderWorkflow();
+  renderDistroKid();
+  renderMonetize();
+  renderStats();
+}
+
+loadSettings();
+renderAll();
+
+// Hide kbd hint if dismissed
+if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
+
+  // ============================================================
+  // AI RESEARCH (scripts/youtube_researcher.py)
+  // ============================================================
+  const AI_RESEARCH_PATH = 'ai_news/CURRENT_AI_BRIEF.md';
+  const AI_RESEARCH_CHANNELS = [
+    {name:'Wes Roth',        focus:'Daily AI news, agents, tools',  cadence:'Daily',     url:'https://youtube.com/@WesRoth'},
+    {name:'Matt Wolfe',      focus:'AI tools, creator workflows',   cadence:'3-5x/wk',   url:'https://youtube.com/@maboroshi_desu'},
+    {name:'The AI Grid',     focus:'Weekly AI news roundup',        cadence:'Weekly',    url:'https://youtube.com/@TheAIGrid'},
+    {name:'Matthew Berman',  focus:'AI agents, demos, tutorials',   cadence:'3x/wk',     url:'https://youtube.com/@matthewberman'},
+    {name:'Andrej Karpathy', focus:'Deep learning, LLM internals',  cadence:'Monthly',   url:'https://youtube.com/@AndrejKarpathy'},
+    {name:'Yannic Kilcher',  focus:'Paper deep-dives, architecture',cadence:'3-5x/wk',   url:'https://youtube.com/@YannicKilcher'},
+    {name:'Two Minute Papers',focus:'Research breakthroughs',       cadence:'Weekly',    url:'https://youtube.com/@TwoMinutePapers'},
+    {name:'3Blue1Brown',     focus:'Math/ML fundamentals',          cadence:'Monthly',   url:'https://youtube.com/@3blue1brown'},
+    {name:'DeepLearning.AI', focus:'Andrew Ng courses, tutorials',  cadence:'Weekly',    url:'https://youtube.com/@DeepLearningAI'},
+    {name:'Krish Naik',      focus:'MLOps, deployment, coding',     cadence:'3x/wk',     url:'https://youtube.com/@krishnaik06'},
+    {name:'Tech With Tim',   focus:'Build AI apps',                 cadence:'Weekly',    url:'https://youtube.com/@TechWithTim'},
+    {name:'Sentdex',         focus:'Real-world AI projects',        cadence:'Weekly',    url:'https://youtube.com/@sentdex'},
+    {name:'StatQuest',       focus:'ML/stats fundamentals',         cadence:'Weekly',    url:'https://youtube.com/@statquest'},
+    {name:'Lex Fridman',     focus:'Long-form AI + society',        cadence:'2-3x/wk',   url:'https://youtube.com/@lexfridman'},
+  ];
+
+  async function loadAIResearch() {
+    const status = document.getElementById('ai-research-status');
+    const brief = document.getElementById('ai-research-brief');
+    if (!brief) return;
+    brief.textContent = 'Loading brief…';
+    try {
+      const resp = await fetch(AI_RESEARCH_PATH);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const text = await resp.text();
+      brief.textContent = text;
+      if (status) status.innerHTML = '<i class="fas fa-check-circle" style="color:#00ff9d"></i> <span>Last loaded ' + new Date().toLocaleString('en-AU', {timeZone:'Australia/Sydney'}) + ' AEST</span>';
+    } catch (e) {
+      brief.textContent = 'Brief file not found: ' + AI_RESEARCH_PATH + '\n\nRun: python scripts/youtube_researcher.py --trending -o ' + AI_RESEARCH_PATH;
+      if (status) status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span>Brief file not loaded. Run the researcher to generate it.</span>';
+    }
+  }
+
+  function renderAIResearchChannels() {
+    const host = document.getElementById('ai-research-channels');
+    if (!host) return;
+    host.innerHTML = AI_RESEARCH_CHANNELS.map(c =>
+      `<a href="${c.url}" target="_blank" style="text-decoration:none;color:inherit;display:block;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;transition:all .15s" onmouseover="this.style.borderColor='var(--ac)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)'">
+        <div style="font-size:12px;font-weight:600;color:var(--ac)">${c.name}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${c.focus}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px"><i class="fas fa-clock"></i> ${c.cadence}</div>
+      </a>`
+    ).join('');
+  }
+
+  async function refreshAIResearch() {
+    const status = document.getElementById('ai-research-status');
+    if (status) status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Triggering researcher…</span>';
+    try {
+      // Try the local proxy if available, else instruct CLI
+      const resp = await fetch('/api/research/refresh', {method:'POST'}).catch(()=>null);
+      if (resp && resp.ok) {
+        if (status) status.innerHTML = '<i class="fas fa-check-circle" style="color:#00ff9d"></i> <span>Refresh started — reload in ~30s</span>';
+      } else {
+        if (status) status.innerHTML = '<i class="fas fa-info-circle"></i> <span>No proxy endpoint. Run in terminal: <code>python scripts/youtube_researcher.py --trending -o ' + AI_RESEARCH_PATH + '</code></span>';
+      }
+    } catch (e) {
+      if (status) status.innerHTML = '<i class="fas fa-info-circle"></i> <span>CLI mode: <code>python scripts/youtube_researcher.py --trending</code></span>';
+    }
+  }
+
+  async function copyAIResearchFeedUrl() {
+  const urls = [
+    location.origin + '/api/research/rss',
+    location.origin + '/feed.xml',
+    location.origin + '/rss',
+  ]
+  const url = urls[0]
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(
+      () => toast && toast('📡 Feed URL copied: ' + url, 'success'),
+      () => fallbackCopy(url)
+    )
+  } else { fallbackCopy(url) }
+  function fallbackCopy(t) {
+    const ta = document.createElement('textarea')
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta); ta.select()
+    try { document.execCommand('copy'); toast && toast('📡 Feed URL copied: ' + t, 'success') }
+    catch { toast && toast('Copy failed — URL: ' + t, 'warn') }
+    document.body.removeChild(ta)
+  }
+}
+  // ── 30-Day Content Calendar ──────────────────────────────────────────
+  let cal30Plan = null
+  function cal30Today() {
+    return new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Sydney' }))
+  }
+  function cal30IsoDate(d) {
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0')
+    return y + '-' + m + '-' + day
+  }
+  function cal30Init() {
+    const startInput = document.getElementById('cal30-start')
+    if (startInput && !startInput.value) startInput.value = cal30IsoDate(cal30Today())
+  }
+  function generate30DayCalendar() {
+    cal30Init()
+    const startStr = document.getElementById('cal30-start').value
+    if (!startStr) { toast('Pick a start date', 'warn'); return }
+    const includeWeekends = document.getElementById('cal30-weekends').checked
+    const density = parseInt(document.getElementById('cal30-density').value) || 2
+    const start = new Date(startStr + 'T00:00:00')
+    const platforms = Object.entries(PLATFORMS || {}).filter(([k, v]) => v && v.bestAEST)
+    if (platforms.length === 0 || !VIDEOS || VIDEOS.length === 0) {
+      toast('PLATFORMS or VIDEOS data missing', 'error'); return
+    }
+    const days = []
+    let dayCursor = new Date(start)
+    let videoIdx = 0
+    let totalSlots = 0
+    for (let d = 0; d < 30; d++) {
+      const dow = dayCursor.getDay()
+      if (!includeWeekends && (dow === 0 || dow === 6)) { dayCursor.setDate(dayCursor.getDate() + 1); continue }
+      const slots = []
+      for (let p = 0; p < platforms.length; p++) {
+        const [platKey, plat] = platforms[p]
+        const bestTimes = plat.bestAEST || ['08:00', '13:00', '19:00']
+        for (let s = 0; s < density; s++) {
+          const time = bestTimes[s % bestTimes.length]
+          const video = VIDEOS[videoIdx % VIDEOS.length]
+          videoIdx++
+          const [hh, mm] = time.split(':')
+          const at = new Date(dayCursor)
+          at.setHours(parseInt(hh), parseInt(mm) || 0, 0, 0)
+          slots.push({
+            platform: platKey, platformName: plat.name || platKey, platformEmoji: plat.emoji || '•',
+            time, at: at.toISOString(), videoId: video.id,
+            videoTitle: (video.yt && video.yt.title) || video.id,
+            videoFile: video.file, theme: video.theme, hook: video.hook,
+            ytUrl: video.yt_url || ''
+          })
+          totalSlots++
+        }
+      }
+      days.push({ date: cal30IsoDate(dayCursor), slots })
+      dayCursor.setDate(dayCursor.getDate() + 1)
+    }
+    cal30Plan = { startDate: startStr, includeWeekends, density, generatedAt: new Date().toISOString(), totalSlots, platforms: platforms.length, videos: VIDEOS.length, days }
+    render30DayCalendar()
+    document.getElementById('cal30-summary').textContent = totalSlots + ' posts · ' + platforms.length + ' platforms · ' + VIDEOS.length + ' videos · ' + days.length + ' days · starts ' + startStr + ' · density ' + density + '/day/platform'
+    toast('Generated 30-day calendar', 'success')
+    try { localStorage.setItem('ko_calendar30', JSON.stringify(cal30Plan)) } catch {}
+  }
+  function render30DayCalendar() {
+    const grid = document.getElementById('cal30-grid')
+    if (!grid || !cal30Plan) return
+    grid.innerHTML = cal30Plan.days.map(d => {
+      const head = '<div style="font-family:Orbitron,monospace;font-size:12px;color:var(--ac);margin-bottom:6px">📅 ' + d.date + '</div>'
+      const meta = '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">' + d.slots.length + ' posts</div>'
+      const items = d.slots.slice(0, 4).map(s =>
+        '<div style="font-size:11px;line-height:1.5;padding:2px 0"><span style="opacity:.7">' + s.time + '</span> ' + s.platformEmoji + ' <strong>' + s.platformName + '</strong> — ' + s.videoTitle.slice(0, 40) + (s.videoTitle.length > 40 ? '…' : '') + '</div>'
+      ).join('')
+      const more = d.slots.length > 4 ? '<div style="font-size:10px;color:var(--muted);margin-top:4px">+' + (d.slots.length - 4) + ' more</div>' : ''
+      return '<div class="card" style="padding:12px">' + head + meta + items + more + '</div>'
+    }).join('')
+  }
+  function downloadCalendarCSV() {
+    if (!cal30Plan) { toast('Generate the calendar first', 'warn'); return }
+    const rows = [['date', 'time_aest', 'platform', 'platform_name', 'video_id', 'video_title', 'theme', 'hook', 'yt_url', 'video_file']]
+    for (const d of cal30Plan.days) for (const s of d.slots) {
+      rows.push([d.date, s.time, s.platform, s.platformName, s.videoId, s.videoTitle, s.theme || '', s.hook || '', s.ytUrl || '', s.videoFile || ''])
+    }
+    const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'karma-30day-' + cal30Plan.startDate + '.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+    toast('Downloaded ' + (rows.length - 1) + ' posts', 'success')
+  }
+  function copyCalendarToClipboard() {
+    if (!cal30Plan) { toast('Generate the calendar first', 'warn'); return }
+    const json = JSON.stringify(cal30Plan, null, 2)
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(json).then(() => toast('Copied JSON to clipboard', 'success'))
+    } else {
+      fallbackCopy(json)
+      toast('Copied JSON to clipboard', 'success')
+    }
+  }
+  try {
+    const saved = localStorage.getItem('ko_calendar30')
+    if (saved) { cal30Plan = JSON.parse(saved); cal30Init(); render30DayCalendar(); document.getElementById('cal30-summary').textContent = 'Loaded ' + cal30Plan.totalSlots + ' posts from cache · generated ' + cal30Plan.generatedAt }
+  } catch {}
+  cal30Init()
+
+
+function copyAIResearch() {
+    const brief = document.getElementById('ai-research-brief');
+    if (!brief) return;
+    try {
+      await navigator.clipboard.writeText(brief.textContent);
+      const status = document.getElementById('ai-research-status');
+      if (status) status.innerHTML = '<i class="fas fa-check-circle" style="color:#00ff9d"></i> <span>Copied to clipboard (' + brief.textContent.length + ' chars)</span>';
+    } catch (e) {
+      alert('Copy failed: ' + e);
+    }
+  }
+
+  function openAIBriefFile() {
+    window.open(AI_RESEARCH_PATH, '_blank');
+  }
+
+  async function pushAIBriefTo(platform) {
+    const status = document.getElementById('ai-research-push-status');
+    if (status) status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Posting to ' + platform + '…</span>';
+    try {
+      const briefEl = document.getElementById('ai-research-brief');
+      const content = briefEl ? briefEl.textContent : '';
+      const resp = await fetch('/api/push/' + platform, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, source: 'ai-research-tab', platform }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        if (status) status.innerHTML = '<i class="fas fa-check-circle" style="color:#00ff9d"></i> <span><b>' + platform + ':</b> ' + (data.message || 'posted') + '</span>';
+      } else {
+        if (status) status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff6b35"></i> <span><b>' + platform + ':</b> ' + (data.error || 'failed') + (data.hint ? ' — ' + data.hint : '') + '</span>';
+      }
+    } catch (e) {
+      if (status) status.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ff3366"></i> <span><b>' + platform + ':</b> ' + e.message + '</span>';
+    }
+  }
+
+  // Auto-refresh state
+  let autoRefreshTimer = null;
+  let lastBriefMtime = null;
+
+  function toggleAutoRefresh() {
+    const cb = document.getElementById('ai-research-autorefresh');
+    const status = document.getElementById('ai-research-autorefresh-status');
+    if (!cb) return;
+    localStorage.setItem('ko_ai_autorefresh', cb.checked ? '1' : '0');
+    if (cb.checked) {
+      status.innerHTML = '<span style="color:var(--ac3)">●</span> watching';
+      autoRefreshTimer = setInterval(checkBriefForUpdate, 30000);
+      checkBriefForUpdate();
+    } else {
+      status.innerHTML = '';
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+  }
+
+  async function checkBriefForUpdate() {
+    try {
+      const resp = await fetch('/api/research/status');
+      const data = await resp.json();
+      if (data.brief && data.brief.exists && data.brief.modified !== lastBriefMtime) {
+        if (lastBriefMtime !== null) {
+          // re-render only if mtime actually changed
+          await loadAIResearch(true);
+        }
+        lastBriefMtime = data.brief.modified;
+      }
+    } catch (e) {}
+  }
+
+  // History dropdown
+  async function loadBriefHistory() {
+    const sel = document.getElementById('ai-research-history-select');
+    if (!sel) return;
+    try {
+      const resp = await fetch('/api/research/history');
+      const data = await resp.json();
+      const entries = data.history || [];
+      sel.innerHTML = '<option value="">Current (' + (entries[0] ? entries[0].date : 'none') + ')</option>' +
+        entries.map(e => '<option value="' + e.path + '">' + e.date + ' (' + e.size_kb + ' KB)</option>').join('');
+    } catch (e) {
+      // Silent fail
+    }
+  }
+
+  async function loadBriefFromHistory(path) {
+    if (!path) {
+      loadAIResearch();
+      return;
+    }
+    try {
+      const resp = await fetch('/_archive/' + path);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const text = await resp.text();
+      const brief = document.getElementById('ai-research-brief');
+      if (brief) brief.textContent = text;
+      const status = document.getElementById('ai-research-status');
+      if (status) status.innerHTML = '<i class="fas fa-history" style="color:var(--ac)"></i> <span>Loaded from archive: ' + path + '</span>';
+    } catch (e) {
+      alert('Failed to load archive: ' + e.message);
+    }
+  }
+
+  // Hook into tab show
+  document.addEventListener('DOMContentLoaded', () => {
+    const originalShow = window.showTab;
+    window.showTab = function(tab) {
+      if (originalShow) originalShow(tab);
+      if (tab === 'ytresearch') {
+        loadAIResearch();
+        renderAIResearchChannels();
+        loadBriefHistory();
+        // Restore auto-refresh state
+        const cb = document.getElementById('ai-research-autorefresh');
+        if (cb && localStorage.getItem('ko_ai_autorefresh') === '1') {
+          cb.checked = true;
+          toggleAutoRefresh();
+        }
+      }
+    };
+  });
+
+</script>
+</body>
+</html>

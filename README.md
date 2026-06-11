@@ -1,6 +1,10 @@
 # ⚡ KARMA OS
 
-> A cyberpunk-themed multi-dashboard system monitor with a floating HUD, widget, live desktop overlay, unified launcher, and real-time metrics backend.
+> A cyberpunk-themed multi-dashboard system monitor with a floating HUD, widget, live desktop overlay, unified launcher, real-time metrics backend, **AI Research pipeline** (RSS/Discord/Telegram/Slack), **one-command VPS deploy**, and a **social-media command center** for 16 videos × 32 platforms × 70+ communities.
+
+> 📖 **Start here:** [`KARMA_OS_SHIPPED.md`](KARMA_OS_SHIPPED.md) — master documentation for everything in this build.
+> 📊 **For the social-media HQ:** open `media/TELLLEMTHATSME_COMMAND_CENTER.html` (22 tabs · 180 KB · 32 platforms · AEST-aware).
+> 🤖 **For AI Research:** open the **🧪 AI Research** tab in the command center, or hit `http://localhost:8888/api/research/rss` for the Atom feed.
 
 ![Tests](https://img.shields.io/badge/tests-53%2F53-brightgreen)
 ![Chromium](https://img.shields.io/badge/Chromium-53%2F53-brightgreen)
