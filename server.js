@@ -433,7 +433,18 @@ ${entries.map(e => `  <entry>
       })
       return
     } else if (url.startsWith('/media/') && req.method === 'GET') {
-      // Static file handler for /media/* (command center, dashboards)
+      /**
+       * Static file handler for /media/* — serves command center dashboards,
+       * HTML panels, JS, CSS, images, and markdown from the media/ directory.
+       *
+       * Security:
+       *  - decodeURIComponent with try/catch rejects malformed percent-encoding
+       *  - .replace(/\.\./g, '') strips path-traversal sequences
+       *  - full.startsWith(path.join(__dirname, 'media')) confirms containment
+       *  - 404 returns text/plain (no internal path leaked)
+       *
+       * Supported MIME types: .html .js .css .png .jpg .svg .md .json
+       */
       let safe;
       try { safe = decodeURIComponent(url.replace(/^\/media\//, '').split('#')[0]).replace(/\.\./g, '') } catch { res.writeHead(400, { 'Content-Type': 'text/plain' }); return res.end('Bad request') }
       const full = path.join(__dirname, 'media', safe)
@@ -443,7 +454,7 @@ ${entries.map(e => `  <entry>
       const ext = path.extname(full).toLowerCase()
       const mime = {'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.md':'text/markdown','.json':'application/json'}[ext] || 'application/octet-stream'
       fs.readFile(full, (err, data) => {
-        if (err) { console.error('[media]', err.code, full); res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found: ' + safe) }
+        if (err) { console.error('[media]', err.code, safe); res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found: ' + safe) }
         res.writeHead(200, { 'Content-Type': mime }); res.end(data)
       })
       return

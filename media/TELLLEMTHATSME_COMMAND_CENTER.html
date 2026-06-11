@@ -2417,6 +2417,20 @@ if (localStorage.getItem('kbd_dismissed') === '1') $('kbdHint').remove();
     {name:'Lex Fridman',     focus:'Long-form AI + society',        cadence:'2-3x/wk',   url:'https://youtube.com/@lexfridman'},
   ];
 
+    /**
+   * Fetches and renders the AI research brief from AI_RESEARCH_PATH.
+   * On success: displays markdown content and shows a green check with timestamp.
+   * On failure: shows a user-facing error message in the brief panel with the
+   * CLI command to regenerate the file, plus a warning icon in the status bar.
+   *
+   * DOM elements required:
+   *   #ai-research-brief  — pre/text container for the brief content
+   *   #ai-research-status — status bar showing load state and timestamp
+   *
+   * @async
+   * @remarks All errors (fetch failures, DOM manipulation) are caught internally
+   *   and displayed as user-facing messages in the DOM — never propagated to the caller.
+   */
   async function loadAIResearch() {
     const status = document.getElementById('ai-research-status');
     const brief = document.getElementById('ai-research-brief');

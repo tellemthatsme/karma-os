@@ -5,7 +5,7 @@
   "main": "validate-karma.js",
   "scripts": {
     "test": "npx playwright test --project=chromium --reporter=list --workers=1",
-    "test:ci": "npx playwright test --project=chromium --reporter=html",
+    "test:ci": "npx playwright test --reporter=html",
     "test:hud": "npx playwright test karma-hud.spec.js --project=chromium --reporter=list --workers=1",
     "test:widget": "npx playwright test karma-widget.spec.js --project=chromium --reporter=list --workers=1",
     "test:desktop": "npx playwright test live-desktop.spec.js --project=chromium --reporter=list --workers=1",
@@ -20,7 +20,8 @@
     "deploy:vercel": "vercel --prod",
     "deploy:netlify": "netlify deploy --prod",
     "launch": "cmd /c launch-karma.bat",
-    "install:browsers": "npx playwright install chromium"
+    "install:browsers": "npx playwright install chromium",
+    "test:all": "npx playwright test --reporter=list --workers=1"
   },
   "keywords": [
     "karma",
