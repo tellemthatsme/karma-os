@@ -19,7 +19,7 @@
 
 - **`/media/` static file handler** — serves dashboards via HTTP with path-traversal protection (`startsWith` + `..` stripping + `decodeURIComponent` try/catch)
 - **Pre-commit hook** (`.githooks/pre-commit`) — validates ALL `<script>` blocks >50 chars with `node -c`, catching syntax errors before they reach production
-- **72 Playwright test cases** across 3 browsers (chromium, firefox, webkit) — 216 test runs in CI (up from 53 chromium-only)
+- **72 Playwright test cases** — chromium in CI (up from 53). Cross-browser sweep (all 3) available via `npm run test:cross-browser`
 - **GitHub Actions CI** — runs all 3 browsers on push/PR with artifact upload
 - **Architecture diagram** in README.md
 
@@ -37,7 +37,7 @@
 
 ```
 ✅ 22/22 tabs switch correctly (headless via http://localhost:8888)
-✅ 72 test cases passing across all 3 browsers (216 total runs)
+✅ 72/72 chromium tests passing in CI. Cross-browser (firefox/webkit) runs separately via `test:cross-browser`
 ✅ Pre-commit hook catches syntax errors in all script blocks
 ✅ Code reviewer approved on all commits
 ✅ CI pipeline runs 3 browsers on every push
