@@ -5,7 +5,7 @@ test.describe('KARMA Visual Regression', () => {
   test('main OS dashboard loads without errors', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/karma-os-ultimate.html');
+    await page.goto('http://localhost:8888/media/karma-os-ultimate.html');
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'test-results/visual-main-os.png', fullPage: true });
     expect(errors.filter(e => !e.includes('Failed to fetch'))).toHaveLength(0);
@@ -13,21 +13,21 @@ test.describe('KARMA Visual Regression', () => {
   });
 
   test('HUD widget renders correctly', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/karma-hud.html');
+    await page.goto('http://localhost:8888/media/karma-hud.html');
     await page.waitForTimeout(1500);
     await page.screenshot({ path: 'test-results/visual-hud.png', fullPage: true });
     await expect(page.locator('.hud')).toBeVisible();
   });
 
   test('widget renders correctly', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/karma-widget.html');
+    await page.goto('http://localhost:8888/media/karma-widget.html');
     await page.waitForTimeout(1500);
     await page.screenshot({ path: 'test-results/visual-widget.png', fullPage: true });
     await expect(page.locator('.w')).toBeVisible();
   });
 
   test('live desktop renders correctly', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/live-desktop.html');
+    await page.goto('http://localhost:8888/media/live-desktop.html');
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'test-results/visual-desktop.png', fullPage: true });
     const firstPanel = page.locator('.sc, .p').first();
@@ -35,7 +35,7 @@ test.describe('KARMA Visual Regression', () => {
   });
 
   test('unified dashboard renders all cards', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/index.html');
+    await page.goto('http://localhost:8888/media/index.html');
     await page.waitForTimeout(1000);
     await page.screenshot({ path: 'test-results/visual-unified.png', fullPage: true });
     await expect(page.locator('.logo')).toBeVisible();
@@ -43,7 +43,7 @@ test.describe('KARMA Visual Regression', () => {
   });
 
   test('unified theme switching works', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/index.html');
+    await page.goto('http://localhost:8888/media/index.html');
     await page.waitForTimeout(500);
 
     // Click stealth theme
@@ -60,7 +60,7 @@ test.describe('KARMA Visual Regression', () => {
   });
 
   test('command palette opens and closes', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/index.html');
+    await page.goto('http://localhost:8888/media/index.html');
     await page.waitForTimeout(500);
 
     // Open with Ctrl+K
@@ -76,7 +76,7 @@ test.describe('KARMA Visual Regression', () => {
   });
 
   test('toast notifications appear on load', async ({ page }) => {
-    await page.goto('file://' + __dirname.replace(/\\/g, '/') + '/index.html');
+    await page.goto('http://localhost:8888/media/index.html');
     await page.waitForTimeout(2000);
     // There should be at least one toast
     const toasts = page.locator('.toast');
