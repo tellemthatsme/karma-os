@@ -192,4 +192,33 @@ aider --model gemini/gemini-2.5-flash  # ~1,500 req/day free
 ### Cost: $0/month for the full free stack.
 
 ---
+
+## ⏳ Native-Run Tasks (3 remaining)
+
+These timed out in the bash environment (slow network / auth required). Run natively on Windows:
+
+### 1. Pull stronger Ollama models
+```bash
+# In Windows Terminal / PowerShell:
+ollama pull deepseek-coder-v2:16b    # ~9 GB — excellent code quality
+ollama pull codestral:22b             # ~13 GB — Mistral's code specialist
+ollama pull qwen2.5-coder:14b         # ~8.5 GB — bigger Qwen coder
+
+# Then test:
+aider --model ollama/deepseek-coder-v2:16b
+```
+
+### 2. Get Gemini API key (highest-value free tier)
+1. Open https://aistudio.google.com/api-keys in browser
+2. Sign in with Google account → click "Create API Key"
+3. Add to env: `setx GEMINI_API_KEY "your-key"` (or add to ~/.bashrc)
+4. Test: `aider --model gemini/gemini-2.5-flash`
+
+### 3. Rotate OpenRouter API key
+1. Go to https://openrouter.ai/keys
+2. Delete the old key (`sk-or-v1-29dc24e...` — briefly in git history this session)
+3. Create a new key
+4. Update: `setx OPENROUTER_API_KEY "new-key"`
+
+---
 *Session Summary — June 13, 2026*
