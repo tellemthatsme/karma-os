@@ -395,3 +395,36 @@ curl -X POST localhost:8888/api/push/discord -H "Content-Type: application/json"
 **Codex optimizations**: `model_auto_compact_token_limit=150000`, `max_threads=3`
 **Kilo Code fixes**: `C:\*`+`D:\*` → `C:/Users/karma/*`, snapshots enabled, 5 agents installed (server-dev, deploy, poster added)
 **Claude Code**: Extensive hook system, always thinking on — no changes needed
+
+---
+
+## 💸 Free AI Coding Setup (Backup Stack)
+
+**Paid primary**: Claude Code (Sonnet, $20/mo) + Codex CLI (GPT-5.4, API) + Kilo Code (Grok Code Fast)
+**Free backup**: Aider + OpenRouter free models + Ollama local + Cursor hobby
+
+| Free Tool | Status | Details |
+|-----------|--------|---------|
+| Aider v0.86.2 | ✅ Ready | CLI, BYO key, works with any provider |
+| OpenRouter API | ✅ Key ready | 22 free models (Gemma 4, Nemotron, Qwen3-Next, Laguna) |
+| Ollama | ✅ Models ready | qwen2.5-coder:7b (4.7 GB) + llama3.2:1b (1.3 GB) |
+| Cursor | ✅ Installed | Hobby tier (limited agents + completions) |
+| Gemini API | ❌ Need key | Get free at aistudio.google.com → best free tier |
+
+**Quick start (already working):**
+```bash
+# Best OpenRouter free model
+export OPENROUTER_API_KEY="sk-or-v1-..."
+aider --model openrouter/google/gemma-4-31b-it:free
+
+# Local zero-cost
+aider --model ollama/qwen2.5-coder:7b-instruct-q4_K_M
+
+# After getting Gemini key:
+export GEMINI_API_KEY="..."
+aider --model gemini/gemini-2.5-flash
+```
+
+**Cost**: $0/month total for the free stack. Gemini 2.5 Flash ≈ 1,500 req/day free.
+**More local models**: `ollama pull deepseek-coder-v2:16b` (~9 GB), `ollama pull codestral:22b` (~13 GB)
+**VS Code free**: Continue.dev (OSS + Ollama), Cline (OSS + BYO key), Copilot Free (2K completions/mo)

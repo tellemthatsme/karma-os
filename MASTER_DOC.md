@@ -30,6 +30,7 @@
 19. [Deployment](#deployment)
 20. [Claude Code Configuration](#claude-code-configuration)
 21. [CLI Tools Configuration](#cli-tools-configuration)
+22. [Free AI Coding Setup](#free-ai-coding-setup)
 
 ---
 
@@ -1062,6 +1063,136 @@ C:\seshhist\
 ├── kilocode-projects/        # .kilocode/projects/
 └── kilocode-chats/           # .kilocode/chats/
 ```
+
+---
+
+## Free AI Coding Setup
+
+KARMA OS runs alongside a **free AI coding stack** that costs $0/month. Use this when API credits run out, Claude Code hits rate limits, or you want to run completely offline.
+
+### Strategy: Paid Primary + Free Backup
+
+```
+Paid (always-on):          Free (backup / overflow / offline):
+┌─────────────────┐       ┌──────────────────────────────────┐
+│ Claude Code      │       │ Aider + Gemini 2.5 Flash (FREE)  │
+│ (Sonnet)         │       │ Aider + OpenRouter free models    │
+│ Codex CLI        │       │ Ollama + qwen2.5-coder:7b (local)│
+│ Kilo Code        │       │ Cursor hobby tier                │
+└─────────────────┘       └──────────────────────────────────┘
+```
+
+### What's Already Configured (Free)
+
+| Tool | Status | Details |
+|------|--------|---------|
+| **Aider v0.86.2** | ✅ Installed | Open-source CLI, BYO API key |
+| **OpenRouter API** | ✅ Key ready | `sk-or-v1-...` — 22 free models available |
+| **Ollama** | ✅ Installed | `qwen2.5-coder:7b` (4.7 GB), `llama3.2:1b` (1.3 GB) |
+| **Cursor** | ✅ Installed | Hobby tier — limited agent requests + completions |
+
+### Tier 1: Aider + Google Gemini 2.5 Flash (Best Free Quality)
+
+**Why**: Google AI Studio offers the industry's most generous free tier. Gemini 2.5 Flash handles coding tasks with large context windows and strong reasoning.
+
+**⚠️ TODO: Get Gemini API Key** — highest-value free tier. Go to [aistudio.google.com](https://aistudio.google.com), sign in, create API key, then:
+```bash
+export GEMINI_API_KEY="your-key-here"  # add to ~/.bashrc
+aider --model gemini/gemini-2.5-flash
+```
+**Limits**: ~1,500 requests/day (check quota in Google AI Studio → Project settings)
+
+### Tier 2: Aider + OpenRouter Free Models (22 Models, No API Key Needed Beyond OpenRouter)
+
+Your existing OpenRouter key grants access to 22 free models. Best coding models on the free tier:
+
+| Model | Context | Best For |
+|-------|---------|----------|
+| `google/gemma-4-31b-it:free` | 262K | General coding, strong reasoning |
+| `google/gemma-4-26b-a4b-it:free` | 262K | Faster coding, good for autocomplete |
+| `qwen/qwen3-next-80b-a3b-instruct:free` | 262K | Large-scale reasoning, architecture |
+| `nvidia/nemotron-3-super-120b-a12b:free` | 1M | Massive context, codebase analysis |
+| `nvidia/nemotron-3-nano-30b-a3b:free` | 256K | Quick edits, refactoring |
+| `poolside/laguna-m.1:free` | 262K | Code-specialized model |
+
+**Usage with Aider:**
+```bash
+# Set OpenRouter as provider
+export OPENROUTER_API_KEY="sk-or-v1-..."
+
+# Use any free model
+aider --model openrouter/google/gemma-4-31b-it:free
+aider --model openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+aider --model openrouter/nvidia/nemotron-3-super-120b-a12b:free
+```
+
+### Tier 3: Ollama Local Models (Zero Cost, Fully Offline)
+
+**Already downloaded:**
+| Model | Size | RAM Needed | Best For |
+|-------|------|------------|----------|
+| `qwen2.5-coder:7b-instruct-q4_K_M` | 4.7 GB | ~8 GB | General coding, solid for its size |
+| `llama3.2:1b` | 1.3 GB | ~2 GB | Fast autocomplete, simple edits |
+
+**Usage with Aider:**
+```bash
+# Best local coding model you have
+aider --model ollama/qwen2.5-coder:7b-instruct-q4_K_M
+
+# Fastest (good for quick edits)
+aider --model ollama/llama3.2:1b
+```
+
+**Pull more free coding models:**
+```bash
+# Stronger local coding models (free to download)
+ollama pull deepseek-coder-v2:16b       # ~9 GB, excellent code quality
+ollama pull codestral:22b                # ~13 GB, Mistral's code specialist
+ollama pull qwen2.5-coder:14b            # ~8.5 GB, bigger Qwen coder
+```
+
+### Tier 4: IDE-Free Options
+
+| Tool | Free Tier | Best Use |
+|------|-----------|----------|
+| **Cursor** (installed) | Hobby: limited agent requests + 2,000 completions/month | Quick edits, tab completion |
+| **GitHub Copilot** | Free: 2,000 completions/month, rotating models | IDE autocomplete |
+| **Continue.dev** | Fully free OSS extension + Ollama | VS Code with local models |
+| **Cline** | Free extension + BYO API key | VS Code agentic coding |
+
+### Quick-Start: Best Free Setup (Already Working)
+
+```bash
+# 1. Use the best OpenRouter free model right now with Aider
+export OPENROUTER_API_KEY="sk-or-v1-..."
+aider --model openrouter/google/gemma-4-31b-it:free
+
+# 2. Use Ollama local model (no internet needed)
+aider --model ollama/qwen2.5-coder:7b-instruct-q4_K_M
+
+# 3. After getting Gemini key (best free tier):
+export GEMINI_API_KEY="your-key-from-aistudio.google.com"
+aider --model gemini/gemini-2.5-flash
+```
+
+### Cost Comparison
+
+| Setup | Monthly Cost | Quality | Offline? | Limits |
+|-------|-------------|---------|----------|--------|
+| Claude Code (Sonnet) | $20/mo (Pro) | ⭐⭐⭐⭐⭐ | No | Rate limited |
+| Codex CLI (GPT-5.4) | API usage | ⭐⭐⭐⭐⭐ | No | Pay-per-token |
+| Aider + Gemini Flash | $0 | ⭐⭐⭐⭐ | No | ~1.5K req/day |
+| Aider + OpenRouter free | $0 | ⭐⭐⭐ | No | Varies by model |
+| Aider + Ollama local | $0 | ⭐⭐½ | ✅ Yes | Your hardware |
+| Cursor hobby | $0 | ⭐⭐⭐ | No | Tight limits |
+
+### TODO: Get Gemini API Key (5 min, highest-value free tier)
+
+1. Open [aistudio.google.com](https://aistudio.google.com)
+2. Sign in with Google account
+3. Click "Get API Key" → copy it
+4. Add to your env: `export GEMINI_API_KEY="..."` (put in `~/.bashrc` or `~/.env`)
+5. Test: `aider --model gemini/gemini-2.5-flash`
 
 ---
 

@@ -138,7 +138,7 @@ All 24 agent TOML files verified at `~/.codex/agents/`:
 
 ---
 ### Commit
-`ccaeddc` — 9 files committed after session cleanup.
+`9eafbac` + `6e7c100` — validate fix + JSDoc cleanup.
 
 ### Final State
 - `awesome-claude-code-1/` fork directory removed
@@ -147,6 +147,37 @@ All 24 agent TOML files verified at `~/.codex/agents/`:
 - All 8 counts verified consistent across 6+ files
 - All 3 CLI tools optimized and documented
 - All 7 session directories backed up to `C:\seshhist\`
+
+---
+
+## 💸 Free AI Coding Setup (Documented June 2026)
+
+**Strategy**: Paid primary stack (Claude Code + Codex + Kilo Code) + free backup stack (Aider + OpenRouter + Ollama).
+
+### What's Available for Free Right Now
+
+| Tool | Status | Best Use |
+|------|--------|----------|
+| **Aider v0.86.2** | ✅ Installed | CLI coding agent, BYO key |
+| **OpenRouter free models** | ✅ 22 models | Gemma 4 31B, Nemotron 120B, Qwen3-Next 80B, Laguna M.1 |
+| **Ollama local** | ✅ 2 models | qwen2.5-coder:7b (4.7 GB), llama3.2:1b (1.3 GB) |
+| **Cursor** | ✅ Hobby tier | Limited agents + 2K completions/month |
+| **Gemini API** | ❌ Need key | Most generous free tier — get at aistudio.google.com |
+
+### Quick Start
+```bash
+# Best free quality (already works)
+export OPENROUTER_API_KEY="sk-or-v1-..."
+aider --model openrouter/google/gemma-4-31b-it:free
+
+# Local zero-cost
+aider --model ollama/qwen2.5-coder:7b-instruct-q4_K_M
+
+# After Gemini key:
+aider --model gemini/gemini-2.5-flash  # ~1,500 req/day free
+```
+
+### Cost: $0/month for the full free stack.
 
 ---
 *Session Summary — June 13, 2026*
