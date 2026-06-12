@@ -6,7 +6,7 @@
  * Requirements: npm install playwright (or it uses the system's chromium via playwright)
  * 
  * This script:
- *  1. Opens karma-os-ultimate.html in a headless browser
+ *  1. Opens karma-os-v6 (1).html in a headless browser
  *  2. Checks for zero JS console errors
  *  3. Validates key DOM elements exist
  *  4. Unlocks the gate with OVERRIDE
@@ -64,8 +64,7 @@ async function validate() {
     // 3. Check stats bar
     console.log('3. Checking stats bar...');
     const agentCount = await page.locator('#agent-count').textContent().catch(() => null);
-    const workerCount = await page.locator('#worker-count').textContent().catch(() => null);
-    
+
     const agentOk = agentCount && agentCount.trim() === '12';
     testResults.push({ 
       name: 'Stats bar - 12 agents', 
