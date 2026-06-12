@@ -7,7 +7,7 @@ test.describe('live-desktop.html', () => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
     page.on('pageerror', err => errors.push(err.message));
-    await page.goto('file:///C:/karma/live-desktop.html');
+    await page.goto('http://localhost:8888/media/live-desktop.html');
     await page.waitForTimeout(1500);
     test._consoleErrors = errors;
   });

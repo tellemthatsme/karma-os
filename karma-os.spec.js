@@ -4,7 +4,7 @@
 
 const { test, expect } = require('@playwright/test');
 
-const BASE_URL = 'file:///C:/karma/karma-os-ultimate.html';
+const BASE_URL = 'http://localhost:8888/media/karma-os-ultimate.html';
 
 test.describe('KARMA OS Task Queue System', () => {
   test.beforeEach(async ({ page }) => {

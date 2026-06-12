@@ -62,6 +62,47 @@ A pre-commit hook (`.githooks/pre-commit`) automatically validates JavaScript sy
 # To install on clone: git config core.hooksPath .githooks
 ```
 
+## CI Pipeline
+
+GitHub Actions runs on every push and pull request to `main`/`master`.
+
+### Job 1: `test` (blocking)
+- Runs validation (`npm run validate`)
+- Runs all 72 Playwright tests on **Chromium** (`npm run test:ci`)
+- Uploads `playwright-report/` as artifact (7-day retention)
+- **Must pass** before PRs can be merged
+
+### Job 2: `cross-browser` (non-blocking)
+- Runs after Job 1 passes (`needs: test`)
+- Tests all 3 browsers: Chromium, Firefox, WebKit (`npm run test:cross-browser`)
+- Configured with `continue-on-error: true` — failures don't block the pipeline
+- Useful for identifying browser-specific regressions
+
+### Running tests locally
+
+```bash
+# Chromium only (fast, what CI runs)
+npm test
+
+# All 3 browsers (full sweep)
+npm run test:cross-browser
+
+# Specific test file
+npx playwright test karma-hud.spec.js --project=chromium
+
+# Specific browser
+npx playwright test --project=firefox
+```
+
+### Test file URLs
+
+All test files use `http://localhost:8888/media/` to serve dashboards (not `file://` protocol). Start the server before running tests:
+
+```bash
+node server.js &
+npm test
+```
+
 ## Code Style
 
 - **Formatter:** Prettier (`.prettierrc` in repo) — run `npx prettier --write .`

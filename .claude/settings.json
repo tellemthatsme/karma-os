@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/html_check.py \"{{toolInput}}\" 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {
+    "karma-bridge": {
+      "command": "python",
+      "args": [".claude/mcp_servers/bridge_mcp.py"],
+      "env": {
+        "BRIDGE_URL": "http://127.0.0.1:9876"
+      }
+    },
+    "karma-metrics": {
+      "command": "python",
+      "args": [".claude/mcp_servers/metrics_mcp.py"],
+      "env": {
+        "METRICS_URL": "http://localhost:8888"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  },
+  "extraKnownMarketplaces": {
+    "karma-os": {
+      "source": "github",
+      "repo": "tellemthatsme/karma-os"
+    }
+  }
+}

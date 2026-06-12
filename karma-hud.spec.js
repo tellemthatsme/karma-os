@@ -2,7 +2,7 @@
 // Tests: 10 — HUD load, header, clock, agents, crypto, system bars, feed, buttons, NITRO, console
 const { test, expect } = require('@playwright/test');
 
-const HUD_URL = 'file:///C:/karma/karma-hud.html';
+const HUD_URL = 'http://localhost:8888/media/karma-hud.html';
 // Filter environment noise: CORS (CoinGecko file://), missing audio files, unavailable localhost
 const IGNORE_PATTERNS = ['CORS', 'coingecko', 'fetch', 'ERR_FILE_NOT_FOUND', 'ERR_CONNECTION_REFUSED', 'ERR_FAILED', '429', 'bov.wav', 'screech.wav', 'Could not connect to server'];
 

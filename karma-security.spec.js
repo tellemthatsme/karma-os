@@ -126,7 +126,7 @@ test.describe('Bridge server bearer token auth', () => {
 
 test.describe('KARMA OS v25 HTML smoke tests (security-related UI)', () => {
   test('localStorage keys are isolated per origin', async ({ page }) => {
-    await page.goto('file://' + require('path').resolve('media/karma-os-ultimate.html'));
+    await page.goto('http://localhost:8888/media/karma-os-ultimate.html');
     await page.waitForSelector('#gate-input', { timeout: 5000 });
     await page.fill('#gate-input', 'OVERRIDE');
     await page.click('.gate-btn');

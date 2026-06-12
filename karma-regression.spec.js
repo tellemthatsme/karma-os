@@ -3,7 +3,7 @@
 // Run specific project: npx playwright test --project=chromium
 
 const { test, expect } = require('@playwright/test');
-const FILE_URL = 'file:///C:/karma/karma-os-ultimate.html';
+const FILE_URL = 'http://localhost:8888/media/karma-os-ultimate.html';
 
 test.describe('KARMA OS Ultimate - Full Regression Suite', () => {
 

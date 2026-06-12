@@ -41,6 +41,7 @@ CHANNELS = {
     'Matt Wolfe':       {'url': 'youtube.com/@maboroshi_desu',  'focus': 'AI tools, creator workflows',    'cadence': '3-5x/wk'},
     'The AI Grid':      {'url': 'youtube.com/@TheAIGrid',       'focus': 'weekly AI news roundup',         'cadence': 'weekly'},
     'Matthew Berman':   {'url': 'youtube.com/@matthewberman',   'focus': 'AI agents, demos, tutorials',    'cadence': '3x/wk'},
+    'AI Code King':     {'url': 'youtube.com/@theaicodeking',   'focus': 'daily dev agent coverage, new tools', 'cadence': 'daily'},
     # Research / deep dives
     'Andrej Karpathy':  {'url': 'youtube.com/@AndrejKarpathy',  'focus': 'deep learning, LLM internals',   'cadence': 'monthly'},
     'Yannic Kilcher':   {'url': 'youtube.com/@YannicKilcher',   'focus': 'paper deep-dives, architecture', 'cadence': '3-5x/wk'},
@@ -54,6 +55,23 @@ CHANNELS = {
     'StatQuest':        {'url': 'youtube.com/@statquest',       'focus': 'ML/stats fundamentals',          'cadence': 'weekly'},
     # Long-form / philosophy
     'Lex Fridman':      {'url': 'youtube.com/@lexfridman',      'focus': 'long-form AI + society',         'cadence': '2-3x/wk'},
+    # Production AI engineering (2026 additions — all verified)
+    'Cole Medin':       {'url': 'youtube.com/@ColeMedin',       'focus': 'production AI agents, n8n, LangGraph', 'cadence': 'weekly', 'verified': True},
+    'AI Jason':         {'url': 'youtube.com/@AIJasonZ',        'focus': 'LLM evaluation, agent architecture', 'cadence': 'weekly', 'verified': True},
+    'LangChain':        {'url': 'youtube.com/@LangChain',       'focus': 'agent frameworks, RAG, state machines', 'cadence': 'weekly', 'verified': True},
+    'AssemblyAI':       {'url': 'youtube.com/@AssemblyAI',      'focus': 'voice AI, multimodal agents, real-time', 'cadence': 'weekly', 'verified': True},
+    'Automata Learning Lab': {'url': 'youtube.com/@AutomataLearningLab', 'focus': 'clean integrations, enterprise AI', 'cadence': 'weekly', 'verified': True},
+    # AI-assisted development (all verified)
+    'Corbin Brown':     {'url': 'youtube.com/@CorbinAI',        'focus': 'Claude Code, Cursor, V0 workflows', 'cadence': '2-3x/wk', 'verified': True},
+    'codewithbrandon':  {'url': 'youtube.com/@BrandonHancockAI','focus': 'TypeScript/JS AI, full-stack agents', 'cadence': 'weekly', 'verified': True},
+    'VoloBuilds':       {'url': 'youtube.com/@VoloBuilds',      'focus': 'advanced AI dev patterns, RAG',  'cadence': 'weekly', 'verified': True},
+    # Indie hacker / solo dev (all verified)
+    'David Ondrej':     {'url': 'youtube.com/@DavidOndrej',     'focus': 'low-code agents, n8n/Make + AI', 'cadence': 'weekly', 'verified': True},
+    'Riley Brown':      {'url': 'youtube.com/@rileybrownai',    'focus': 'rapid prototyping, Cursor-built apps', 'cadence': '2-3x/wk', 'verified': True},
+    'Astro K. Joseph':  {'url': 'youtube.com/@AstroKJ',         'focus': 'business-centric AI engineering', 'cadence': 'weekly', 'verified': True},
+    # Browser automation / MCP
+    'Firecrawl':        {'url': 'youtube.com/@Firecrawl',       'focus': 'AI web scraping, MCP servers',   'cadence': 'weekly', 'verified': True},
+}
 }
 
 # ============================================================================
@@ -170,6 +188,8 @@ def get_channel_videos(channel_name, max_videos=5):
     cfg = CHANNELS.get(channel_name)
     if not cfg:
         return []
+    if not cfg.get('verified', True):
+        print(f'  \u26a0\ufe0f  unverified handle: {cfg["url"]} \u2014 may 404')
     url = f'https://{cfg["url"]}/videos'
     print(f'  → navigating to {url}')
     bridge_call('browser_navigate', {'url': url}, timeout=15)
