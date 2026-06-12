@@ -112,15 +112,6 @@ C:\seshhist\
 | `karma-deploy.md` | Updated references |
 | `validate-karma.js` | Fixed to use karma-os-v6 (was non-existent ultimate.html), agent count 25→12, removed ARMY checks |
 
-### Commits This Session
-
-| Hash | Description |
-|------|-------------|
-| `ccaeddc` | docs: audit, discover 5 repos, optimize 3 CLI tools (9 files) |
-| `9eafbac` | fix: update validate to use karma-os-v6, finalize session docs (2 files) |
-| `6e7c100` | chore: fix validate JSDoc comment, remove dead workerCount code (1 file) |
-| `c81be35` | docs: document optimal free AI coding setup, 4-tier strategy (3 files, squashed) |
-
 ---
 
 ## 🔍 "Crush Code CLI" Clarification
@@ -147,11 +138,18 @@ All 24 agent TOML files verified at `~/.codex/agents/`:
 `gsd-planner`, `gsd-roadmapper`, `gsd-phase-researcher`, `gsd-project-researcher`, `gsd-research-synthesizer`, `gsd-executor`, `gsd-code-fixer`, `gsd-code-reviewer`, `gsd-codebase-mapper`, `gsd-security-auditor`, `gsd-assumptions-analyzer`, `gsd-debugger`, `gsd-verifier`, `gsd-integration-checker`, `gsd-nyquist-auditor`, `gsd-intel-updater`, `gsd-doc-writer`, `gsd-doc-verifier`, `gsd-ui-auditor`, `gsd-ui-checker`, `gsd-ui-researcher`, `gsd-advisor-researcher`, `gsd-user-profiler`, `gsd-plan-checker`
 
 ---
-### Commit
-`9eafbac` + `6e7c100` — validate fix + JSDoc cleanup.
+### Commits
+| Hash | Description |
+|------|-------------|
+| `ccaeddc` | docs: audit, discover 5 repos, optimize 3 CLI tools (9 files) |
+| `9eafbac` | fix: update validate to use karma-os-v6, finalize session docs (2 files) |
+| `6e7c100` | chore: fix validate JSDoc comment, remove dead workerCount code (1 file) |
+| `c81be35` | docs: document optimal free AI coding setup (3 files, squashed) |
+| `63f82b0` | docs: finalize session summary with all 4 commits and free setup (1 file) |
+| `7076c9d` | docs: add native-run task list for Ollama pulls, Gemini key, OpenRouter rotation (1 file) |
 
 ### Final State
-- All 4 commits pushed to `github.com/tellemthatsme/karma-os`
+- All 6 commits pushed to `github.com/tellemthatsme/karma-os`
 - `awesome-claude-code-1/` fork directory removed
 - `fix-configs.py` temp script removed
 - `install-kilo.py` temp script removed
@@ -193,13 +191,13 @@ aider --model gemini/gemini-2.5-flash  # ~1,500 req/day free
 
 ---
 
-## ⏳ Native-Run Tasks (3 remaining)
+## ⏳ Native-Run Tasks (3 remaining — verified)
 
-These timed out in the bash environment (slow network / auth required). Run natively on Windows:
+All 3 tasks confirmed via browser agents + basher. Run natively on Windows:
 
-### 1. Pull stronger Ollama models
-```bash
-# In Windows Terminal / PowerShell:
+### 1. Pull stronger Ollama models (verified: all time out over slow WSL↔Windows network)
+```powershell
+# In Windows Terminal / PowerShell (NOT WSL):
 ollama pull deepseek-coder-v2:16b    # ~9 GB — excellent code quality
 ollama pull codestral:22b             # ~13 GB — Mistral's code specialist
 ollama pull qwen2.5-coder:14b         # ~8.5 GB — bigger Qwen coder
@@ -208,13 +206,13 @@ ollama pull qwen2.5-coder:14b         # ~8.5 GB — bigger Qwen coder
 aider --model ollama/deepseek-coder-v2:16b
 ```
 
-### 2. Get Gemini API key (highest-value free tier)
+### 2. Get Gemini API key (verified: aistudio.google.com → Google sign-in required)
 1. Open https://aistudio.google.com/api-keys in browser
 2. Sign in with Google account → click "Create API Key"
 3. Add to env: `setx GEMINI_API_KEY "your-key"` (or add to ~/.bashrc)
 4. Test: `aider --model gemini/gemini-2.5-flash`
 
-### 3. Rotate OpenRouter API key
+### 3. Rotate OpenRouter API key (verified: openrouter.ai → Google sign-in required)
 1. Go to https://openrouter.ai/keys
 2. Delete the old key (`sk-or-v1-29dc24e...` — briefly in git history this session)
 3. Create a new key
