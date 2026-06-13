@@ -6,6 +6,12 @@ const ABTEST_MAX_REQUESTS = 60;        // 60 requests per minute
 
 function checkAbtestRateLimit(ip) {
   const now = Date.now();
+  // Lazy cleanup: remove expired entries when map grows large
+  if (abtestRateLimitMap.size > 100 && Math.random() < 0.1) {
+    for (const [key, entry] of abtestRateLimitMap) {
+      if (now > entry.resetTime) abtestRateLimitMap.delete(key);
+    }
+  }
   const entry = abtestRateLimitMap.get(ip);
   if (!entry || now > entry.resetTime) {
     abtestRateLimitMap.set(ip, { count: 1, resetTime: now + ABTEST_WINDOW_MS });
@@ -18,6 +24,20 @@ function checkAbtestRateLimit(ip) {
   return { allowed: true, remaining: ABTEST_MAX_REQUESTS - entry.count, retryAfter: 0 };
 }
 
+
+
+// -- Chi-square p-value (df=1) using standard normal CDF (Abramowitz & Stegun) ----
+function chiSquarePValue(chi2) {
+  const z = Math.sqrt(chi2);
+  // Abramowitz & Stegun formula 7.1.26
+  const b1 = 0.319381530, b2 = -0.356563782, b3 = 1.781477937;
+  const b4 = -1.821255978, b5 = 1.330274429;
+  const p = 0.2316419;
+  const t = 1 / (1 + p * z);
+  const phi = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI);
+  const Phi = 1 - phi * (b1 * t + b2 * t * t + b3 * Math.pow(t, 3) + b4 * Math.pow(t, 4) + b5 * Math.pow(t, 5));
+  return 2 * (1 - Phi);
+}
 
 function computeABStatsFromDB(db, callback) {
   const query = `
@@ -70,6 +90,21 @@ function computeABStatsFromDB(db, callback) {
 function handleAbtestRoutes(req, res, startTime, deps) {
   const { db, broadcast, logRequest, metrics, wsClients } = deps;
   const url = req.url.split('?')[0];
+
+  // -- Rate limit check (uses x-forwarded-for like server.js) ----------------
+  const clientIp = req.headers['x-forwarded-for']
+    ? req.headers['x-forwarded-for'].split(',')[0].trim()
+    : (req.connection.remoteAddress || req.socket?.remoteAddress || 'unknown');
+  const rateLimit = checkAbtestRateLimit(clientIp);
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', rateLimit.retryAfter);
+    res.writeHead(429, { 'Content-Type': 'application/json' });
+    logRequest(req, res, startTime, { error: 'Too many requests' });
+    metrics.activeConnections--;
+    res.end(JSON.stringify({ error: 'Too many requests', retryAfter: rateLimit.retryAfter }));
+    return true;
+  }
+  res.setHeader('X-RateLimit-Remaining', rateLimit.remaining);
 
   // /api/abtest/event — POST
   if (url === '/api/abtest/event' && req.method === 'POST') {
@@ -312,7 +347,7 @@ function handleAbtestRoutes(req, res, startTime, deps) {
           revenue: d.revenue || 0,
         };
       }
-      // Chi-square test for first two variants
+      // Chi-square test for first two variants (pairwise comparison only)
       if (variants.length >= 2) {
         const v1 = variants[0], v2 = variants[1];
         const c1 = result[v1].conversions, n1 = result[v1].users;
@@ -333,7 +368,7 @@ function handleAbtestRoutes(req, res, startTime, deps) {
             if (e > 0) chi2 += Math.pow(observed[i][j] - e, 2) / e;
           }
         }
-        const pValue = chi2 > 0 ? Math.exp(-chi2 / 2) : 1; // rough approximation
+        const pValue = chi2 > 0 ? chiSquarePValue(chi2) : 1;
         result.significance = {
           chiSquare: chi2,
           pValue,

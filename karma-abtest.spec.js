@@ -278,10 +278,11 @@ async function runTests() {
   // 13. handleAbtestRoutes returns 429 when rate limited
   test('handleAbtestRoutes returns 429 when rate limited', () => {
     const { handleAbtestRoutes, checkAbtestRateLimit } = require('./src/routes/abtest');
-    const mockDb = { all: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
     const req = mockRequest({ url: '/api/abtest/event', method: 'POST' });
     const res = mockResponse();
-    for (let i = 0; i < 60; i++) {
+    // Exhaust rate limit for 10.0.0.3
+    for (let i = 0; i < 61; i++) {
       checkAbtestRateLimit('10.0.0.3');
     }
     req.connection.remoteAddress = '10.0.0.3';
@@ -320,6 +321,18 @@ async function runTests() {
     assert.ok(body.variants.significance);
     assert.ok(typeof body.variants.significance.chiSquare === 'number');
     assert.ok(typeof body.variants.significance.pValue === 'number');
+  });
+
+  // 15. Rate limiter respects x-forwarded-for header
+  test('Rate limiter respects x-forwarded-for header', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/stats', method: 'GET', headers: { 'x-forwarded-for': '10.0.0.5, 192.168.1.1' } });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 200);
+    assert.ok(res.headers['X-RateLimit-Remaining'] !== undefined);
   });
 
   console.log('\n📊 Results: ' + passed + ' passed, ' + failed + ' failed');
