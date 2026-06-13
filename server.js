@@ -420,13 +420,20 @@ const requestHandler = async (req, res) => {
             stmt.run(record.testId, record.variant, record.event, record.ts, record.userId, record.sessionId, record.props, record.receivedAt);
             accepted.push(record);
           }
-          stmt.finalize();
-          // Broadcast to WebSocket clients
-          broadcast({ type: 'new_events', count: accepted.length, testIds: [...new Set(accepted.map(e => e.testId))] });
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          logRequest(req, res, startTime);
-          metrics.activeConnections--;
-          res.end(JSON.stringify({ ok: true, accepted: accepted.length }));
+          stmt.finalize((finalizeErr) => {
+            if (finalizeErr) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              logRequest(req, res, startTime, { error: finalizeErr.message });
+              metrics.activeConnections--;
+              return res.end(JSON.stringify({ ok: false, error: finalizeErr.message }));
+            }
+            // Broadcast to WebSocket clients only after DB writes complete
+            broadcast({ type: 'new_events', count: accepted.length, testIds: [...new Set(accepted.map(e => e.testId))] });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            logRequest(req, res, startTime);
+            metrics.activeConnections--;
+            res.end(JSON.stringify({ ok: true, accepted: accepted.length }));
+          });
         } catch (err) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           logRequest(req, res, startTime, { error: err.message });
