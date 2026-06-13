@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Karma OS · Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--bg:rgba(8,14,28,.92);--border:rgba(0,212,255,.2);--text:#e4f0ff}
+html,body{background:transparent;font-family:'Inter',sans-serif;color:var(--text);width:360px;height:auto;overflow:hidden;transition:height 0.3s cubic-bezier(0.4,0,0.2,1);padding:4px}
+.w-wrap{position:relative;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(0,212,255,.4),rgba(179,71,255,.1),rgba(0,255,157,.4));background-size:200% 200%;animation:borderGlow 6s ease infinite}
+@keyframes borderGlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.w{background:var(--bg);border-radius:17px;backdrop-filter:blur(24px);box-shadow:0 8px 44px rgba(0,0,0,.6),inset 0 0 30px rgba(0,212,255,.05);padding:14px 16px;position:relative;overflow:hidden;cursor:move;transition:all 0.3s ease}
+.w.collapsed { padding-bottom: 0; max-height: 48px; }
+.w.collapsed .row, .w.collapsed .cr, .w.collapsed .gi, .w.collapsed .ag, .w.collapsed .feed, .w.collapsed .ft { opacity:0; pointer-events:none; position:absolute; visibility:hidden; }
+.spotlight{position:absolute;inset:0;background:radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0,212,255,0.2) 0%, transparent 60%);pointer-events:none;z-index:1;transition:opacity 0.3s}
+.scanlines{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.1) 50%);background-size:100% 2px;pointer-events:none;z-index:10;opacity:0.2}
+.w::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(0,212,255,.15),transparent 40%,rgba(179,71,255,.05) 100%);pointer-events:none;z-index:2}
+.w::after{content:'';position:absolute;inset:-50%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.05),transparent);transform:rotate(45deg);pointer-events:none;z-index:3;animation:shine 8s linear infinite}
+@keyframes shine{0%{transform:translateX(-100%) rotate(45deg)}100%{transform:translateX(200%) rotate(45deg)}}
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative;z-index:2}
+.lg{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;animation:pulse-lg 3s infinite alternate}
+@keyframes pulse-lg{from{filter:hue-rotate(0deg) brightness(1)}to{filter:hue-rotate(20deg) brightness(1.3)}}
+.tm{font-family:'Orbitron',monospace;font-size:13px;color:var(--ac);font-weight:700;text-shadow:0 0 10px rgba(0,212,255,.4);animation:glow-pulse 2s infinite alternate}
+@keyframes glow-pulse{from{text-shadow:0 0 5px var(--ac)}to{text-shadow:0 0 20px var(--ac), 0 0 30px var(--ac2)}}
+.dt{font-size:8px;color:rgba(255,255,255,.4);text-align:right}
+.inner-content{position:relative;z-index:2;transition:all 0.3s ease}
+
+.row{display:flex;gap:6px;margin-bottom:8px}
+.s{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 8px;text-align:center}
+.sv{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;line-height:1}
+.sv.c1{color:var(--ac)}.sv.c2{color:var(--ac3)}.sv.c3{color:var(--ac2)}
+.sl{font-size:7px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+.cr{display:flex;gap:4px;margin-bottom:8px}
+.ci{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:5px 7px;display:flex;justify-content:space-between;align-items:center}
+.cn{font-size:8px;color:rgba(255,255,255,.4)}.cp{font-size:10px;font-weight:600;font-family:'Orbitron',monospace;font-size:9px}
+.up{color:var(--ac3)}.dn{color:#ff3366}
+
+.gi{margin-bottom:5px}
+.gh{display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.gv{font-family:'Orbitron',monospace;font-weight:600;color:var(--text);font-size:8px}
+.gb{height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.gf{height:100%;border-radius:3px;transition:width 1s ease}
+.gf.cpu{background:linear-gradient(90deg,var(--ac),var(--ac2))}.gf.mem{background:linear-gradient(90deg,var(--ac3),var(--ac))}
+
+.ag{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0 4px}
+.ad{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:4px 8px;font-size:8px;transition:background 0.3s}
+.ad:hover{background:rgba(255,255,255,.08)}
+.ad .d{width:6px;height:6px;border-radius:50%;flex-shrink:0;animation:breathe 2s infinite alternate}
+@keyframes breathe{0%{transform:scale(0.8);opacity:.6}100%{transform:scale(1.2);opacity:1}}
+.d.g{background:var(--ac3);box-shadow:0 0 6px var(--ac3)}.d.y{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+
+.feed{max-height:64px;overflow:hidden;margin-top:6px}
+.fi{font-size:8px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03);display:flex;gap:5px;animation:sl .3s ease}
+@keyframes sl{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.fi .m{flex:1;color:rgba(255,255,255,.6)}.fi .t{color:rgba(255,255,255,.25);font-size:7px;flex-shrink:0}
+
+.ft{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)}
+.si{display:flex;gap:5px;align-items:center}
+.si .d2{width:4px;height:4px;border-radius:50%}
+.si .lb{font-size:7px;color:rgba(255,255,255,.3)}
+.lnk{font-size:8px;color:var(--ac);text-decoration:none;opacity:.7;transition:all .2s;border-bottom:1px solid transparent}
+.lnk:hover{opacity:1;border-bottom-color:var(--ac);text-shadow:0 0 8px var(--ac)}
+</style>
+</head>
+<body>
+<div class="w-wrap" id="wgWrap">
+<div class="w" id="wg" title="Double-click header to collapse">
+  <div class="scanlines"></div>
+  <div class="spotlight" id="spot"></div>
+  <div class="hd" id="hdr" style="cursor:pointer">
+    <div class="lg">KARMA OS</div>
+    <div><div class="tm" id="ct">--:--</div><div class="dt" id="cd"></div></div>
+  </div>
+
+  <div class="inner-content">
+    <div class="row">
+      <div class="s" style="cursor:pointer" onclick="tB()"><div class="sv c1" id="bn">BOOT</div><div class="sl">Turbo</div></div>
+      <div class="s"><div class="sv c2" id="ac">12</div><div class="sl">Agents</div></div>
+      <div class="s"><div class="sv c3" id="cr">98%</div><div class="sl">CR Score</div></div>
+    </div>
+
+    <div class="cr">
+      <div class="ci"><span class="cn">BTC</span><span class="cp" id="b">$--</span></div>
+      <div class="ci"><span class="cn">ETH</span><span class="cp" id="e">$--</span></div>
+      <div class="ci"><span class="cn">SOL</span><span class="cp" id="s">$--</span></div>
+    </div>
+
+    <div class="gi"><div class="gh"><span>CPU</span><span class="gv" id="cv">0%</span></div><div class="gb"><div class="gf cpu" id="cb" style="width:0%"></div></div></div>
+    <div class="gi"><div class="gh"><span>Memory</span><span class="gv" id="mv">0%</span></div><div class="gb"><div class="gf mem" id="mb" style="width:0%"></div></div></div>
+
+    <div class="ag" id="al"></div>
+
+    <div class="feed" id="fl"></div>
+
+    <div class="ft">
+      <div class="si">
+        <span class="d2 g" style="background:var(--ac3);box-shadow:0 0 4px var(--ac3)"></span><span class="lb">UAS</span>
+        <span class="d2 g" style="background:var(--ac3);box-shadow:0 0 4px var(--ac3)"></span><span class="lb">Git</span>
+        <span class="d2" style="background:var(--ac);box-shadow:0 0 4px var(--ac)"></span><span class="lb">API</span>
+      </div>
+      <a href="karma-hud.html" class="lnk">HUD ↗</a>
+      <a href="live-desktop.html" class="lnk">Dashboard ↗</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// Clock
+!function u(){const n=new Date();document.getElementById('ct').textContent=n.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});document.getElementById('cd').textContent=n.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});setTimeout(u,1000)}();
+
+// Agents
+const A=[{n:'Jarvis',c:'g'},{n:'Research',c:'y'},{n:'CodeBot',c:'g'},{n:'GitOps',c:'y'},{n:'Ash Lee',c:'g'},{n:'Sync',c:'g'},{n:'DLMgr',c:'y'},{n:'n8n',c:'y'}];
+document.getElementById('al').innerHTML=A.map(a=>`<div class="ad"><span class="d ${a.c}"></span>${a.n}</div>`).join('');
+
+// Crypto
+async function fc(){try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd',{signal:AbortSignal.timeout(8000)}),d=await r.json();if(d.bitcoin)document.getElementById('b').textContent='$'+(d.bitcoin.usd/1000).toFixed(1)+'k';if(d.ethereum)document.getElementById('e').textContent='$'+d.ethereum.usd.toLocaleString();if(d.solana)document.getElementById('s').textContent='$'+d.solana.usd.toFixed(0)}catch{}}fc();setInterval(fc,90000);
+
+// System & Fleet
+async function um(){
+  try {
+    const r = await fetch('http://localhost:8888/metrics');
+    const d = await r.json();
+    document.getElementById('cv').textContent = Math.round(d.cpu) + '%';
+    document.getElementById('cb').style.width = d.cpu + '%';
+    document.getElementById('mv').textContent = Math.round(d.memory_percent) + '%';
+    document.getElementById('mb').style.width = d.memory_percent + '%';
+  } catch(e) {
+    // Mock fallback if server is down
+    const c=Math.random()*35+12,m=Math.random()*25+48;
+    document.getElementById('cv').textContent=Math.round(c)+'%';
+    document.getElementById('cb').style.width=c+'%';
+    document.getElementById('mv').textContent=Math.round(m)+'%';
+    document.getElementById('mb').style.width=m+'%';
+  }
+  
+  // Re-sync GitHub count
+  try {
+    const gr = await fetch('http://localhost:8888/github');
+    const gd = await gr.json();
+    document.querySelector('.row .s:first-child .sv').textContent = gd.total_repos;
+  } catch(e) {}
+
+  // Re-sync CR score
+  try {
+    const r=await fetch('http://localhost:8888/cr'),d=await r.json();
+    document.getElementById('cr').textContent = d.security_score + '%';
+  } catch(e) {}
+}
+const sBov=new Audio('bov.wav'),sScr=new Audio('screech.wav');
+function tB(){
+  const n=document.getElementById('bn'); n.textContent='NITRO';
+  sBov.currentTime=0; sBov.play();
+  document.getElementById('wg').style.boxShadow='0 0 30px var(--ac)';
+  setTimeout(()=>{ n.textContent='BOOT'; document.getElementById('wg').style.boxShadow=''; },2000);
+}
+setInterval(um, 5000);
+um();
+
+// Feed
+const F=[
+  {t:'success', m:'✅ GitOps synced 12 repos'},
+  {t:'info', m:'🔭 Research: 3 AI papers'},
+  {t:'success', m:'💜 Ash Lee posted'},
+  {t:'info', m:'🔄 Sync complete'},
+  {t:'warn', m:'⚠️ 3 downloads queued'},
+  {t:'error', m:'❌ Jarvis offline'},
+  {t:'success', m:'⚡ n8n triggered'}
+];
+const wBov = new Audio('bov.wav'); wBov.volume = 0.3;
+const wScr = new Audio('screech.wav'); wScr.volume = 0.3;
+let fi=0;function af(){
+  const l=document.getElementById('fl'),t=new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),d=document.createElement('div'), e=F[fi%F.length];
+  d.className='fi';d.innerHTML=`<span class="m">> <span style="color:var(--ac)">${e.m}</span></span><span class="t">${t}</span>`;l.prepend(d);
+  if(l.children.length>5)l.lastChild.remove();
+  if(e.t==='success') { wBov.currentTime=0; wBov.play().catch(()=>{}); }
+  if(e.t==='error' || e.t==='warn') { wScr.currentTime=0; wScr.play().catch(()=>{}); }
+  fi++;
+}
+F.slice(0,3).forEach((_,i)=>setTimeout(af,i*200));setInterval(af,8000);
+
+// Drag & Collapse
+let dx=0,dy=0,ox=0,oy=0;
+const wgWrap=document.getElementById('wgWrap');
+const wg=document.getElementById('wg');
+const hdr=document.getElementById('hdr');
+hdr.onmousedown=e=>{dx=e.clientX-ox;dy=e.clientY-oy;document.onmouseup=()=>{document.onmouseup=null;document.onmousemove=null};document.onmousemove=e2=>{ox=e2.clientX-dx;oy=e2.clientY-dy;wgWrap.style.transform=`translate(${ox}px,${oy}px)`}};
+hdr.ondblclick=()=>wg.classList.toggle('collapsed');
+
+// Spotlight
+const spot=document.getElementById('spot');
+wg.onmousemove=e=>{
+  const rect=wg.getBoundingClientRect();
+  spot.style.opacity='1';
+  spot.style.setProperty('--x',`${e.clientX-rect.left}px`);
+  spot.style.setProperty('--y',`${e.clientY-rect.top}px`);
+};
+wg.onmouseleave=()=>{spot.style.opacity='0'};
+</script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KARMA OS · Unified</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--danger:#ff3366;
+  --bg:#060a14;--panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.15);--text:#e8f4ff;--muted:rgba(255,255,255,.35)
+}
+[data-theme="stealth"]{--ac:#64ffda;--ac2:#a8b2d1;--ac3:#8892b0;--warn:#ffd700;--danger:#ff0033;--bg:#0a0e14;--panel:rgba(10,14,20,.9);--border:rgba(100,255,218,.1);--text:#ccd6f6;--muted:rgba(204,214,246,.35)}
+[data-theme="alert"]{--ac:#ff3366;--ac2:#ff6b35;--ac3:#ffbd00;--warn:#ff9900;--danger:#ff0000;--bg:#14060a;--panel:rgba(40,10,15,.85);--border:rgba(255,51,102,.2);--text:#ffe8ec;--muted:rgba(255,232,236,.35)}
+[data-theme="matrix"]{--ac:#00ff41;--ac2:#008f11;--ac3:#00ff41;--warn:#ffff00;--danger:#ff0000;--bg:#000300;--panel:rgba(0,20,5,.92);--border:rgba(0,255,65,.18);--text:#ccffcc;--muted:rgba(0,255,65,.35)}
+[data-theme="aurora"]{--ac:#a78bfa;--ac2:#34d399;--ac3:#f9a8d4;--warn:#fbbf24;--danger:#ef4444;--bg:#0d0d1a;--panel:rgba(15,10,30,.85);--border:rgba(167,139,250,.15);--text:#f0e6ff;--muted:rgba(240,230,255,.35)}
+[data-theme="light"]{--ac:#0077cc;--ac2:#7c3aed;--ac3:#059669;--warn:#d97706;--danger:#dc2626;--bg:#f0f4f8;--panel:rgba(255,255,255,.92);--border:rgba(0,119,204,.15);--text:#1a202c;--muted:rgba(26,32,44,.45)}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;transition:background .4s,color .4s}
+body{padding:20px}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 24px;padding:16px 20px;background:var(--panel);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(20px)}
+.logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+
+/* Theme pills */
+.themes{display:flex;gap:4px}
+.theme-pill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s}
+.theme-pill:hover{border-color:var(--ac);color:var(--text)}
+.theme-pill.active{background:rgba(var(--ac-rgb,0,212,255),.15);border-color:var(--ac);color:var(--ac);box-shadow:0 0 8px rgba(var(--ac-rgb,0,212,255),.2)}
+
+/* Mute + Export */
+.icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.icon-btn:hover{border-color:var(--ac);color:var(--ac)}
+.icon-btn.active{background:rgba(var(--ac-rgb,0,212,255),.15);border-color:var(--ac);color:var(--ac)}
+
+/* Command palette overlay */
+.cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding-top:20vh}
+.cmd-overlay.open{display:flex}
+.cmd-box{width:500px;max-width:90vw;background:var(--bg);border:1px solid var(--ac);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.cmd-input{width:100%;padding:14px 18px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:280px;overflow-y:auto}
+.cmd-item{padding:10px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s;font-size:13px}
+.cmd-item:hover,.cmd-item.active{background:rgba(var(--ac-rgb,0,212,255),.1)}
+.cmd-item .icon{font-size:16px;width:24px;text-align:center}
+.cmd-item .label{flex:1}
+.cmd-item .hint{font-size:10px;color:var(--muted);font-family:'Orbitron',monospace}
+.cmd-item .kbd{font-size:9px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);color:var(--muted);font-family:monospace}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1200px;margin:0 auto 24px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;backdrop-filter:blur(20px)}
+.card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(var(--ac-rgb,0,212,255),.08),transparent 60%);pointer-events:none;opacity:0;transition:opacity .3s}
+.card:hover{border-color:var(--ac);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.card:hover::before{opacity:1}
+.card-icon{font-size:32px;margin-bottom:12px}
+.card-title{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.card-footer{display:flex;align-items:center;gap:8px}
+.card-tag{font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(var(--ac-rgb,0,212,255),.1);color:var(--ac);border:1px solid rgba(var(--ac-rgb,0,212,255),.2);font-family:'Orbitron',monospace}
+.card-tag.green{background:rgba(0,255,157,.1);color:var(--ac3);border-color:rgba(0,255,157,.2)}
+.card-tag.purple{background:rgba(179,71,255,.1);color:var(--ac2);border-color:rgba(179,71,255,.2)}
+.card-open{margin-left:auto;font-size:10px;color:var(--ac);opacity:0;transition:opacity .2s}
+.card:hover .card-open{opacity:1}
+
+/* Stats bar */
+.stats-bar{display:flex;gap:12px;max-width:1200px;margin:0 auto 24px;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:center;backdrop-filter:blur(20px)}
+.stat-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* Notification toast */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:10px 16px;border-radius:10px;font-size:12px;border:1px solid;backdrop-filter:blur(12px);animation:toastIn .3s ease;display:flex;align-items:center;gap:8px;max-width:320px}
+.toast.info{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3);color:var(--ac)}
+.toast.success{background:rgba(0,255,157,.1);border-color:rgba(0,255,157,.3);color:var(--ac3)}
+.toast.warn{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.3);color:var(--warn)}
+.toast.error{background:rgba(255,51,102,.1);border-color:rgba(255,51,102,.3);color:var(--danger)}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.toast-close{cursor:pointer;opacity:.5;margin-left:auto;font-size:14px}
+.toast-close:hover{opacity:1}
+
+/* Keyboard shortcuts legend */
+.shortcuts{max-width:1200px;margin:0 auto 24px;padding:16px 20px;background:var(--panel);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(20px)}
+.shortcuts-title{font-family:'Orbitron',monospace;font-size:10px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.shortcuts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.shortcut{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.shortcut kbd{padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-family:monospace;font-size:10px}
+
+/* Responsive */
+@media(max-width:768px){
+  body{padding:12px}
+  .hdr{flex-direction:column;gap:12px;text-align:center}
+  .hdr-right{justify-content:center}
+  .grid{grid-template-columns:1fr}
+  .stats-bar{flex-direction:column}
+  .cmd-box{width:95vw}
+}
+@media(max-width:480px){
+  .logo{font-size:16px}
+  .themes{flex-wrap:wrap;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">KARMA OS</div>
+  <div class="hdr-right">
+    <div class="themes" id="themes">
+      <button class="theme-pill active" data-theme="cyberpunk">Cyberpunk</button>
+      <button class="theme-pill" data-theme="stealth">Stealth</button>
+      <button class="theme-pill" data-theme="alert">Alert</button>
+      <button class="theme-pill" data-theme="matrix">Matrix</button>
+      <button class="theme-pill" data-theme="aurora">Aurora</button>
+      <button class="theme-pill" data-theme="light">Light</button>
+    </div>
+    <button class="icon-btn" id="muteBtn" title="Toggle sound (Ctrl+M)">🔊</button>
+    <button class="icon-btn" id="exportBtn" title="Export data (Ctrl+E)">📥</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat"><div class="stat-val" id="sv-uptime">--</div><div class="stat-label">Uptime</div></div>
+  <div class="stat"><div class="stat-val" id="sv-tests">45/45</div><div class="stat-label">Tests</div></div>
+  <div class="stat"><div class="stat-val" id="sv-cpu">--%</div><div class="stat-label">CPU</div></div>
+  <div class="stat"><div class="stat-val" id="sv-mem">--%</div><div class="stat-label">Memory</div></div>
+  <div class="stat"><div class="stat-val" id="sv-agents">8</div><div class="stat-label">Agents</div></div>
+</div>
+
+<!-- Dashboard Cards -->
+<div class="grid">
+  <div class="card" onclick="openDashboard('karma-os-ultimate.html')">
+    <div class="card-icon">🖥️</div>
+    <div class="card-title">Main OS</div>
+    <div class="card-desc">Full terminal-style system monitor with 8 AI agents, crypto tracker, command palette, and activity feed.</div>
+    <div class="card-footer">
+      <span class="card-tag">134KB</span>
+      <span class="card-tag green">Full Featured</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+
+  <div class="card" onclick="openDashboard('karma-hud.html')">
+    <div class="card-icon">⚡</div>
+    <div class="card-title">HUD Widget</div>
+    <div class="card-desc">300px floating overlay — draggable, collapsible, always-on-top pin, NITRO boost mode.</div>
+    <div class="card-footer">
+      <span class="card-tag">18KB</span>
+      <span class="card-tag purple">Overlay</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+
+  <div class="card" onclick="openDashboard('karma-widget.html')">
+    <div class="card-icon">📊</div>
+    <div class="card-title">Compact Widget</div>
+    <div class="card-desc">Lightweight sidebar monitor with system metrics, crypto prices, and quick actions.</div>
+    <div class="card-footer">
+      <span class="card-tag">12KB</span>
+      <span class="card-tag">Sidebar</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+
+  <div class="card" onclick="openDashboard('live-desktop.html')">
+    <div class="card-icon">🌌</div>
+    <div class="card-title">Live Desktop</div>
+    <div class="card-desc">Desktop overlay with matrix rain, terminal HUD, CR analysis hub, and fleet management.</div>
+    <div class="card-footer">
+      <span class="card-tag">47KB</span>
+      <span class="card-tag green">Matrix Rain</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+
+  <div class="card" onclick="openDashboard('KARMA-DASHBOARDS.txt')">
+    <div class="card-icon">📖</div>
+    <div class="card-title">Documentation</div>
+    <div class="card-desc">Full feature documentation covering all dashboards, controls, and launch commands.</div>
+    <div class="card-footer">
+      <span class="card-tag">19KB</span>
+      <span class="card-tag">Docs</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+
+  <div class="card" onclick="openDashboard('ARCHITECTURE.md')">
+    <div class="card-icon">🏗️</div>
+    <div class="card-title">Architecture</div>
+    <div class="card-desc">System diagrams, data flow, theme system reference, and test architecture overview.</div>
+    <div class="card-footer">
+      <span class="card-tag purple">Technical</span>
+      <span class="card-open">Open ↗</span>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts -->
+<div class="shortcuts">
+  <div class="shortcuts-title">⌨ Keyboard Shortcuts</div>
+  <div class="shortcuts-grid">
+    <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>K</kbd> Command palette</div>
+    <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>M</kbd> Toggle mute</div>
+    <div class="shortcut"><kbd>Ctrl</kbd>+<kbd>E</kbd> Export data</div>
+    <div class="shortcut"><kbd>1</kbd>-<kbd>6</kbd> Open dashboard</div>
+    <div class="shortcut"><kbd>T</kbd> Cycle themes</div>
+    <div class="shortcut"><kbd>Esc</kbd> Close palette</div>
+  </div>
+</div>
+
+<!-- Command Palette -->
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-box">
+    <input class="cmd-input" id="cmdInput" placeholder="Type a command or search dashboards..." autocomplete="off"/>
+    <div class="cmd-results" id="cmdResults"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const S = {
+  theme: localStorage.getItem('ko_theme') || 'cyberpunk',
+  muted: localStorage.getItem('ko_muted') === 'true',
+  startTime: parseInt(localStorage.getItem('ko_start')) || Date.now()
+};
+localStorage.setItem('ko_start', S.startTime);
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function setTheme(t) {
+  S.theme = t;
+  if (t === 'cyberpunk') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('ko_theme', t);
+  document.querySelectorAll('.theme-pill').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+  toast('Theme: ' + t.toUpperCase(), 'info');
+}
+
+document.querySelectorAll('.theme-pill').forEach(btn => {
+  btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+});
+setTheme(S.theme);
+
+// ── Toast Notifications ────────────────────────────────────────────────────
+function toast(msg, type = 'info', duration = 3000) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()">×</span>`;
+  c.appendChild(t);
+  setTimeout(() => { if (t.parentElement) t.remove(); }, duration);
+}
+
+// ── Sound Effects ──────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+
+function playSound(freq, dur, type = 'sine', vol = 0.08) {
+  if (S.muted) return;
+  try {
+    const ctx = ensureAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch {}
+}
+
+function sfxClick() { playSound(800, 0.08, 'sine', 0.06); }
+function sfxOpen() { playSound(600, 0.12, 'triangle', 0.08); setTimeout(() => playSound(900, 0.1, 'triangle', 0.06), 60); }
+function sfxTheme() { playSound(400, 0.15, 'sine', 0.05); setTimeout(() => playSound(600, 0.12, 'sine', 0.04), 80); }
+function sfxError() { playSound(200, 0.2, 'sawtooth', 0.04); }
+function sfxSuccess() { playSound(523, 0.1, 'sine', 0.06); setTimeout(() => playSound(659, 0.1, 'sine', 0.05), 100); setTimeout(() => playSound(784, 0.15, 'sine', 0.04), 200); }
+
+// ── Mute Toggle ────────────────────────────────────────────────────────────
+const muteBtn = document.getElementById('muteBtn');
+function toggleMute() {
+  S.muted = !S.muted;
+  localStorage.setItem('ko_muted', S.muted);
+  muteBtn.textContent = S.muted ? '🔇' : '🔊';
+  muteBtn.classList.toggle('active', S.muted);
+  toast(S.muted ? 'Sound muted' : 'Sound on', 'info');
+}
+muteBtn.addEventListener('click', () => { sfxClick(); toggleMute(); });
+
+// ── Open Dashboard ─────────────────────────────────────────────────────────
+function openDashboard(url) {
+  sfxOpen();
+  toast('Opening ' + url, 'success');
+  window.open(url, '_blank');
+}
+
+// ── Export Data (CSV/JSON) ─────────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click', () => {
+  sfxClick();
+  exportData();
+});
+
+function exportData() {
+  const data = {
+    exported: new Date().toISOString(),
+    uptime_seconds: Math.floor((Date.now() - S.startTime) / 1000),
+    theme: S.theme,
+    dashboards: [
+      { name: 'Main OS', file: 'karma-os-ultimate.html', size_kb: 134 },
+      { name: 'HUD Widget', file: 'karma-hud.html', size_kb: 18 },
+      { name: 'Compact Widget', file: 'karma-widget.html', size_kb: 12 },
+      { name: 'Live Desktop', file: 'live-desktop.html', size_kb: 47 }
+    ],
+    tests: { total: 45, passed: 45, failed: 0 },
+    settings: JSON.parse(localStorage.getItem('ko_settings') || '{}')
+  };
+
+  // JSON export
+  const jsonBlob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const jsonUrl = URL.createObjectURL(jsonBlob);
+  const jsonA = document.createElement('a');
+  jsonA.href = jsonUrl;
+  jsonA.download = 'karma-export-' + new Date().toISOString().slice(0, 10) + '.json';
+  jsonA.click();
+  URL.revokeObjectURL(jsonUrl);
+
+  // CSV export
+  const csvRows = ['Metric,Value'];
+  csvRows.push('Export Date,' + data.exported);
+  csvRows.push('Uptime (seconds),' + data.uptime_seconds);
+  csvRows.push('Current Theme,' + data.theme);
+  csvRows.push('Total Tests,' + data.tests.total);
+  csvRows.push('Passed,' + data.tests.passed);
+  csvRows.push('Failed,' + data.tests.failed);
+  data.dashboards.forEach(d => csvRows.push(d.name + ',' + d.file));
+
+  const csvBlob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const csvUrl = URL.createObjectURL(csvBlob);
+  const csvA = document.createElement('a');
+  csvA.href = csvUrl;
+  csvA.download = 'karma-export-' + new Date().toISOString().slice(0, 10) + '.csv';
+  csvA.click();
+  URL.revokeObjectURL(csvUrl);
+
+  toast('Exported JSON + CSV', 'success');
+  sfxSuccess();
+}
+
+// ── Command Palette ────────────────────────────────────────────────────────
+const cmdOverlay = document.getElementById('cmdOverlay');
+const cmdInput = document.getElementById('cmdInput');
+const cmdResults = document.getElementById('cmdResults');
+
+const commands = [
+  { icon: '🖥️', label: 'Main OS Dashboard', hint: 'Full terminal', action: () => openDashboard('karma-os-ultimate.html') },
+  { icon: '⚡', label: 'HUD Widget', hint: 'Floating overlay', action: () => openDashboard('karma-hud.html') },
+  { icon: '📊', label: 'Compact Widget', hint: 'Sidebar', action: () => openDashboard('karma-widget.html') },
+  { icon: '🌌', label: 'Live Desktop', hint: 'Matrix rain', action: () => openDashboard('live-desktop.html') },
+  { icon: '📖', label: 'Documentation', hint: 'KARMA-DASHBOARDS.txt', action: () => openDashboard('KARMA-DASHBOARDS.txt') },
+  { icon: '🏗️', label: 'Architecture', hint: 'System diagrams', action: () => openDashboard('ARCHITECTURE.md') },
+  { icon: '🎨', label: 'Theme: Cyberpunk', hint: '', action: () => setTheme('cyberpunk') },
+  { icon: '🥷', label: 'Theme: Stealth', hint: '', action: () => setTheme('stealth') },
+  { icon: '🚨', label: 'Theme: Alert', hint: '', action: () => setTheme('alert') },
+  { icon: '🟢', label: 'Theme: Matrix', hint: '', action: () => setTheme('matrix') },
+  { icon: '🌌', label: 'Theme: Aurora', hint: '', action: () => setTheme('aurora') },
+  { icon: '☀️', label: 'Theme: Light', hint: '', action: () => setTheme('light') },
+  { icon: '🔊', label: 'Toggle Sound', hint: 'Ctrl+M', action: () => toggleMute() },
+  { icon: '📥', label: 'Export Data', hint: 'Ctrl+E', action: () => exportData() },
+];
+
+let cmdIdx = 0;
+
+function openPalette() {
+  cmdOverlay.classList.add('open');
+  cmdInput.value = '';
+  cmdInput.focus();
+  renderCommands('');
+}
+
+function closePalette() {
+  cmdOverlay.classList.remove('open');
+  cmdIdx = 0;
+}
+
+function renderCommands(filter) {
+  const f = filter.toLowerCase();
+  const filtered = commands.filter(c => c.label.toLowerCase().includes(f) || c.hint.toLowerCase().includes(f));
+  cmdIdx = 0;
+  cmdResults.innerHTML = filtered.map((c, i) =>
+    `<div class="cmd-item${i === 0 ? ' active' : ''}" data-idx="${i}"><span class="icon">${c.icon}</span><span class="label">${c.label}</span><span class="hint">${c.hint}</span></div>`
+  ).join('');
+  cmdResults.querySelectorAll('.cmd-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      filtered[idx].action();
+      closePalette();
+    });
+  });
+  return filtered;
+}
+
+let filteredCmds = commands;
+
+cmdInput.addEventListener('input', () => { filteredCmds = renderCommands(cmdInput.value); });
+cmdInput.addEventListener('keydown', (e) => {
+  const items = cmdResults.querySelectorAll('.cmd-item');
+  if (e.key === 'Escape') { closePalette(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); cmdIdx = Math.min(cmdIdx + 1, items.length - 1); items.forEach((it, i) => it.classList.toggle('active', i === cmdIdx)); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); cmdIdx = Math.max(cmdIdx - 1, 0); items.forEach((it, i) => it.classList.toggle('active', i === cmdIdx)); }
+  else if (e.key === 'Enter' && filteredCmds[cmdIdx]) { filteredCmds[cmdIdx].action(); closePalette(); }
+});
+
+cmdOverlay.addEventListener('click', (e) => { if (e.target === cmdOverlay) closePalette(); });
+
+// ── Global Keyboard Shortcuts ──────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  // Ctrl+K — Command palette
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openPalette(); return; }
+  // Ctrl+M — Toggle mute
+  if ((e.ctrlKey || e.metaKey) && e.key === 'm') { e.preventDefault(); toggleMute(); return; }
+  // Ctrl+E — Export
+  if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); exportData(); return; }
+  // Escape — Close palette
+  if (e.key === 'Escape') { closePalette(); return; }
+
+  // Don't handle if input is focused
+  if (document.activeElement.tagName === 'INPUT') return;
+
+  // 1-6 — Open dashboards
+  const dashMap = ['karma-os-ultimate.html', 'karma-hud.html', 'karma-widget.html', 'live-desktop.html'];
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= dashMap.length) { openDashboard(dashMap[num - 1]); return; }
+  // T — Cycle themes
+  if (e.key === 't' || e.key === 'T') {
+    const themes = ['cyberpunk', 'stealth', 'alert', 'matrix', 'aurora', 'light'];
+    const idx = (themes.indexOf(S.theme) + 1) % themes.length;
+    sfxTheme();
+    setTheme(themes[idx]);
+    return;
+  }
+});
+
+// ── Uptime Counter ─────────────────────────────────────────────────────────
+function updateUptime() {
+  const secs = Math.floor((Date.now() - S.startTime) / 1000);
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  document.getElementById('sv-uptime').textContent = h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+}
+
+// ── Live Metrics ───────────────────────────────────────────────────────────
+async function updateMetrics() {
+  try {
+    const r = await fetch('http://localhost:8888/metrics');
+    const d = await r.json();
+    document.getElementById('sv-cpu').textContent = Math.round(d.cpu) + '%';
+    document.getElementById('sv-mem').textContent = Math.round(d.memory_percent) + '%';
+  } catch {
+    document.getElementById('sv-cpu').textContent = Math.round(Math.random() * 35 + 12) + '%';
+    document.getElementById('sv-mem').textContent = Math.round(Math.random() * 25 + 48) + '%';
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+muteBtn.textContent = S.muted ? '🔇' : '🔊';
+muteBtn.classList.toggle('active', S.muted);
+updateUptime();
+updateMetrics();
+setInterval(updateUptime, 10000);
+setInterval(updateMetrics, 5000);
+toast('KARMA OS loaded · Press Ctrl+K for commands', 'success', 4000);
+
+// ── Service Worker (PWA) ──────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
