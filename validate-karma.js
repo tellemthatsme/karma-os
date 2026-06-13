@@ -178,14 +178,14 @@ async function validateWebSocket() {
     if (data.type === 'connected') { ok('Received connected message'); }
     else { warn('Unexpected first message: ' + data.type); }
   } else { bad('No message received within 5s'); }
-  // Test broadcast by submitting an event
+  // Test broadcast by submitting an event — set up listener BEFORE sending
+  const broadcastPromise = new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 5000);
+    ws.on('message', (data) => { clearTimeout(timer); resolve(data.toString()); });
+  });
   const eventRes = await httpReq('POST', '/api/abtest/event', JSON.stringify({
     events: [{ testId: 'ws_test', variant: 'control', event: 'impression', userId: 'ws_user', ts: Date.now() }],
   }));
-  const broadcastPromise = new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(null), 3000);
-    ws.on('message', (data) => { clearTimeout(timer); resolve(data.toString()); });
-  });
   const bMsg = await broadcastPromise;
   if (bMsg) {
     const data = JSON.parse(bMsg);
