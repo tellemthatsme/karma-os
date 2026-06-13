@@ -209,7 +209,50 @@ const requestHandler = async (req, res) => {
     } else if (url === '/health') {
       res.writeHead(200)
       res.end(JSON.stringify({ status: 'ok', uptime: process.uptime() }))
-    } else if (url === '/api/research/refresh' && req.method === 'POST') {
+    } else if (url === '/api/abtest/event' && req.method === 'POST') {
+  let body = '';
+  req.on('data', (chunk) => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const payload = JSON.parse(body);
+      if (!Array.isArray(payload.events)) throw new Error('events must be an array');
+      const accepted = [];
+      for (const ev of payload.events) {
+        if (!ev || typeof ev.testId !== 'string' || typeof ev.event !== 'string') continue;
+        if (ev.testId.length > 100 || ev.event.length > 100) continue;
+        accepted.push({
+          testId: ev.testId, variant: String(ev.variant || 'unassigned').slice(0, 50),
+          event: ev.event, ts: Number(ev.ts) || Date.now(),
+          userId: String(ev.userId || 'anon').slice(0, 100),
+          props: ev.props && typeof ev.props === 'object' ? ev.props : {}, receivedAt: Date.now(),
+        });
+      }
+      abtestEvents.push(...accepted);
+      if (abtestEvents.length > 10000) abtestEvents = abtestEvents.slice(-10000);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, accepted: accepted.length }));
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
+    }
+  });
+  return;
+} else if (url === '/api/abtest/results' && req.method === 'GET') {
+  const results = {};
+  for (const ev of abtestEvents) {
+    if (!results[ev.testId]) results[ev.testId] = {};
+    if (!results[ev.testId][ev.variant]) results[ev.testId][ev.variant] = {};
+    results[ev.testId][ev.variant][ev.event] = (results[ev.testId][ev.variant][ev.event] || 0) + 1;
+  }
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ ok: true, totalEvents: abtestEvents.length, results }));
+  return;
+} else if (url === '/api/abtest/reset' && req.method === 'POST') {
+  abtestEvents = [];
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ ok: true }));
+  return;
+} else if (url === '/api/research/refresh' && req.method === 'POST') {
       // ── Triggers scripts/youtube_researcher.py --trending ──────────────
       // Returns 202 immediately; the script runs in the background and
       // writes ai_news/CURRENT_AI_BRIEF.md. Frontend polls /api/research/status.

@@ -591,8 +591,8 @@ const sBov = new Audio('bov.wav'); const sScr = new Audio('screech.wav');
 function setVol(v){sBov.volume=S.muted?0:v;sScr.volume=S.muted?0:v;} setVol(0.28);
 function toggleMute(){S.muted=!S.muted;localStorage.setItem('ko_muted',S.muted);setVol(0.28);const b=document.getElementById('mute-btn');if(b)b.innerHTML=S.muted?'<i class="fas fa-volume-mute"></i>':'<i class="fas fa-volume-up"></i>';toast(S.muted?'Muted':'Audio on');}
 function setTheme(t){S.theme=t;document.documentElement.setAttribute('data-theme',t);localStorage.setItem('ko_theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===t));toast('Theme: '+t.toUpperCase());}
-setTheme(S.theme);
 let toastTmr;
+setTheme(S.theme);
 function toast(msg,dur=2400){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(toastTmr);toastTmr=setTimeout(()=>t.classList.remove('show'),dur);}
 function fmtAUD(n){return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',maximumFractionDigits:0}).format(n);}
 function fmtK(n){return n>=1000?(n/1000).toFixed(1)+'K':String(n||0);}
@@ -758,6 +758,26 @@ async function loadIntelFeed(){
   }
 }
 
+// AI TOOLS
+const TOOLS_FALLBACK=[
+  {name:'Cursor',desc:'AI code editor — agent mode edits full codebases',code:'CURSOR40',free:'40% off'},
+  {name:'Windsurf',desc:'Cascade agent for deep multi-file refactors',code:'WIND50',free:'50% off annual'},
+  {name:'Warp',desc:'AI-native terminal — natural language commands',code:'WARP6MO',free:'6mo free'},
+  {name:'Perplexity',desc:'Real-time web search with citations',code:'PERP2026',free:'1mo Pro free'},
+  {name:'v0 by Vercel',desc:'Generate React apps from prompts',free:'free tier'},
+  {name:'Railway',desc:'Zero-config hosting — any stack',code:'RAILWAY26',free:'3mo free'},
+  {name:'n8n',desc:'Open-source AI workflow automation',free:'self-hosted free'},
+  {name:'Bolt.new',desc:'StackBlitz AI — full-stack in browser',free:'free tier'},
+  {name:'Zo Computer',desc:'Personal AI cloud computer — this challenge is ON Zo',code:'CONTRA',free:'$20 credits'},
+  {name:'Claude Code',desc:'Anthropic CLI — full filesystem access',free:'API access'},
+];
+function renderTools(items){
+  const el=document.getElementById('tools-list');if(!el)return;
+  el.innerHTML=items.map(t=>`<div class="tool-card"><div class="tool-name">${t.name}${t.free?` <span class="tc-free">${t.free}</span>`:''}</div><div class="tool-desc">${t.desc||t.context||''}</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px">${t.code?`<span class="tc-code">${t.code}</span>`:''}</div></div>`).join('');
+}
+renderTools(TOOLS_FALLBACK);
+setTimeout(()=>loadIntelTools(),3000);
+setInterval(()=>loadIntelTools(),10*60*1000);
 async function loadIntelTools(){
   try{
     const data=await intelFetch('/api/tools');
@@ -1044,26 +1064,6 @@ function addUpSite(){const n=document.getElementById('up-name').value.trim();con
 function rmUpSite(i){S.uptimeSites.splice(i,1);localStorage.setItem('ld_uptime',JSON.stringify(S.uptimeSites));renderUptime();}
 renderUptime();setTimeout(checkAllUptime,400);setInterval(checkAllUptime,60*1000);
 
-// AI TOOLS
-const TOOLS_FALLBACK=[
-  {name:'Cursor',desc:'AI code editor — agent mode edits full codebases',code:'CURSOR40',free:'40% off'},
-  {name:'Windsurf',desc:'Cascade agent for deep multi-file refactors',code:'WIND50',free:'50% off annual'},
-  {name:'Warp',desc:'AI-native terminal — natural language commands',code:'WARP6MO',free:'6mo free'},
-  {name:'Perplexity',desc:'Real-time web search with citations',code:'PERP2026',free:'1mo Pro free'},
-  {name:'v0 by Vercel',desc:'Generate React apps from prompts',free:'free tier'},
-  {name:'Railway',desc:'Zero-config hosting — any stack',code:'RAILWAY26',free:'3mo free'},
-  {name:'n8n',desc:'Open-source AI workflow automation',free:'self-hosted free'},
-  {name:'Bolt.new',desc:'StackBlitz AI — full-stack in browser',free:'free tier'},
-  {name:'Zo Computer',desc:'Personal AI cloud computer — this challenge is ON Zo',code:'CONTRA',free:'$20 credits'},
-  {name:'Claude Code',desc:'Anthropic CLI — full filesystem access',free:'API access'},
-];
-function renderTools(items){
-  const el=document.getElementById('tools-list');if(!el)return;
-  el.innerHTML=items.map(t=>`<div class="tool-card"><div class="tool-name">${t.name}${t.free?` <span class="tc-free">${t.free}</span>`:''}</div><div class="tool-desc">${t.desc||t.context||''}</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px">${t.code?`<span class="tc-code">${t.code}</span>`:''}</div></div>`).join('');
-}
-renderTools(TOOLS_FALLBACK);
-setTimeout(()=>loadIntelTools(),3000);
-setInterval(()=>loadIntelTools(),10*60*1000);
 
 // INVOICE TRACKER
 function renderInvoices(){
