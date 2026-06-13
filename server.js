@@ -189,9 +189,8 @@ function checkRateLimit(ip) {
 // ── AB Test Stats Helper ───────────────────────────────────────────────
 function computeABStatsFromDB(callback) {
   const query = `
-    SELECT testId, variant, event, COUNT(*) as count, 
-           COUNT(DISTINCT userId) as users,
-           SUM(CASE WHEN json_extract(props, '$.revenue') IS NOT NULL THEN CAST(json_extract(props, '$.revenue') AS REAL) ELSE 0 END) as revenue
+    SELECT testId, variant, event, COUNT(*) as count,
+           COUNT(DISTINCT userId) as users
     FROM abtest_events
     GROUP BY testId, variant, event
   `;
@@ -204,21 +203,35 @@ function computeABStatsFromDB(callback) {
       const v = results[row.testId][row.variant];
       v.events[row.event] = (v.events[row.event] || 0) + row.count;
       v.userCount = Math.max(v.userCount, row.users);
-      v.revenue += row.revenue || 0;
     }
-    // Compute rates
-    for (const testId in results) {
-      for (const variant in results[testId]) {
-        const v = results[testId][variant];
-        const impressions = v.events.impression || v.events.view || 0;
-        const clicks = v.events.click || 0;
-        const conversions = v.events.conversion || 0;
-        v.ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) + '%' : 'N/A';
-        v.conversionRate = impressions > 0 ? ((conversions / impressions) * 100).toFixed(2) + '%' : 'N/A';
-        v.revenue = Number(v.revenue.toFixed(2));
+    // Compute revenue from raw events (props are arbitrary in GROUP BY)
+    db.all('SELECT testId, variant, props FROM abtest_events', [], (err2, allRows) => {
+      if (!err2) {
+        for (const r of allRows) {
+          if (results[r.testId] && results[r.testId][r.variant]) {
+            try {
+              const p = JSON.parse(r.props || '{}');
+              if (p && typeof p.revenue === 'number') {
+                results[r.testId][r.variant].revenue += p.revenue;
+              }
+            } catch (_) { /* ignore malformed props */ }
+          }
+        }
       }
-    }
-    callback(null, results);
+      // Compute rates
+      for (const testId in results) {
+        for (const variant in results[testId]) {
+          const v = results[testId][variant];
+          const impressions = v.events.impression || v.events.view || 0;
+          const clicks = v.events.click || 0;
+          const conversions = v.events.conversion || 0;
+          v.ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) + '%' : 'N/A';
+          v.conversionRate = impressions > 0 ? ((conversions / impressions) * 100).toFixed(2) + '%' : 'N/A';
+          v.revenue = Number(v.revenue.toFixed(2));
+        }
+      }
+      callback(null, results);
+    });
   });
 }
 
@@ -240,7 +253,8 @@ const requestHandler = async (req, res) => {
   }
 
   // Rate limiting
-  const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  const forwarded = req.headers['x-forwarded-for'];
+  const clientIp = (forwarded ? forwarded.split(',')[0].trim() : null) || req.connection.remoteAddress || 'unknown';
   const rateLimit = checkRateLimit(clientIp);
   if (!rateLimit.allowed) {
     res.setHeader('Retry-After', rateLimit.retryAfter);

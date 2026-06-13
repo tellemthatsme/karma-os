@@ -183,7 +183,7 @@ async function validateWebSocket() {
     const timer = setTimeout(() => resolve(null), 5000);
     ws.on('message', (data) => { clearTimeout(timer); resolve(data.toString()); });
   });
-  const eventRes = await httpReq('POST', '/api/abtest/event', JSON.stringify({
+  await httpReq('POST', '/api/abtest/event', JSON.stringify({
     events: [{ testId: 'ws_test', variant: 'control', event: 'impression', userId: 'ws_user', ts: Date.now() }],
   }));
   const bMsg = await broadcastPromise;
