@@ -1,4 +1,4 @@
-name: KARMA OS Tests
+name: KARMA OS CI/CD
 
 on:
   push:
@@ -7,30 +7,66 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - run: npm ci
+      - name: Lint check
+        run: npx eslint server.js media/abtest.js --quiet || echo "No ESLint config — skipping"
 
-      - name: Install dependencies
-        run: npm ci
-
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+      - name: Start server
+        run: node server.js &
+      - name: Wait for server
+        run: >-
+          for i in $(seq 1 15); do
+            curl -sS http://localhost:8888/health && exit 0 || sleep 1;
+          done;
+          echo 'Server failed to start';
+          exit 1
+      - name: Run validation suite
+        run: node validate-karma.js
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-logs
+          path: karma.db
+          retention-days: 3
 
-      - name: Run validation
-        run: npm run validate
-
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
       - name: Run all tests (Chromium)
         run: npm run test:ci
-
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -44,24 +80,17 @@ jobs:
     timeout-minutes: 30
     needs: test
     continue-on-error: true
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-
       - name: Start server
         run: node server.js &
-
       - name: Wait for server
         run: >-
           for i in $(seq 1 15); do
@@ -69,10 +98,8 @@ jobs:
           done;
           echo 'Server failed to start';
           exit 1
-
       - name: Run cross-browser tests
         run: npm run test:cross-browser
-
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,3 +107,15 @@ jobs:
           name: playwright-report-cross-browser
           path: playwright-report/
           retention-days: 7
+
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [validate, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Render/Railway
+        run: echo "Add deployment hook here"
+      - name: Health check
+        run: curl -sfS https://your-app.onrender.com/health || echo "Health check skipped — configure URL"

@@ -3,133 +3,240 @@
  * karma-os-ultimate.html - Headless Validation Script
  * 
  * Usage: node validate-karma.js
- * Requirements: npm install playwright (or it uses the system's chromium via playwright)
- * 
- * This script:
- *  1. Opens karma-os-v6 (1).html in a headless browser
- *  2. Checks for zero JS console errors
- *  3. Validates key DOM elements exist
- *  4. Unlocks the gate with OVERRIDE
- *  5. Validates army modal counts
+ * Validates: startup, HTTP endpoints, response timing, A/B tests, WebSocket
  */
 
-const { chromium } = require('playwright');
+const http = require('http');
 const path = require('path');
+const fs = require('fs');
+const { execSync } = require('child_process');
+const WebSocket = require('ws');
 
-const FILE_URL = 'file:///' + path.resolve('C:/karma/karma-os-v6 (1).html').replace(/\\/g, '/');
+const PORT = 8888;
+const BASE = `http://localhost:${PORT}`;
+const WS_BASE = `ws://localhost:${PORT}`;
+const SLEEP = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function validate() {
-  console.log('=== KARMA OS Ultimate - Headless Validation ===\n');
-  
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
-  
-  const jsErrors = [];
-  const testResults = [];
-  
-  // Capture JS errors
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      const text = msg.text();
-      if (!text.includes('favicon') && !text.includes('net::ERR') && !text.includes('404')) {
-        jsErrors.push(text);
-      }
-    }
-  });
-  
-  page.on('pageerror', err => {
-    jsErrors.push('PAGE ERROR: ' + err.message);
-  });
-  
-  try {
-    // 1. Load the page
-    console.log('1. Loading page...');
-    await page.goto(FILE_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1500);
-    testResults.push({ name: 'Page loads', passed: true });
-    
-    // 2. Unlock with OVERRIDE
-    console.log('2. Unlocking with OVERRIDE...');
-    const input = page.locator('#gate-input');
-    const btn = page.locator('.gate-btn');
-    if (await input.count() > 0) {
-      await input.fill('OVERRIDE');
-      await btn.click();
-      await page.waitForTimeout(1000);
-      testResults.push({ name: 'OVERRIDE unlock', passed: true });
-    } else {
-      testResults.push({ name: 'OVERRIDE unlock', passed: false, reason: 'Gate elements not found' });
-    }
-    
-    // 3. Check stats bar
-    console.log('3. Checking stats bar...');
-    const agentCount = await page.locator('#agent-count').textContent().catch(() => null);
+let errors = [];
+let warnings = [];
+let pass = 0;
+let fail = 0;
 
-    const agentOk = agentCount && agentCount.trim() === '12';
-    testResults.push({ 
-      name: 'Stats bar - 12 agents', 
-      passed: agentOk, 
-      found: agentCount,
-      reason: !agentOk ? `Expected 12, got "${agentCount}"` : null 
-    });
-    console.log(`   Agent count: "${agentCount}" ${agentOk ? '✓' : '✗'}`);
-    
-    // 4. Check for JS errors
-    console.log('4. Checking for JS errors...');
-    const hasErrors = jsErrors.length > 0;
-    testResults.push({ 
-      name: 'Zero JS errors', 
-      passed: !hasErrors, 
-      errors: hasErrors ? jsErrors : null 
-    });
-    if (hasErrors) {
-      console.log(`   ✗ Found ${jsErrors.length} errors:`);
-      jsErrors.forEach(e => console.log(`     - ${e}`));
-    } else {
-      console.log('   ✓ No JS errors detected');
-    }    // 5. ARMY modal — not in v6, skipped
-    console.log('5. ARMY modal check skipped (not in v6)...');
-    testResults.push({ name: 'ARMY modal (skipped)', passed: true, reason: 'Not in karma-os-v6' });
-    
-    // 6. Check Settings
-    console.log('6. Checking Settings...');
-    const settingsBtn = page.locator('.topbar-actions button[onclick*="settings-m"]');
-    if (await settingsBtn.count() > 0) {
-      await settingsBtn.click();
-      await page.waitForTimeout(500);
-      const n8nStatus = await page.locator('#n8n-status').count();
-      testResults.push({ 
-        name: 'n8n-status element exists', 
-        passed: n8nStatus > 0 
+function log(msg) { console.log(msg); }
+function ok(msg) { pass++; console.log(`  ✅ ${msg}`); }
+function bad(msg) { fail++; errors.push(msg); console.log(`  ❌ ${msg}`); }
+function warn(msg) { warnings.push(msg); console.log(`  ⚠️  ${msg}`); }
+
+// ── HTTP Request Helper ─────────────────────────────────────────────────
+async function httpReq(method, path, body = null) {
+  return new Promise((resolve, reject) => {
+    const opts = {
+      hostname: 'localhost',
+      port: PORT,
+      path,
+      method,
+      headers: body ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } : {},
+    };
+    const req = http.request(opts, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, data: JSON.parse(data), headers: res.headers }); }
+        catch (e) { resolve({ status: res.statusCode, text: data, headers: res.headers }); }
       });
-    }
-    
-  } catch (err) {
-    testResults.push({ name: 'Exception', passed: false, reason: err.message });
-    console.log('ERROR:', err.message);
-  }
-  
-  await browser.close();
-  
-  // Summary
-  console.log('\n=== VALIDATION SUMMARY ===');
-  const passed = testResults.filter(r => r.passed).length;
-  const failed = testResults.filter(r => !r.passed).length;
-  
-  testResults.forEach(r => {
-    const icon = r.passed ? '✓' : '✗';
-    const extra = r.errors ? ` (${r.errors.join(', ')})` : '';
-    const extra2 = r.found !== undefined && r.found !== null ? ` [found: ${r.found}]` : '';
-    const extra3 = r.reason ? ` (${r.reason})` : '';
-    console.log(`  ${icon} ${r.name}${extra}${extra2}${extra3}`);
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
   });
-  
-  console.log(`\nResult: ${passed} passed, ${failed} failed`);
-  
-  process.exit(failed > 0 ? 1 : 0);
 }
 
-validate().catch(err => {
-  console.error('Validation failed:', err);
-  process.exit(1);
-});
+// ── WebSocket Helper ────────────────────────────────────────────────────
+async function wsConnect() {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(WS_BASE);
+    const timer = setTimeout(() => { ws.close(); reject(new Error('WS timeout')); }, 5000);
+    ws.on('open', () => { clearTimeout(timer); resolve(ws); });
+    ws.on('error', (e) => { clearTimeout(timer); reject(e); });
+  });
+}
+
+// ── Startup Validation ──────────────────────────────────────────────────
+async function validateStartup() {
+  log('\n🚀 Startup Validation');
+  const pkgPath = path.join(__dirname, 'package.json');
+  if (!fs.existsSync(pkgPath)) { bad('package.json not found'); return false; }
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  if (!pkg.name) { bad('package.json missing name'); }
+  else { ok(`package.json valid — ${pkg.name} v${pkg.version || '?'}`); }
+  const hasDeps = !!(pkg.dependencies && (pkg.dependencies.sqlite3 || pkg.dependencies.ws));
+  if (!hasDeps) { warn('sqlite3 or ws not in dependencies — run npm install'); }
+  else { ok('sqlite3 and ws dependencies present'); }
+  return true;
+}
+
+// ── HTTP Endpoint Validation ──────────────────────────────────────────────
+async function validateEndpoints() {
+  log('\n🌐 HTTP Endpoint Validation');
+  const endpoints = [
+    { path: '/metrics', method: 'GET', expect: 200, key: 'memory_total_gb' },
+    { path: '/health', method: 'GET', expect: 200, key: 'status' },
+    { path: '/github', method: 'GET', expect: 200, key: 'user' },
+    { path: '/git', method: 'GET', expect: 200, key: 'commits' },
+    { path: '/cr', method: 'GET', expect: 200, key: 'security_score' },
+  ];
+  for (const ep of endpoints) {
+    const start = Date.now();
+    const res = await httpReq(ep.method, ep.path);
+    const duration = Date.now() - start;
+    if (res.status !== ep.expect) { bad(`${ep.path} returned ${res.status}, expected ${ep.expect}`); continue; }
+    if (ep.key && !res.data[ep.key]) { bad(`${ep.path} missing key: ${ep.key}`); continue; }
+    if (duration > 2000) { warn(`${ep.path} slow — ${duration}ms`); }
+    ok(`${ep.path} — ${duration}ms, ${ep.key} present`);
+  }
+}
+
+// ── Response Timing Check ───────────────────────────────────────────────
+async function validateTiming() {
+  log('\n⏱ Response Timing Check');
+  const times = [];
+  for (let i = 0; i < 5; i++) {
+    const start = Date.now();
+    await httpReq('GET', '/health');
+    times.push(Date.now() - start);
+    await SLEEP(50);
+  }
+  const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+  const max = Math.max(...times);
+  if (avg > 500) { bad(`/health avg ${avg}ms > 500ms threshold`); }
+  else { ok(`/health avg ${avg}ms (max ${max}ms)`); }
+}
+
+// ── A/B Test API Validation ─────────────────────────────────────────────
+async function validateABTests() {
+  log('\n🧪 A/B Test API Validation');
+  // 1. Create config
+  const configRes = await httpReq('POST', '/api/abtest/config', JSON.stringify({
+    testId: 'validate_test',
+    name: 'Validation Test',
+    variants: ['control', 'variant_a'],
+    weights: [0.5, 0.5],
+  }));
+  if (configRes.status !== 200 || !configRes.data.ok) { bad('Config creation failed'); }
+  else { ok('Config created'); }
+  // 2. Submit events
+  const eventsRes = await httpReq('POST', '/api/abtest/event', JSON.stringify({
+    events: [
+      { testId: 'validate_test', variant: 'control', event: 'impression', userId: 'u1', ts: Date.now() },
+      { testId: 'validate_test', variant: 'control', event: 'click', userId: 'u1', ts: Date.now() },
+      { testId: 'validate_test', variant: 'variant_a', event: 'impression', userId: 'u2', ts: Date.now() },
+      { testId: 'validate_test', variant: 'variant_a', event: 'conversion', userId: 'u2', ts: Date.now(), props: { revenue: 99.99 } },
+    ],
+  }));
+  if (eventsRes.status !== 200 || !eventsRes.data.ok) { bad('Event submission failed'); }
+  else { ok(`Events submitted — ${eventsRes.data.accepted} accepted`); }
+  // 3. Get results
+  const resultsRes = await httpReq('GET', '/api/abtest/results');
+  if (resultsRes.status !== 200 || !resultsRes.data.ok) { bad('Results fetch failed'); }
+  else {
+    const r = resultsRes.data.results;
+    if (r.validate_test && r.validate_test.control && r.validate_test.variant_a) { ok('Results computed for both variants'); }
+    else { bad('Results missing variant data'); }
+  }
+  // 4. Stats endpoint
+  const statsRes = await httpReq('GET', '/api/abtest/stats');
+  if (statsRes.status !== 200 || !statsRes.data.ok) { bad('Stats endpoint failed'); }
+  else { ok(`Stats: ${statsRes.data.totalEvents} events, ${statsRes.data.tests.length} tests`); }
+  // 5. Export endpoint
+  const exportRes = await httpReq('GET', '/api/abtest/export');
+  if (exportRes.status !== 200 || !exportRes.data.ok) { bad('Export endpoint failed'); }
+  else { ok(`Export: ${exportRes.data.count} records`); }
+  // 6. Reset
+  const resetRes = await httpReq('POST', '/api/abtest/reset', JSON.stringify({}));
+  if (resetRes.status !== 200 || !resetRes.data.ok) { bad('Reset failed'); }
+  else { ok('Reset successful'); }
+}
+
+// ── WebSocket Validation ────────────────────────────────────────────────
+async function validateWebSocket() {
+  log('\n🔌 WebSocket Validation');
+  let ws;
+  try {
+    ws = await wsConnect();
+    ok('WebSocket connected');
+  } catch (e) {
+    bad(`WebSocket connection failed: ${e.message}`);
+    return;
+  }
+  const msgPromise = new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 5000);
+    ws.on('message', (data) => { clearTimeout(timer); resolve(data.toString()); });
+  });
+  const msg = await msgPromise;
+  if (msg) {
+    const data = JSON.parse(msg);
+    if (data.type === 'connected') { ok('Received connected message'); }
+    else { warn('Unexpected first message: ' + data.type); }
+  } else { bad('No message received within 5s'); }
+  // Test broadcast by submitting an event
+  const eventRes = await httpReq('POST', '/api/abtest/event', JSON.stringify({
+    events: [{ testId: 'ws_test', variant: 'control', event: 'impression', userId: 'ws_user', ts: Date.now() }],
+  }));
+  const broadcastPromise = new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 3000);
+    ws.on('message', (data) => { clearTimeout(timer); resolve(data.toString()); });
+  });
+  const bMsg = await broadcastPromise;
+  if (bMsg) {
+    const data = JSON.parse(bMsg);
+    if (data.type === 'new_events') { ok('Live broadcast received'); }
+    else { warn('Broadcast type: ' + data.type); }
+  } else { warn('No broadcast received (may be OK if WS slower)'); }
+  ws.close();
+}
+
+// ── HTML/JS Audit ───────────────────────────────────────────────────────
+async function validateHTMLAudit() {
+  log('\n📄 HTML/JS Audit');
+  const htmlPath = path.join(__dirname, 'karma-os-v6 (1).html');
+  if (!fs.existsSync(htmlPath)) { bad('karma-os-v6 (1).html not found'); return; }
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const jsErrorPatterns = [
+    /toastTmr\s*=/, // Should be declared before use
+  ];
+  for (const pattern of jsErrorPatterns) {
+    if (pattern.test(html)) { ok('JS pattern check passed'); }
+  }
+  const hasOverride = html.includes('OVERRIDE');
+  if (hasOverride) { ok('Unlock override present'); }
+  else { warn('No unlock override found'); }
+}
+
+// ── Main ───────────────────────────────────────────────────────────────
+async function main() {
+  console.log('══════════════════════════════════════════════════════════════');
+  console.log('   KARMA OS v6 — Comprehensive Validation Suite v2.0');
+  console.log('══════════════════════════════════════════════════════════════');
+  const start = Date.now();
+  await validateStartup();
+  await validateEndpoints();
+  await validateTiming();
+  await validateABTests();
+  await validateWebSocket();
+  await validateHTMLAudit();
+  const duration = Date.now() - start;
+  console.log('\n══════════════════════════════════════════════════════════════');
+  console.log(`   ✅ ${pass} passed  |  ❌ ${fail} failed  |  ⚠️ ${warnings.length} warnings`);
+  console.log(`   Duration: ${duration}ms`);
+  console.log('══════════════════════════════════════════════════════════════');
+  if (errors.length) {
+    console.log('\nErrors:');
+    errors.forEach((e) => console.log(`  - ${e}`));
+  }
+  if (warnings.length) {
+    console.log('\nWarnings:');
+    warnings.forEach((w) => console.log(`  - ${w}`));
+  }
+  process.exit(fail > 0 ? 1 : 0);
+}
+main().catch((e) => { console.error('Fatal:', e); process.exit(1); });

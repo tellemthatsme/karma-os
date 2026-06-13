@@ -1,133 +1,278 @@
-const http = require('http')
-const os = require('os')
-const fs = require('fs')
-const path = require('path')
-const { exec } = require('child_process')
+const http = require('http');
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+const sqlite3 = require('sqlite3').verbose();
+const WebSocket = require('ws');
 
-const PORT = process.env.PORT || 8888
-const IS_WIN = process.platform === 'win32'
+const PORT = process.env.PORT || 8888;
+const IS_WIN = os.platform() === 'win32';
 
-// Tracks the most recent youtube_researcher.py run for /api/research/status
-const researchJobs = { last: null }
+// ── SQLite Persistence ─────────────────────────────────────────────────
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'karma.db');
+const db = new sqlite3.Database(DB_PATH);
 
-// Two-snapshot CPU measurement for accurate instantaneous usage
+// Initialize tables
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS abtest_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    testId TEXT NOT NULL,
+    variant TEXT NOT NULL,
+    event TEXT NOT NULL,
+    ts INTEGER NOT NULL,
+    userId TEXT NOT NULL,
+    sessionId TEXT,
+    props TEXT,
+    receivedAt INTEGER NOT NULL
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_abtest_testId ON abtest_events(testId)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_abtest_ts ON abtest_events(ts)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_abtest_user ON abtest_events(userId)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS abtest_configs (
+    testId TEXT PRIMARY KEY,
+    name TEXT,
+    variants TEXT,
+    weights TEXT,
+    startDate TEXT,
+    endDate TEXT,
+    createdAt TEXT
+  )`);
+});
+
+// ── In-memory metrics ────────────────────────────────────────────────
+const metrics = {
+  requestsTotal: 0,
+  requestsByStatus: {},
+  requestDurations: [],
+  startTime: Date.now(),
+  activeConnections: 0,
+};
+const rateLimitMap = new Map(); // ip → { count, resetTime }
+
+// ── Research job state ─────────────────────────────────────────────────
+const researchJobs = {};
+
+// ── WebSocket state ────────────────────────────────────────────────────
+const wss = new WebSocket.Server({ noServer: true });
+const wsClients = new Set();
+
+function broadcast(data) {
+  const msg = JSON.stringify(data);
+  for (const client of wsClients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(msg);
+    }
+  }
+}
+
+wss.on('connection', (ws) => {
+  wsClients.add(ws);
+  ws.send(JSON.stringify({ type: 'connected', message: 'KARMA A/B Test Live Dashboard' }));
+  ws.on('close', () => wsClients.delete(ws));
+  ws.on('error', () => wsClients.delete(ws));
+});
+
+// ── System Metrics Helpers ─────────────────────────────────────────────
 function getCpuUsage() {
   return new Promise((resolve) => {
-    const snap1 = os.cpus()
+    const stats1 = os.cpus();
     setTimeout(() => {
-      const snap2 = os.cpus()
-      let totalIdle = 0, totalTick = 0
-      snap2.forEach((cpu, i) => {
-        const prev = snap1[i] || cpu
-        for (const type in cpu.times) {
-          totalTick += cpu.times[type] - (prev.times[type] || 0)
-        }
-        totalIdle += cpu.times.idle - (prev.times.idle || 0)
-      })
-      resolve(totalTick > 0 ? ((1 - totalIdle / totalTick) * 100).toFixed(1) : '0.0')
-    }, 100)
-  })
+      const stats2 = os.cpus();
+      let idle = 0, total = 0;
+      for (let i = 0; i < stats1.length; i++) {
+        const s1 = stats1[i].times;
+        const s2 = stats2[i].times;
+        const idleDiff = s2.idle - s1.idle;
+        const totalDiff = Object.keys(s2).reduce((sum, k) => sum + (s2[k] - s1[k]), 0);
+        idle += idleDiff;
+        total += totalDiff;
+      }
+      const usage = total > 0 ? ((total - idle) / total) * 100 : 0;
+      resolve(usage.toFixed(1));
+    }, 100);
+  });
 }
 
 function getMemory() {
-  const total = os.totalmem()
-  const free = os.freemem()
+  const total = os.totalmem();
+  const free = os.freemem();
+  const used = total - free;
   return {
-    total_gb: (total / 1073741824).toFixed(1),
-    free_gb: (free / 1073741824).toFixed(1),
-    used_gb: ((total - free) / 1073741824).toFixed(1),
-    memory_percent: ((1 - free / total) * 100).toFixed(1),
-  }
+    memory_total_gb: (total / 1024 / 1024 / 1024).toFixed(2),
+    memory_free_gb: (free / 1024 / 1024 / 1024).toFixed(2),
+    memory_used_gb: (used / 1024 / 1024 / 1024).toFixed(2),
+    memory_used_pct: ((used / total) * 100).toFixed(1),
+  };
 }
 
 function getDisk() {
   return new Promise((resolve) => {
-    const cmd = IS_WIN
-      ? 'wmic logicaldisk where "DeviceID=\'C:\'" get FreeSpace,Size /format:csv'
-      : 'df -h / | tail -1'
-    exec(cmd, { timeout: 5000 }, (err, stdout) => {
-      if (err) return resolve({ disk_percent: 0, disk_free: 'N/A' })
-      try {
-        if (IS_WIN) {
-          const lines = stdout.trim().split('\n').filter(Boolean)
-          const parts = lines[lines.length - 1].split(',')
-          const free = parseInt(parts[1]) || 0
-          const size = parseInt(parts[2]) || 1
-          resolve({
-            disk_percent: (((size - free) / size) * 100).toFixed(1),
-            disk_free: (free / 1073741824).toFixed(0) + 'GB',
-          })
-        } else {
-          const parts = stdout.trim().split(/\s+/)
-          resolve({
-            disk_percent: parseInt(parts[4]) || 0,
-            disk_free: parts[3] || 'N/A',
-          })
-        }
-      } catch {
-        resolve({ disk_percent: 0, disk_free: 'N/A' })
-      }
-    })
-  })
+    if (IS_WIN) {
+      exec('wmic logicaldisk get size,freespace,caption', (err, stdout) => {
+        if (err) return resolve({});
+        const lines = stdout.split('\n').slice(1).filter(Boolean);
+        const c = lines.find(l => l.trim().startsWith('C:'));
+        if (!c) return resolve({});
+        const parts = c.trim().split(/\s+/);
+        const free = parseInt(parts[1], 10);
+        const size = parseInt(parts[2], 10);
+        resolve({
+          disk_free_gb: (free / 1024 / 1024 / 1024).toFixed(1),
+          disk_total_gb: (size / 1024 / 1024 / 1024).toFixed(1),
+          disk_used_pct: (((size - free) / size) * 100).toFixed(1),
+        });
+      });
+    } else {
+      exec("df -h / | tail -1 | awk '{print $2,$3,$4}'", (err, stdout) => {
+        if (err) return resolve({});
+        const [total, used, free] = stdout.trim().split(' ');
+        resolve({ disk_total: total, disk_used: used, disk_free: free });
+      });
+    }
+  });
 }
 
 function getGitInfo() {
   return new Promise((resolve) => {
-    const cmd = IS_WIN ? 'git rev-list --count HEAD 2>nul || echo 0' : 'git rev-list --count HEAD 2>/dev/null || echo 0'
-    exec(cmd, { timeout: 3000 }, (err, stdout) => {
-      resolve({ commits: parseInt(stdout?.trim()) || 0 })
-    })
-  })
+    exec('git rev-list --count HEAD 2>/dev/null || echo 0', (err, stdout) => {
+      resolve({ commits: parseInt(stdout.trim(), 10) || 0 });
+    });
+  });
 }
 
 function getGitHubRepos() {
   return new Promise((resolve) => {
-    const user = process.env.GH_USER || 'tellemthatsme'
-    const cmd = IS_WIN
-      ? `curl -s "https://api.github.com/users/${user}" 2>nul`
-      : `curl -s "https://api.github.com/users/${user}" 2>/dev/null`
-    exec(cmd, { timeout: 8000 }, (err, stdout) => {
-      try {
-        const d = JSON.parse(stdout)
-        resolve({ total_repos: d.public_repos || 0, followers: d.followers || 0 })
-      } catch {
-        resolve({ total_repos: 0, followers: 0 })
-      }
-    })
-  })
+    const user = process.env.GITHUB_USER || 'tellemthatsme';
+    fetch(`https://api.github.com/users/${user}`)
+      .then(r => r.ok ? r.json() : {})
+      .then(data => resolve({
+        user: data.login || user,
+        public_repos: data.public_repos || 0,
+        followers: data.followers || 0,
+        following: data.following || 0,
+      }))
+      .catch(() => resolve({ user, public_repos: 0, followers: 0, following: 0 }));
+  });
 }
 
+// ── Request Logger ─────────────────────────────────────────────────────
+function logRequest(req, res, startTime, extra = {}) {
+  const duration = Date.now() - startTime;
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  const status = res.statusCode || 200;
+  console.log(`[${new Date().toISOString()}] ${status} ${req.method} ${req.url} ${duration}ms ${ip}${extra.error ? ' ERROR: ' + extra.error : ''}`);
+  metrics.requestsTotal++;
+  metrics.requestsByStatus[status] = (metrics.requestsByStatus[status] || 0) + 1;
+  metrics.requestDurations.push(duration);
+  if (metrics.requestDurations.length > 1000) metrics.requestDurations.shift();
+}
+
+// ── Rate Limiter ───────────────────────────────────────────────────────
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute
+  const maxRequests = 120;
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+  if (entry.count >= maxRequests) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetTime - now) / 1000) };
+  }
+  entry.count++;
+  return { allowed: true, remaining: maxRequests - entry.count };
+}
+
+// ── AB Test Stats Helper ───────────────────────────────────────────────
+function computeABStatsFromDB(callback) {
+  const query = `
+    SELECT testId, variant, event, COUNT(*) as count, 
+           COUNT(DISTINCT userId) as users,
+           SUM(CASE WHEN json_extract(props, '$.revenue') IS NOT NULL THEN CAST(json_extract(props, '$.revenue') AS REAL) ELSE 0 END) as revenue
+    FROM abtest_events
+    GROUP BY testId, variant, event
+  `;
+  db.all(query, [], (err, rows) => {
+    if (err) return callback(err);
+    const results = {};
+    for (const row of rows) {
+      if (!results[row.testId]) results[row.testId] = {};
+      if (!results[row.testId][row.variant]) results[row.testId][row.variant] = { events: {}, userCount: 0, revenue: 0 };
+      const v = results[row.testId][row.variant];
+      v.events[row.event] = (v.events[row.event] || 0) + row.count;
+      v.userCount = Math.max(v.userCount, row.users);
+      v.revenue += row.revenue || 0;
+    }
+    // Compute rates
+    for (const testId in results) {
+      for (const variant in results[testId]) {
+        const v = results[testId][variant];
+        const impressions = v.events.impression || v.events.view || 0;
+        const clicks = v.events.click || 0;
+        const conversions = v.events.conversion || 0;
+        v.ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) + '%' : 'N/A';
+        v.conversionRate = impressions > 0 ? ((conversions / impressions) * 100).toFixed(2) + '%' : 'N/A';
+        v.revenue = Number(v.revenue.toFixed(2));
+      }
+    }
+    callback(null, results);
+  });
+}
+
+// ── Request Handler ────────────────────────────────────────────────────
 const requestHandler = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  res.setHeader('Content-Type', 'application/json')
+  const startTime = Date.now();
+  metrics.activeConnections++;
+  
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(204)
-    return res.end()
+    res.writeHead(204);
+    metrics.activeConnections--;
+    return res.end();
   }
 
-  const url = req.url.split('?')[0]
+  // Rate limiting
+  const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  const rateLimit = checkRateLimit(clientIp);
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', rateLimit.retryAfter);
+    res.writeHead(429);
+    logRequest(req, res, startTime, { error: 'Rate limited' });
+    metrics.activeConnections--;
+    return res.end(JSON.stringify({ error: 'Too many requests', retryAfter: rateLimit.retryAfter }));
+  }
+  res.setHeader('X-RateLimit-Remaining', rateLimit.remaining);
 
-  // ── Claude API proxy (server-side) ──────────────────────────────────────
-  // Holds ANTHROPIC_API_KEY in env so the browser never sees it.
-  // Streams the response back via SSE.
+  const url = req.url.split('?')[0];
+
+  // ── Claude API proxy (server-side) ───────────────────────────────────
   if (url === '/api/chat' && req.method === 'POST') {
     if (!process.env.ANTHROPIC_API_KEY) {
-      res.writeHead(503)
-      return res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set on server' }))
+      res.writeHead(503);
+      logRequest(req, res, startTime, { error: 'ANTHROPIC_API_KEY not set' });
+      metrics.activeConnections--;
+      return res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set on server' }));
     }
-    let body = ''
-    req.on('data', (chunk) => { body += chunk })
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
     req.on('end', async () => {
       try {
-        const { messages, system, model, max_tokens, stream, agent } = JSON.parse(body || '{}')
-        const useModel = model || 'claude-sonnet-4-20250514'
-        const useMax = max_tokens || 1200
+        const { messages, system, model, max_tokens, stream, agent } = JSON.parse(body || '{}');
+        const useModel = model || 'claude-sonnet-4-20250514';
+        const useMax = max_tokens || 1200;
         if (!Array.isArray(messages) || messages.length === 0) {
-          res.writeHead(400)
-          return res.end(JSON.stringify({ error: 'messages required' }))
+          res.writeHead(400);
+          logRequest(req, res, startTime, { error: 'messages required' });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ error: 'messages required' }));
         }
         const upstream = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -143,122 +288,299 @@ const requestHandler = async (req, res) => {
             messages,
             stream: !!stream,
           }),
-        })
+        });
         if (!upstream.ok) {
-          const txt = await upstream.text()
-          res.writeHead(upstream.status)
-          return res.end(JSON.stringify({ error: txt.substring(0, 500) }))
+          const txt = await upstream.text();
+          res.writeHead(upstream.status);
+          logRequest(req, res, startTime, { error: 'Upstream error: ' + txt.substring(0, 100) });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ error: txt.substring(0, 500) }));
         }
         if (stream) {
           res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-          })
-          const reader = upstream.body.getReader()
+          });
+          const reader = upstream.body.getReader();
           const pump = async () => {
             while (true) {
-              const { done, value } = await reader.read()
-              if (done) { res.end(); return }
-              res.write(Buffer.from(value))
+              const { done, value } = await reader.read();
+              if (done) { res.end(); metrics.activeConnections--; return; }
+              res.write(Buffer.from(value));
             }
-          }
-          pump().catch((e) => { try { res.end() } catch {} })
+          };
+          pump().catch((e) => { try { res.end(); metrics.activeConnections--; } catch {} });
         } else {
-          const data = await upstream.json()
-          res.writeHead(200)
-          res.end(JSON.stringify(data))
+          const data = await upstream.json();
+          res.writeHead(200);
+          logRequest(req, res, startTime);
+          metrics.activeConnections--;
+          res.end(JSON.stringify(data));
         }
       } catch (e) {
-        res.writeHead(500)
-        res.end(JSON.stringify({ error: e.message }))
+        res.writeHead(500);
+        logRequest(req, res, startTime, { error: e.message });
+        metrics.activeConnections--;
+        res.end(JSON.stringify({ error: e.message }));
       }
-    })
-    return
+    });
+    return;
   }
-  // ────────────────────────────────────────────────────────────────────────
 
   try {
+    // ── Metrics / Health ───────────────────────────────────────────────
     if (url === '/metrics' || url === '/') {
-      const cpu = await getCpuUsage()
-      const mem = getMemory()
-      const disk = await getDisk()
-      res.writeHead(200)
-      res.end(
-        JSON.stringify({
-          cpu: parseFloat(cpu),
-          ...mem,
-          ...disk,
-          hostname: os.hostname(),
-          platform: os.platform(),
-          uptime: os.uptime(),
-          timestamp: new Date().toISOString(),
-        })
-      )
-    } else if (url === '/github') {
-      const data = await getGitHubRepos()
-      res.writeHead(200)
-      res.end(JSON.stringify(data))
-    } else if (url === '/cr') {
-      res.writeHead(200)
-      res.end(JSON.stringify({ security_score: 98, total_scans: 142 }))
-    } else if (url === '/git') {
-      const data = await getGitInfo()
-      res.writeHead(200)
-      res.end(JSON.stringify(data))
+      const cpu = await getCpuUsage();
+      const mem = getMemory();
+      const disk = await getDisk();
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({
+        cpu: parseFloat(cpu),
+        ...mem,
+        ...disk,
+        hostname: os.hostname(),
+        platform: os.platform(),
+        uptime: os.uptime(),
+        timestamp: new Date().toISOString(),
+      }));
     } else if (url === '/health') {
-      res.writeHead(200)
-      res.end(JSON.stringify({ status: 'ok', uptime: process.uptime() }))
-    } else if (url === '/api/abtest/event' && req.method === 'POST') {
-  let body = '';
-  req.on('data', (chunk) => { body += chunk; });
-  req.on('end', () => {
-    try {
-      const payload = JSON.parse(body);
-      if (!Array.isArray(payload.events)) throw new Error('events must be an array');
-      const accepted = [];
-      for (const ev of payload.events) {
-        if (!ev || typeof ev.testId !== 'string' || typeof ev.event !== 'string') continue;
-        if (ev.testId.length > 100 || ev.event.length > 100) continue;
-        accepted.push({
-          testId: ev.testId, variant: String(ev.variant || 'unassigned').slice(0, 50),
-          event: ev.event, ts: Number(ev.ts) || Date.now(),
-          userId: String(ev.userId || 'anon').slice(0, 100),
-          props: ev.props && typeof ev.props === 'object' ? ev.props : {}, receivedAt: Date.now(),
-        });
-      }
-      abtestEvents.push(...accepted);
-      if (abtestEvents.length > 10000) abtestEvents = abtestEvents.slice(-10000);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, accepted: accepted.length }));
-    } catch (err) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: false, error: err.message }));
+      const mem = process.memoryUsage();
+      const avgDuration = metrics.requestDurations.length > 0
+        ? (metrics.requestDurations.reduce((a, b) => a + b, 0) / metrics.requestDurations.length).toFixed(1)
+        : 0;
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({
+        status: 'ok',
+        uptime: process.uptime(),
+        uptime_human: `${Math.floor(process.uptime() / 3600)}h ${Math.floor((process.uptime() % 3600) / 60)}m`,
+        memory: {
+          rss_mb: (mem.rss / 1024 / 1024).toFixed(1),
+          heap_total_mb: (mem.heapTotal / 1024 / 1024).toFixed(1),
+          heap_used_mb: (mem.heapUsed / 1024 / 1024).toFixed(1),
+          external_mb: (mem.external / 1024 / 1024).toFixed(1),
+        },
+        requests: {
+          total: metrics.requestsTotal,
+          active_connections: metrics.activeConnections,
+          avg_duration_ms: avgDuration,
+          by_status: metrics.requestsByStatus,
+        },
+        version: 'v25.2',
+        timestamp: new Date().toISOString(),
+      }));
+    } else if (url === '/github') {
+      const data = await getGitHubRepos();
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify(data));
+    } else if (url === '/cr') {
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ security_score: 98, total_scans: 142 }));
+    } else if (url === '/git') {
+      const data = await getGitInfo();
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify(data));
     }
-  });
-  return;
-} else if (url === '/api/abtest/results' && req.method === 'GET') {
-  const results = {};
-  for (const ev of abtestEvents) {
-    if (!results[ev.testId]) results[ev.testId] = {};
-    if (!results[ev.testId][ev.variant]) results[ev.testId][ev.variant] = {};
-    results[ev.testId][ev.variant][ev.event] = (results[ev.testId][ev.variant][ev.event] || 0) + 1;
-  }
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true, totalEvents: abtestEvents.length, results }));
-  return;
-} else if (url === '/api/abtest/reset' && req.method === 'POST') {
-  abtestEvents = [];
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ ok: true }));
-  return;
-} else if (url === '/api/research/refresh' && req.method === 'POST') {
-      // ── Triggers scripts/youtube_researcher.py --trending ──────────────
-      // Returns 202 immediately; the script runs in the background and
-      // writes ai_news/CURRENT_AI_BRIEF.md. Frontend polls /api/research/status.
-      const projRoot = __dirname
-      const py = IS_WIN ? 'python' : 'python3'
-      const cmd = `cd "${projRoot}" && ${py} scripts/youtube_researcher.py --trending -o ai_news/CURRENT_AI_BRIEF.md 2>&1`
+    // ── A/B Testing ────────────────────────────────────────────────────
+    else if (url === '/api/abtest/event' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body);
+          if (!Array.isArray(payload.events)) throw new Error('events must be an array');
+          const accepted = [];
+          const stmt = db.prepare(`
+            INSERT INTO abtest_events (testId, variant, event, ts, userId, sessionId, props, receivedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `);
+          for (const ev of payload.events) {
+            if (!ev || typeof ev.testId !== 'string' || typeof ev.event !== 'string') continue;
+            if (ev.testId.length > 100 || ev.event.length > 100) continue;
+            const record = {
+              testId: ev.testId,
+              variant: String(ev.variant || 'unassigned').slice(0, 50),
+              event: ev.event,
+              ts: Number(ev.ts) || Date.now(),
+              userId: String(ev.userId || 'anon').slice(0, 100),
+              sessionId: String(ev.sessionId || '').slice(0, 100),
+              props: JSON.stringify(ev.props || {}),
+              receivedAt: Date.now(),
+            };
+            stmt.run(record.testId, record.variant, record.event, record.ts, record.userId, record.sessionId, record.props, record.receivedAt);
+            accepted.push(record);
+          }
+          stmt.finalize();
+          // Broadcast to WebSocket clients
+          broadcast({ type: 'new_events', count: accepted.length, testIds: [...new Set(accepted.map(e => e.testId))] });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime);
+          metrics.activeConnections--;
+          res.end(JSON.stringify({ ok: true, accepted: accepted.length }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+      });
+      return;
+    } else if (url === '/api/abtest/results' && req.method === 'GET') {
+      computeABStatsFromDB((err, stats) => {
+        if (err) {
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(JSON.stringify({
+          ok: true,
+          totalTests: Object.keys(stats).length,
+          results: stats,
+        }));
+      });
+      return;
+    } else if (url === '/api/abtest/stats' && req.method === 'GET') {
+      db.get('SELECT COUNT(*) as total FROM abtest_events', [], (err, row) => {
+        if (err) {
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+        db.all('SELECT testId, COUNT(*) as events FROM abtest_events GROUP BY testId', [], (err, tests) => {
+          if (err) {
+            res.writeHead(500);
+            logRequest(req, res, startTime, { error: err.message });
+            metrics.activeConnections--;
+            return res.end(JSON.stringify({ ok: false, error: err.message }));
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime);
+          metrics.activeConnections--;
+          res.end(JSON.stringify({
+            ok: true,
+            totalEvents: row.total,
+            tests: tests,
+            wsClients: wsClients.size,
+          }));
+        });
+      });
+      return;
+    } else if (url === '/api/abtest/config' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (chunk) => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const { testId, name, variants, weights, startDate, endDate } = JSON.parse(body);
+          if (!testId || !Array.isArray(variants)) {
+            res.writeHead(400);
+            logRequest(req, res, startTime, { error: 'testId and variants required' });
+            metrics.activeConnections--;
+            return res.end(JSON.stringify({ error: 'testId and variants required' }));
+          }
+          db.run(
+            `INSERT OR REPLACE INTO abtest_configs (testId, name, variants, weights, startDate, endDate, createdAt)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [testId, name || testId, JSON.stringify(variants), weights ? JSON.stringify(weights) : null, startDate || new Date().toISOString(), endDate || null, new Date().toISOString()],
+            function(err) {
+              if (err) {
+                res.writeHead(500);
+                logRequest(req, res, startTime, { error: err.message });
+                metrics.activeConnections--;
+                return res.end(JSON.stringify({ error: err.message }));
+              }
+              res.writeHead(200);
+              logRequest(req, res, startTime);
+              metrics.activeConnections--;
+              res.end(JSON.stringify({ ok: true, testId }));
+            }
+          );
+        } catch (e) {
+          res.writeHead(400);
+          logRequest(req, res, startTime, { error: e.message });
+          metrics.activeConnections--;
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    } else if (url === '/api/abtest/config' && req.method === 'GET') {
+      db.all('SELECT * FROM abtest_configs', [], (err, rows) => {
+        if (err) {
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ error: err.message }));
+        }
+        const configs = {};
+        for (const row of rows) {
+          configs[row.testId] = {
+            name: row.name,
+            variants: JSON.parse(row.variants),
+            weights: row.weights ? JSON.parse(row.weights) : null,
+            startDate: row.startDate,
+            endDate: row.endDate,
+            createdAt: row.createdAt,
+          };
+        }
+        res.writeHead(200);
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(JSON.stringify({ ok: true, configs }));
+      });
+      return;
+    } else if (url === '/api/abtest/reset' && req.method === 'POST') {
+      db.run('DELETE FROM abtest_events', [], (err) => {
+        if (err) {
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ error: err.message }));
+        }
+        broadcast({ type: 'reset', message: 'All A/B test data cleared' });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(JSON.stringify({ ok: true, message: 'All A/B test data cleared' }));
+      });
+      return;
+    } else if (url === '/api/abtest/export' && req.method === 'GET') {
+      db.all('SELECT * FROM abtest_events ORDER BY ts DESC LIMIT 5000', [], (err, rows) => {
+        if (err) {
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: err.message });
+          metrics.activeConnections--;
+          return res.end(JSON.stringify({ error: err.message }));
+        }
+        const data = rows.map(r => ({
+          ...r,
+          props: JSON.parse(r.props || '{}'),
+        }));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(JSON.stringify({ ok: true, count: data.length, data }));
+      });
+      return;
+    }
+    // ── Research ───────────────────────────────────────────────────────
+    else if (url === '/api/research/refresh' && req.method === 'POST') {
+      const projRoot = __dirname;
+      const py = IS_WIN ? 'python' : 'python3';
+      const cmd = `cd "${projRoot}" && ${py} scripts/youtube_researcher.py --trending -o ai_news/CURRENT_AI_BRIEF.md 2>&1`;
       const child = exec(cmd, { timeout: 120000, maxBuffer: 8 * 1024 * 1024 }, (err, stdout, stderr) => {
         if (researchJobs.last) {
           researchJobs.last = {
@@ -267,104 +589,94 @@ const requestHandler = async (req, res) => {
             ok: !err,
             output_tail: String(stdout || '').slice(-2000),
             error: err ? String(err.message) : null,
-          }
+          };
         }
-      })
+      });
       researchJobs.last = {
         started_at: new Date().toISOString(),
         pid: child.pid,
         ok: null,
-      }
-      // Archive the previous brief before overwriting
-
-      const archiveDir = path.join(__dirname, 'ai_news', 'archive')
-      try { fs.mkdirSync(archiveDir, { recursive: true }) } catch {}
-      const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md')
+      };
+      const archiveDir = path.join(__dirname, 'ai_news', 'archive');
+      try { fs.mkdirSync(archiveDir, { recursive: true }); } catch {}
+      const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md');
       try {
-        const prev = fs.readFileSync(briefPath, 'utf8')
-        const today = new Date().toISOString().slice(0, 10)
-        const archivePath = path.join(archiveDir, today + '.md')
-        // Only archive if not already archived today
+        const prev = fs.readFileSync(briefPath, 'utf8');
+        const today = new Date().toISOString().slice(0, 10);
+        const archivePath = path.join(archiveDir, today + '.md');
         if (!fs.existsSync(archivePath)) {
-          fs.writeFileSync(archivePath, prev, 'utf8')
-          // Keep last 30 days, prune older
-          const files = fs.readdirSync(archiveDir).sort()
+          fs.writeFileSync(archivePath, prev, 'utf8');
+          const files = fs.readdirSync(archiveDir).sort();
           if (files.length > 30) {
             for (const old of files.slice(0, files.length - 30)) {
-              try { fs.unlinkSync(path.join(archiveDir, old)) } catch {}
+              try { fs.unlinkSync(path.join(archiveDir, old)); } catch {}
             }
           }
         }
-      } catch (e) {
-        // No previous brief — that's fine
-      }
-
-      res.writeHead(202)
-      res.end(JSON.stringify({ started: true, pid: child.pid, brief_path: 'ai_news/CURRENT_AI_BRIEF.md' }))
+      } catch (e) {}
+      res.writeHead(202);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ started: true, pid: child.pid, brief_path: 'ai_news/CURRENT_AI_BRIEF.md' }));
     } else if (url === '/api/research/status') {
-      // ── Returns the last research job's status + brief metadata ───────
-
-      const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md')
-      let briefMeta = { exists: false }
+      const briefPath = path.join(__dirname, 'ai_news', 'CURRENT_AI_BRIEF.md');
+      let briefMeta = { exists: false };
       try {
-        const stat = fs.statSync(briefPath)
+        const stat = fs.statSync(briefPath);
         briefMeta = {
           exists: true,
           bytes: stat.size,
           modified: stat.mtime.toISOString(),
           age_seconds: Math.round((Date.now() - stat.mtime.getTime()) / 1000),
-        }
+        };
       } catch {}
-      res.writeHead(200)
-      res.end(JSON.stringify({ job: researchJobs.last, brief: briefMeta }, null, 2))
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ job: researchJobs.last, brief: briefMeta }, null, 2));
     } else if (url === '/api/research/rss' || url === '/feed.xml' || url === '/rss') {
-      // ── Atom feed of the current brief + archive (last 30) ─────────
-      // Subscribe in Feedly / NetNewsWire / Reeder / any RSS reader.
-
-      const baseUrl = `http://${req.headers.host || 'localhost:' + PORT}`
-      const aiDir = path.join(__dirname, 'ai_news')
-      const entries = []
-      // Current brief
+      const baseUrl = `http://${req.headers.host || 'localhost:' + PORT}`;
+      const aiDir = path.join(__dirname, 'ai_news');
+      const entries = [];
       try {
-        const stat = fs.statSync(path.join(aiDir, 'CURRENT_AI_BRIEF.md'))
-        const content = fs.readFileSync(path.join(aiDir, 'CURRENT_AI_BRIEF.md'), 'utf8')
-        const titleMatch = content.match(/^#\s+(.+)$/m)
-        const summary = content.replace(/[#*`>]/g, '').replace(/\n+/g, ' ').trim().slice(0, 280)
+        const stat = fs.statSync(path.join(aiDir, 'CURRENT_AI_BRIEF.md'));
+        const content = fs.readFileSync(path.join(aiDir, 'CURRENT_AI_BRIEF.md'), 'utf8');
+        const titleMatch = content.match(/^#\s+(.+)$/m);
+        const summary = content.replace(/[#*`>]/g, '').replace(/\n+/g, ' ').trim().slice(0, 280);
         entries.push({
           id: `ai-brief-${stat.mtime.toISOString().slice(0, 10)}`,
           title: titleMatch ? titleMatch[1] : 'AI Weekly Brief',
           link: `${baseUrl}/api/research/rss`,
           updated: stat.mtime.toISOString(),
           summary,
-        })
+        });
       } catch {}
-      // Archive (last 30)
       try {
-        const archiveDir = path.join(aiDir, 'archive')
-        const files = fs.readdirSync(archiveDir).filter(f => f.endsWith('.md')).sort().reverse().slice(0, 30)
+        const archiveDir = path.join(aiDir, 'archive');
+        const files = fs.readdirSync(archiveDir).filter(f => f.endsWith('.md')).sort().reverse().slice(0, 30);
         for (const f of files) {
-          const full = path.join(archiveDir, f)
-          const stat = fs.statSync(full)
-          const content = fs.readFileSync(full, 'utf8')
-          const titleMatch = content.match(/^#\s+(.+)$/m)
-          const summary = content.replace(/[#*`>]/g, '').replace(/\n+/g, ' ').trim().slice(0, 280)
+          const full = path.join(archiveDir, f);
+          const stat = fs.statSync(full);
+          const content = fs.readFileSync(full, 'utf8');
+          const titleMatch = content.match(/^#\s+(.+)$/m);
+          const summary = content.replace(/[#*`>]/g, '').replace(/\n+/g, ' ').trim().slice(0, 280);
           entries.push({
             id: `ai-brief-${f.replace('.md', '')}`,
             title: titleMatch ? titleMatch[1] : 'AI Brief ' + f.replace('.md', ''),
             link: `${baseUrl}/_archive/ai_news/archive/${f}`,
             updated: stat.mtime.toISOString(),
             summary,
-          })
+          });
         }
       } catch {}
-      const updated = entries.length ? entries[0].updated : new Date().toISOString()
-      const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      const updated = entries.length ? entries[0].updated : new Date().toISOString();
+      const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>${esc('KARMA OS · AI Weekly Brief')}</title>
   <subtitle>${esc('Auto-generated AI/ML/news brief by scripts/youtube_researcher.py')}</subtitle>
   <link href="${esc(baseUrl + '/api/research/rss')}" rel="self"/>
-  <link href="${esc(baseUrl + '/')}"/>
+  <link href="${esc(baseUrl + '/')}""/>
   <id>urn:karma-os:ai-brief</id>
   <updated>${esc(updated)}</updated>
 ${entries.map(e => `  <entry>
@@ -375,147 +687,195 @@ ${entries.map(e => `  <entry>
     <summary>${esc(e.summary)}</summary>
   </entry>`).join('\n')}
 </feed>
-`
-      res.writeHead(200, { 'Content-Type': 'application/atom+xml; charset=utf-8' })
-      res.end(xml)
-      return
+`;
+      res.writeHead(200, { 'Content-Type': 'application/atom+xml; charset=utf-8' });
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(xml);
+      return;
     } else if (url === '/api/research/history' && req.method === 'GET') {
-      // ── List archived briefs (last 30 days) ──────────────────────────
-
-      const archiveDir = path.join(__dirname, 'ai_news', 'archive')
-      let history = []
+      const archiveDir = path.join(__dirname, 'ai_news', 'archive');
+      let history = [];
       try {
-        const files = fs.readdirSync(archiveDir).filter(f => f.endsWith('.md')).sort().reverse()
+        const files = fs.readdirSync(archiveDir).filter(f => f.endsWith('.md')).sort().reverse();
         history = files.map(f => {
-          const stat = fs.statSync(path.join(archiveDir, f))
+          const stat = fs.statSync(path.join(archiveDir, f));
           return {
             date: f.replace('.md', ''),
             path: 'ai_news/archive/' + f,
             size_kb: Math.round(stat.size / 1024),
             modified: stat.mtime.toISOString(),
-          }
-        })
+          };
+        });
       } catch {}
-      res.writeHead(200)
-      res.end(JSON.stringify({ history }, null, 2))
+      res.writeHead(200);
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ history }, null, 2));
     } else if (url.startsWith('/_archive/') && req.method === 'GET') {
-      // ── Serve archived brief for the history dropdown ────────────────
-
-      const subpath = url.replace('/_archive/', '')
-      // Security: only allow alphanumerics, slashes, dots, dashes
+      const subpath = url.replace('/_archive/', '');
       if (!/^[a-zA-Z0-9._\-\/]+$/.test(subpath)) {
-        res.writeHead(400)
-        return res.end(JSON.stringify({ error: 'Invalid path' }))
+        res.writeHead(400);
+        logRequest(req, res, startTime, { error: 'Invalid path' });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: 'Invalid path' }));
       }
-      const full = path.join(__dirname, subpath)
+      const full = path.join(__dirname, subpath);
       if (!full.startsWith(path.join(__dirname, 'ai_news'))) {
-        res.writeHead(403)
-        return res.end(JSON.stringify({ error: 'Forbidden' }))
+        res.writeHead(403);
+        logRequest(req, res, startTime, { error: 'Forbidden' });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: 'Forbidden' }));
       }
       try {
-        const text = fs.readFileSync(full, 'utf8')
-        res.writeHead(200, { 'Content-Type': 'text/markdown' })
-        res.end(text)
+        const text = fs.readFileSync(full, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'text/markdown' });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(text);
       } catch (e) {
-        res.writeHead(404)
-        res.end(JSON.stringify({ error: 'Not found' }))
+        res.writeHead(404);
+        logRequest(req, res, startTime, { error: 'Not found' });
+        metrics.activeConnections--;
+        res.end(JSON.stringify({ error: 'Not found' }));
       }
     } else if (url.startsWith('/api/push/') && req.method === 'POST') {
-      // ── Forward brief content to a platform webhook ──────────────────
-      const platform = url.replace('/api/push/', '').split('?')[0]
-      let body = ''
-      req.on('data', (c) => { body += c })
+      const platform = url.replace('/api/push/', '').split('?')[0];
+      let body = '';
+      req.on('data', (c) => { body += c; });
       req.on('end', async () => {
         try {
-          const { content } = JSON.parse(body || '{}')
+          const { content } = JSON.parse(body || '{}');
           if (!content) {
-            res.writeHead(400)
-            return res.end(JSON.stringify({ error: 'content required' }))
+            res.writeHead(400);
+            logRequest(req, res, startTime, { error: 'content required' });
+            metrics.activeConnections--;
+            return res.end(JSON.stringify({ error: 'content required' }));
           }
-          let webhookUrl = null
-          let extraHeaders = {}
-          let payload = null
+          let webhookUrl = null;
+          let payload = null;
           if (platform === 'discord') {
-            webhookUrl = process.env.DISCORD_WEBHOOK_AI_BRIEF
+            webhookUrl = process.env.DISCORD_WEBHOOK_AI_BRIEF;
             payload = {
               content: '@here 🧪 AI Weekly Brief',
               embeds: [{ description: content.slice(0, 4000), color: 5814783, footer: { text: 'KARMA OS' } }],
-            }
+            };
           } else if (platform === 'telegram') {
-            const token = process.env.TELEGRAM_BOT_TOKEN
-            const chat = process.env.TELEGRAM_AI_BRIEF_CHAT_ID
+            const token = process.env.TELEGRAM_BOT_TOKEN;
+            const chat = process.env.TELEGRAM_AI_BRIEF_CHAT_ID;
             if (!token || !chat) {
-              res.writeHead(503)
-              return res.end(JSON.stringify({ ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_AI_BRIEF_CHAT_ID not set', hint: 'add to server.js env vars' }))
+              res.writeHead(503);
+              logRequest(req, res, startTime, { error: 'Telegram not configured' });
+              metrics.activeConnections--;
+              return res.end(JSON.stringify({ ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_AI_BRIEF_CHAT_ID not set', hint: 'add to server.js env vars' }));
             }
-            webhookUrl = `https://api.telegram.org/bot${token}/sendMessage`
-            payload = { chat_id: chat, text: '🧪 *AI Weekly Brief*\n\n' + content.slice(0, 3500), parse_mode: 'Markdown' }
+            webhookUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+            payload = { chat_id: chat, text: '🧪 *AI Weekly Brief*\n\n' + content.slice(0, 3500), parse_mode: 'Markdown' };
           } else if (platform === 'slack') {
-            webhookUrl = process.env.SLACK_WEBHOOK_AI_BRIEF
-            payload = { text: '🧪 *AI Weekly Brief*\n\n' + content.slice(0, 3500) }
+            webhookUrl = process.env.SLACK_WEBHOOK_AI_BRIEF;
+            payload = { text: '🧪 *AI Weekly Brief*\n\n' + content.slice(0, 3500) };
           } else {
-            res.writeHead(400)
-            return res.end(JSON.stringify({ error: 'Unknown platform: ' + platform, supported: ['discord', 'telegram', 'slack'] }))
+            res.writeHead(400);
+            logRequest(req, res, startTime, { error: 'Unknown platform: ' + platform });
+            metrics.activeConnections--;
+            return res.end(JSON.stringify({ error: 'Unknown platform: ' + platform, supported: ['discord', 'telegram', 'slack'] }));
           }
           if (!webhookUrl) {
-            res.writeHead(503)
-            return res.end(JSON.stringify({ ok: false, error: 'Webhook URL not configured', hint: 'set ' + platform.toUpperCase() + '_WEBHOOK env var' }))
+            res.writeHead(503);
+            logRequest(req, res, startTime, { error: 'Webhook not configured' });
+            metrics.activeConnections--;
+            return res.end(JSON.stringify({ ok: false, error: 'Webhook URL not configured', hint: 'set ' + platform.toUpperCase() + '_WEBHOOK env var' }));
           }
           const r = await fetch(webhookUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...extraHeaders },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
-          })
-          const ok = r.ok
-          res.writeHead(ok ? 200 : 502)
-          res.end(JSON.stringify({ ok, status: r.status, message: ok ? 'Posted to ' + platform : 'Upstream returned ' + r.status }))
+          });
+          const ok = r.ok;
+          res.writeHead(ok ? 200 : 502);
+          logRequest(req, res, startTime, ok ? {} : { error: 'Upstream error' });
+          metrics.activeConnections--;
+          res.end(JSON.stringify({ ok, status: r.status, message: ok ? 'Posted to ' + platform : 'Upstream returned ' + r.status }));
         } catch (e) {
-          res.writeHead(500)
-          res.end(JSON.stringify({ ok: false, error: e.message }))
+          res.writeHead(500);
+          logRequest(req, res, startTime, { error: e.message });
+          metrics.activeConnections--;
+          res.end(JSON.stringify({ ok: false, error: e.message }));
         }
-      })
-      return
+      });
+      return;
     } else if (url.startsWith('/media/') && req.method === 'GET') {
-      /**
-       * Static file handler for /media/* — serves command center dashboards,
-       * HTML panels, JS, CSS, images, and markdown from the media/ directory.
-       *
-       * Security:
-       *  - decodeURIComponent with try/catch rejects malformed percent-encoding
-       *  - .replace(/\.\./g, '') strips path-traversal sequences
-       *  - full.startsWith(path.join(__dirname, 'media')) confirms containment
-       *  - 404 returns text/plain (no internal path leaked)
-       *
-       * Supported MIME types: .html .js .css .png .jpg .svg .md .json
-       */
       let safe;
-      try { safe = decodeURIComponent(url.replace(/^\/media\//, '').split('#')[0]).replace(/\.\./g, '') } catch { res.writeHead(400, { 'Content-Type': 'text/plain' }); return res.end('Bad request') }
-      const full = path.join(__dirname, 'media', safe)
-      if (!full.startsWith(path.join(__dirname, 'media'))) {
-        res.writeHead(403); return res.end('Forbidden')
+      try { safe = decodeURIComponent(url.replace(/^\/media\//, '').split('#')[0]).replace(/\.\./g, ''); } catch {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        logRequest(req, res, startTime, { error: 'Bad request' });
+        metrics.activeConnections--;
+        return res.end('Bad request');
       }
-      const ext = path.extname(full).toLowerCase()
-      const mime = {'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.md':'text/markdown','.json':'application/json'}[ext] || 'application/octet-stream'
+      const full = path.join(__dirname, 'media', safe);
+      if (!full.startsWith(path.join(__dirname, 'media'))) {
+        res.writeHead(403);
+        logRequest(req, res, startTime, { error: 'Forbidden' });
+        metrics.activeConnections--;
+        return res.end('Forbidden');
+      }
+      const ext = path.extname(full).toLowerCase();
+      const mime = {
+        '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
+        '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
+        '.md': 'text/markdown', '.json': 'application/json',
+      }[ext] || 'application/octet-stream';
       fs.readFile(full, (err, data) => {
-        if (err) { console.error('[media]', err.code, safe); res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found: ' + safe) }
-        res.writeHead(200, { 'Content-Type': mime }); res.end(data)
-      })
-      return
+        if (err) {
+          console.error('[media]', err.code, safe);
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          logRequest(req, res, startTime, { error: 'Not found' });
+          metrics.activeConnections--;
+          return res.end('Not found: ' + safe);
+        }
+        res.writeHead(200, { 'Content-Type': mime });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(data);
+      });
+      return;
     } else {
-      res.writeHead(404)
-      res.end(JSON.stringify({ error: 'Not found', endpoints: ['/metrics', '/github', '/cr', '/git', '/health', '/api/chat (POST)', '/api/research/refresh (POST)', '/api/research/status', '/api/research/rss', '/api/research/history', '/api/push/{discord|telegram|slack} (POST)', '/media/* (static)'] }))
+      res.writeHead(404);
+      logRequest(req, res, startTime, { error: 'Not found' });
+      metrics.activeConnections--;
+      res.end(JSON.stringify({
+        error: 'Not found',
+        endpoints: [
+          '/metrics', '/github', '/cr', '/git', '/health',
+          '/api/chat (POST)', '/api/abtest/event (POST)', '/api/abtest/results (GET)',
+          '/api/abtest/config (POST/GET)', '/api/abtest/reset (POST)',
+          '/api/abtest/stats (GET)', '/api/abtest/export (GET)',
+          '/api/research/{refresh,status,history,rss}', '/api/push/{discord,telegram,slack} (POST)',
+          '/media/* (static)',
+        ],
+      }));
     }
   } catch (e) {
-    res.writeHead(500)
-    res.end(JSON.stringify({ error: e.message }))
+    res.writeHead(500);
+    logRequest(req, res, startTime, { error: e.message });
+    metrics.activeConnections--;
+    res.end(JSON.stringify({ error: 'Internal server error', message: e.message, timestamp: new Date().toISOString() }));
   }
-}
+};
 
-const server = http.createServer(requestHandler)
+const server = http.createServer(requestHandler);
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
 server.listen(PORT, () => {
-  console.log(`⚡ KARMA Metrics Server running on http://localhost:${PORT}`)
-  console.log(`   Endpoints: /metrics  /github  /cr  /git  /health`)
-  console.log(`   Research:  /api/research/{refresh,status,history,rss}  /feed.xml  /rss`)
-  console.log(`   Push:      /api/push/{discord,telegram,slack}`)
-  console.log(`   Proxy:     POST /api/chat  (Anthropic Claude, ${process.env.ANTHROPIC_API_KEY ? 'API key loaded ✓' : 'NO API KEY SET — set ANTHROPIC_API_KEY env'})`)
-})
+  console.log(`⚡ KARMA Metrics Server v25.2 running on http://localhost:${PORT}`);
+  console.log(`   Endpoints: /metrics  /github  /cr  /git  /health`);
+  console.log(`   A/B Test:  /api/abtest/{event,results,stats,config,reset,export}`);
+  console.log(`   WebSocket: ws://localhost:${PORT} (A/B test live dashboard)`);
+  console.log(`   Research:  /api/research/{refresh,status,history,rss}  /feed.xml  /rss`);
+  console.log(`   Push:      /api/push/{discord,telegram,slack}`);
+  console.log(`   Proxy:     POST /api/chat  (Anthropic Claude, ${process.env.ANTHROPIC_API_KEY ? 'API key loaded ✓' : 'NO API KEY SET — set ANTHROPIC_API_KEY env'})`);
+  console.log(`   SQLite:    ${DB_PATH}`);
+});

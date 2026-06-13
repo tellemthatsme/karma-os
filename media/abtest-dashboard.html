@@ -242,7 +242,7 @@
 </head>
 <body>
 <header>
-  <h1>KARMA A/B Test Live Dashboard</h1>
+  <h1>🔬 KARMA A/B Test Live Dashboard</h1>
   <div class="controls">
     <div class="btn-group">
       <button class="btn" onclick="loadStats()">Refresh Stats</button>
@@ -335,4 +335,137 @@ function connectWS() {
 
   ws.onerror = () => {
     dot.className = 'status-dot';
-    status.textContent = 'Erro
+    status.textContent = 'Error';
+  };
+}
+
+function handleWSMessage(data) {
+  if (data.type === 'new_events') {
+    showToast(`+${data.count} new event(s)`);
+    loadStats();
+    loadResults();
+    loadRecentEvents();
+  } else if (data.type === 'reset') {
+    showToast('All data cleared');
+    loadStats();
+    loadResults();
+    loadRecentEvents();
+  } else if (data.type === 'connected') {
+    showToast(data.message);
+  }
+}
+
+function showToast(message) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/api/abtest/stats`);
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('total-events').textContent = data.totalEvents.toLocaleString();
+      document.getElementById('total-tests').textContent = data.tests.length;
+      document.getElementById('ws-clients').textContent = data.wsClients;
+    }
+  } catch (e) {
+    console.error('Stats error:', e);
+  }
+}
+
+async function loadResults() {
+  try {
+    const res = await fetch(`${API}/api/abtest/results`);
+    const data = await res.json();
+    const container = document.getElementById('results-container');
+    if (!data.ok || !Object.keys(data.results).length) {
+      container.innerHTML = '<div class="empty">No results yet</div>';
+      return;
+    }
+    let html = '<table><thead><tr><th>Test</th><th>Variant</th><th>Users</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Conv</th><th>Revenue</th></tr></thead><tbody>';
+    for (const testId in data.results) {
+      for (const variant in data.results[testId]) {
+        const v = data.results[testId][variant];
+        const cls = variant === 'control' || variant === 'off' ? 'badge-control' : 'badge-variant';
+        html += `<tr>
+          <td>${testId}</td>
+          <td><span class="badge ${cls}">${variant}</span></td>
+          <td>${v.userCount}</td>
+          <td>${v.events.impression || v.events.view || 0}</td>
+          <td>${v.events.click || 0}</td>
+          <td>${v.ctr}</td>
+          <td>${v.conversionRate}</td>
+          <td>$${v.revenue}</td>
+        </tr>`;
+      }
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    console.error('Results error:', e);
+  }
+}
+
+async function loadRecentEvents() {
+  try {
+    const res = await fetch(`${API}/api/abtest/export`);
+    const data = await res.json();
+    const container = document.getElementById('events-container');
+    if (!data.ok || !data.data.length) {
+      container.innerHTML = '<div class="empty">No events yet</div>';
+      return;
+    }
+    const events = data.data.slice(0, 20);
+    let html = '<table><thead><tr><th>Time</th><th>Test</th><th>Variant</th><th>Event</th><th>User</th></tr></thead><tbody>';
+    for (const ev of events) {
+      const time = new Date(ev.ts).toLocaleTimeString();
+      const cls = ev.variant === 'control' || ev.variant === 'off' ? 'badge-control' : 'badge-variant';
+      html += `<tr>
+        <td>${time}</td>
+        <td>${ev.testId}</td>
+        <td><span class="badge ${cls}">${ev.variant}</span></td>
+        <td><span class="badge badge-event">${ev.event}</span></td>
+        <td>${ev.userId.slice(0, 8)}...</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    if (events.length > 0) {
+      lastEventTs = events[0].ts;
+      document.getElementById('last-event').textContent = new Date(lastEventTs).toLocaleTimeString();
+    }
+  } catch (e) {
+    console.error('Events error:', e);
+  }
+}
+
+async function resetData() {
+  if (!confirm('Clear all A/B test data? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`${API}/api/abtest/reset`, { method: 'POST' });
+    const data = await res.json();
+    showToast(data.message || 'Data cleared');
+    loadStats();
+    loadResults();
+    loadRecentEvents();
+  } catch (e) {
+    showToast('Reset failed: ' + e.message);
+  }
+}
+
+// Initialize
+connectWS();
+loadStats();
+loadResults();
+loadRecentEvents();
+setInterval(loadStats, 10000);
+setInterval(loadRecentEvents, 15000);
+</script>
+</body>
+</html>
