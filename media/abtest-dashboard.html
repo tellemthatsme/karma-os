@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KARMA A/B Test Live Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: #12121a;
+    --accent: #00f0ff;
+    --success: #00ff88;
+    --danger: #ff3366;
+    --warning: #ffaa00;
+    --text: #e0e0e0;
+    --muted: #888;
+    --border: #1a1a2e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    transition: background 0.3s;
+  }
+  .status-dot.connected { background: var(--success); }
+  .status-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  main {
+    flex: 1;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel h2 {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .panel h2 .icon {
+    font-size: 1.2em;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .metric {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+  }
+  .table-container {
+    overflow-x: auto;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 0.5rem;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    z-index: 1;
+  }
+  td {
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:hover td {
+    background: rgba(255,255,255,0.03);
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-control { background: rgba(0,240,255,0.15); color: var(--accent); }
+  .badge-variant { background: rgba(0,255,136,0.15); color: var(--success); }
+  .badge-event { background: rgba(255,170,0,0.15); color: var(--warning); }
+  .live-feed {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .feed-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .feed-item .ts {
+    color: var(--muted);
+    font-size: 0.7rem;
+    min-width: 60px;
+  }
+  .feed-item .event {
+    font-weight: 600;
+    color: var(--warning);
+  }
+  .feed-item .test {
+    color: var(--accent);
+  }
+  .empty {
+    color: var(--muted);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.9rem;
+  }
+  .btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .toast {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    z-index: 100;
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .toast.hide { animation: toastOut 0.3s ease forwards; }
+  @keyframes toastOut {
+    to { opacity: 0; transform: translateY(10px); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>KARMA A/B Test Live Dashboard</h1>
+  <div class="controls">
+    <div class="btn-group">
+      <button class="btn" onclick="loadStats()">Refresh Stats</button>
+      <button class="btn" onclick="loadResults()">Refresh Results</button>
+      <button class="btn" onclick="resetData()" style="background:var(--danger);color:#fff">Reset Data</button>
+    </div>
+    <div class="status">
+      <div class="status-dot" id="ws-dot"></div>
+      <span id="ws-status">Disconnected</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="panel">
+    <h2><span class="icon">📊</span> Overview</h2>
+    <div class="metric-grid" id="overview">
+      <div class="metric">
+        <div class="metric-value" id="total-events">-</div>
+        <div class="metric-label">Total Events</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="total-tests">-</div>
+        <div class="metric-label">Active Tests</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="ws-clients">-</div>
+        <div class="metric-label">WS Clients</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="last-event">-</div>
+        <div class="metric-label">Last Event</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="icon">📈</span> Live Feed</h2>
+    <div class="live-feed" id="live-feed">
+      <div class="empty">Waiting for events...</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="icon">🧪</span> Test Results</h2>
+    <div class="table-container" id="results-container">
+      <div class="empty">No results yet</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="icon">📋</span> Recent Events</h2>
+    <div class="table-container" id="events-container">
+      <div class="empty">No events yet</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:8888';
+const WS_URL = 'ws://localhost:8888';
+
+let ws = null;
+let lastEventTs = 0;
+
+function connectWS() {
+  const dot = document.getElementById('ws-dot');
+  const status = document.getElementById('ws-status');
+  dot.className = 'status-dot connecting';
+  status.textContent = 'Connecting...';
+
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    dot.className = 'status-dot connected';
+    status.textContent = 'Live';
+    showToast('WebSocket connected — live updates enabled');
+  };
+
+  ws.onmessage = (msg) => {
+    const data = JSON.parse(msg.data);
+    handleWSMessage(data);
+  };
+
+  ws.onclose = () => {
+    dot.className = 'status-dot';
+    status.textContent = 'Disconnected';
+    setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => {
+    dot.className = 'status-dot';
+    status.textContent = 'Erro
