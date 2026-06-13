@@ -635,7 +635,7 @@ ${entries.map(e => `  <entry>
           '/metrics', '/github', '/cr', '/git', '/health',
           '/api/chat (POST)', '/api/abtest/event (POST)', '/api/abtest/results (GET)',
           '/api/abtest/config (POST/GET)', '/api/abtest/reset (POST)',
-          '/api/abtest/stats (GET)', '/api/abtest/export (GET)',
+          '/api/abtest/stats (GET)', '/api/abtest/significance (GET)', '/api/abtest/export (GET)',
           '/api/research/{refresh,status,history,rss}', '/api/push/{discord,telegram,slack} (POST)',
           '/media/* (static)',
         ],

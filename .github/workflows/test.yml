@@ -44,6 +44,8 @@ jobs:
           exit 1
       - name: Run validation suite
         run: node validate-karma.js
+      - name: Run unit tests
+        run: node karma-abtest.spec.js
       - name: Upload validation logs
         if: always()
         uses: actions/upload-artifact@v4

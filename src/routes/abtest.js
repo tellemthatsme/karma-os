@@ -1,4 +1,23 @@
 const sqlite3 = require('sqlite3').verbose();
+// -- A/B Test Rate Limiter ------------------------------------------------
+const abtestRateLimitMap = new Map(); // ip -> { count, resetTime }
+const ABTEST_WINDOW_MS = 60 * 1000;   // 1 minute
+const ABTEST_MAX_REQUESTS = 60;        // 60 requests per minute
+
+function checkAbtestRateLimit(ip) {
+  const now = Date.now();
+  const entry = abtestRateLimitMap.get(ip);
+  if (!entry || now > entry.resetTime) {
+    abtestRateLimitMap.set(ip, { count: 1, resetTime: now + ABTEST_WINDOW_MS });
+    return { allowed: true, remaining: ABTEST_MAX_REQUESTS - 1, retryAfter: 0 };
+  }
+  entry.count++;
+  if (entry.count > ABTEST_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, retryAfter: Math.ceil((entry.resetTime - now) / 1000) };
+  }
+  return { allowed: true, remaining: ABTEST_MAX_REQUESTS - entry.count, retryAfter: 0 };
+}
+
 
 function computeABStatsFromDB(db, callback) {
   const query = `
@@ -254,7 +273,84 @@ function handleAbtestRoutes(req, res, startTime, deps) {
     return true;
   }
 
+
+  // /api/abtest/significance — GET
+  if (url === '/api/abtest/significance' && req.method === 'GET') {
+    const testId = new URL(req.url, 'http://localhost').searchParams.get('testId');
+    const event = new URL(req.url, 'http://localhost').searchParams.get('event');
+    if (!testId || !event) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: 'Missing testId or event' });
+      metrics.activeConnections--;
+      return res.end(JSON.stringify({ error: 'Missing testId or event' }));
+    }
+    computeABStatsFromDB(db, (err, stats) => {
+      if (err) {
+        res.writeHead(500);
+        logRequest(req, res, startTime, { error: err.message });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: err.message }));
+      }
+      const testData = stats[testId];
+      if (!testData || Object.keys(testData).length < 2) {
+        res.writeHead(400);
+        logRequest(req, res, startTime, { error: 'Test not found or only one variant' });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: 'Test not found or only one variant' }));
+      }
+      const variants = Object.keys(testData);
+      const result = {};
+      // Calculate conversion rates per variant
+      for (const v of variants) {
+        const d = testData[v];
+        const conversions = d.events[event] || 0;
+        const users = d.userCount || 0;
+        result[v] = {
+          users,
+          conversions,
+          rate: users > 0 ? (conversions / users) : 0,
+          revenue: d.revenue || 0,
+        };
+      }
+      // Chi-square test for first two variants
+      if (variants.length >= 2) {
+        const v1 = variants[0], v2 = variants[1];
+        const c1 = result[v1].conversions, n1 = result[v1].users;
+        const c2 = result[v2].conversions, n2 = result[v2].users;
+        const t1 = c1, t2 = c2, t3 = n1 - c1, t4 = n2 - c2;
+        const total = n1 + n2;
+        const totalConv = c1 + c2;
+        const totalNonConv = total - totalConv;
+        let chi2 = 0;
+        const expected = [
+          [n1 * totalConv / total, n1 * totalNonConv / total],
+          [n2 * totalConv / total, n2 * totalNonConv / total],
+        ];
+        const observed = [[c1, n1 - c1], [c2, n2 - c2]];
+        for (let i = 0; i < 2; i++) {
+          for (let j = 0; j < 2; j++) {
+            const e = expected[i][j];
+            if (e > 0) chi2 += Math.pow(observed[i][j] - e, 2) / e;
+          }
+        }
+        const pValue = chi2 > 0 ? Math.exp(-chi2 / 2) : 1; // rough approximation
+        result.significance = {
+          chiSquare: chi2,
+          pValue,
+          winner: pValue < 0.05 ? (result[v1].rate > result[v2].rate ? v1 : v2) : null,
+          significant: pValue < 0.05,
+          compared: [v1, v2],
+        };
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ ok: true, testId, event, variants: result }));
+    });
+    return true;
+  }
+
   return false;
 }
 
-module.exports = { handleAbtestRoutes, computeABStatsFromDB };
+module.exports = { handleAbtestRoutes, computeABStatsFromDB, checkAbtestRateLimit };
