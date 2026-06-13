@@ -239,6 +239,7 @@
     to { opacity: 0; transform: translateY(10px); }
   }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <header>
@@ -458,6 +459,79 @@ async function resetData() {
     showToast('Reset failed: ' + e.message);
   }
 }
+
+
+let ctrChart = null;
+let revenueChart = null;
+let conversionChart = null;
+
+function renderCharts(results) {
+  const tests = [];
+  const ctrData = [];
+  const revData = [];
+  const convData = [];
+  const colors = [];
+
+  for (const testId in results) {
+    for (const variant in results[testId]) {
+      const v = results[testId][variant];
+      tests.push(testId + ' — ' + variant);
+      ctrData.push(parseFloat(v.ctr) || 0);
+      revData.push(v.revenue || 0);
+      convData.push(parseFloat(v.conversionRate) || 0);
+      colors.push(variant === 'control' || variant === 'off' ? '#00f0ff' : '#00ff88');
+    }
+  }
+
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+      x: { grid: { display: false }, ticks: { color: '#888', maxRotation: 45 } },
+    },
+  };
+
+  const ctrCtx = document.getElementById('ctr-chart');
+  const revCtx = document.getElementById('revenue-chart');
+  const convCtx = document.getElementById('conversion-chart');
+  if (!ctrCtx || !revCtx || !convCtx) return;
+
+  if (ctrChart) ctrChart.destroy();
+  ctrChart = new Chart(ctrCtx, {
+    type: 'bar',
+    data: { labels: tests, datasets: [{ label: 'CTR (%)', data: ctrData, backgroundColor: colors, borderRadius: 6 }] },
+    options: commonOptions,
+  });
+
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(revCtx, {
+    type: 'bar',
+    data: { labels: tests, datasets: [{ label: 'Revenue ($)', data: revData, backgroundColor: colors, borderRadius: 6 }] },
+    options: commonOptions,
+  });
+
+  if (conversionChart) conversionChart.destroy();
+  conversionChart = new Chart(convCtx, {
+    type: 'bar',
+    data: { labels: tests, datasets: [{ label: 'Conv Rate (%)', data: convData, backgroundColor: colors, borderRadius: 6 }] },
+    options: commonOptions,
+  });
+}
+
+// Wrap loadResults to also render charts
+const _origLoadResults = loadResults;
+loadResults = async function() {
+  await _origLoadResults();
+  try {
+    const res = await fetch(API + '/api/abtest/results');
+    const data = await res.json();
+    if (data.ok && Object.keys(data.results).length) {
+      renderCharts(data.results);
+    }
+  } catch (e) { console.error('Chart error:', e); }
+};
 
 // Initialize
 connectWS();
