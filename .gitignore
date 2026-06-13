@@ -25,3 +25,4 @@ npm-debug.log*
 # Temp
 *.tmp
 *.bak
+karma.db
