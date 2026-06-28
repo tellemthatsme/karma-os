@@ -153,6 +153,67 @@ function computeABStatsFromDB(db, callback) {
   });
 }
 
+
+// -- Sample size calculator for two-proportion z-test ------------------------
+
+// -- Standard normal quantile (Acklam approximation) ------------------------
+function normalQuantile(p) {
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  const a1 = -39.6968302866538, a2 = 220.946098424521, a3 = -275.928510446969;
+  const a4 = 138.357751867269, a5 = -30.6647980661472, a6 = 2.50662827745924;
+  const b1 = -54.4760987982241, b2 = 161.585836858041, b3 = -155.698979859887;
+  const b4 = 66.8013118877197, b5 = -13.2806815528857;
+  const c1 = -0.00778489400243029, c2 = -0.32239642948169, c3 = -2.40075827716184;
+  const c4 = -2.54973253934373, c5 = 4.37466414146497, c6 = 2.93816398269878;
+  const d1 = 0.00778469570904146, d2 = 0.32246712907004, d3 = 2.445134137143;
+  const d4 = 3.75440866190742;
+  const p_low = 0.02425;
+  const p_high = 1 - p_low;
+  let q, r;
+  if (p < p_low) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c1*q + c2)*q + c3)*q + c4)*q + c5)*q + c6) /
+           ((((d1*q + d2)*q + d3)*q + d4)*q + 1);
+  } else if (p <= p_high) {
+    q = p - 0.5;
+    r = q * q;
+    return (((((a1*r + a2)*r + a3)*r + a4)*r + a5)*r + a6)*q /
+           (((((b1*r + b2)*r + b3)*r + b4)*r + b5)*r + 1);
+  } else {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c1*q + c2)*q + c3)*q + c4)*q + c5)*q + c6) /
+            ((((d1*q + d2)*q + d3)*q + d4)*q + 1);
+  }
+}
+
+function sampleSizePerVariant(p1, mde, power = 0.8, alpha = 0.05) {
+  if (mde <= 0) {
+    return { sampleSize: null, error: 'mde must be greater than 0' };
+  }
+  const p2 = p1 * (1 + mde);
+  if (p2 >= 1 || p2 <= 0 || p1 <= 0 || p1 >= 1) {
+    return { sampleSize: null, error: 'Invalid rates: baseline and mde must produce rates in (0,1)' };
+  }
+  // Dynamic standard normal quantiles based on alpha and power
+  const zAlpha = normalQuantile(1 - alpha / 2);
+  const zPower = normalQuantile(power);
+  // Pooled variance approximation
+  const pooledP = (p1 + p2) / 2;
+  const varPooled = 2 * pooledP * (1 - pooledP);
+  const diff = Math.abs(p2 - p1);
+  const n = Math.ceil((Math.pow(zAlpha + zPower, 2) * varPooled) / (diff * diff));
+  return {
+    sampleSize: n,
+    baselineRate: p1,
+    expectedRate: p2,
+    mde,
+    power,
+    alpha,
+    totalSampleSize: n * 2,
+  };
+}
+
 function handleAbtestRoutes(req, res, startTime, deps) {
   const { db, broadcast, logRequest, metrics, wsClients } = deps;
   const url = req.url.split('?')[0];
@@ -556,7 +617,44 @@ function handleAbtestRoutes(req, res, startTime, deps) {
     return true;
   }
 
+
+  // /api/abtest/sample-size — GET
+  if (url === '/api/abtest/sample-size' && req.method === 'GET') {
+    const params = new URL(req.url, 'http://localhost').searchParams;
+    const baseline = parseFloat(params.get('baseline'));
+    const mde = parseFloat(params.get('mde'));
+    const power = parseFloat(params.get('power') || '0.8');
+    const alpha = parseFloat(params.get('alpha') || '0.05');
+    if (isNaN(baseline) || isNaN(mde) || baseline <= 0 || baseline >= 1 || mde <= 0) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: 'Invalid baseline or mde' });
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ error: 'baseline (0-1) and mde (>0) required' }));
+      return true;
+    }
+    if (isNaN(power) || isNaN(alpha) || power <= 0 || power >= 1 || alpha <= 0 || alpha >= 1) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: 'Invalid power or alpha' });
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ error: 'power (0-1) and alpha (0-1) required' }));
+      return true;
+    }
+    const result = sampleSizePerVariant(baseline, mde, power, alpha);
+    if (result.error) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: result.error });
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ error: result.error }));
+      return true;
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    logRequest(req, res, startTime);
+    metrics.activeConnections--;
+    res.end(JSON.stringify({ ok: true, mdeType: 'relative', ...result }));
+    return true;
+  }
+
   return false;
 }
 
-module.exports = { handleAbtestRoutes, computeABStatsFromDB, checkAbtestRateLimit, wilsonScoreInterval, betaPosterior, probabilityABeatsB };
+module.exports = { handleAbtestRoutes, computeABStatsFromDB, checkAbtestRateLimit, wilsonScoreInterval, betaPosterior, probabilityABeatsB, sampleSizePerVariant, normalQuantile };

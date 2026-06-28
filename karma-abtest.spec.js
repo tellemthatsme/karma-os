@@ -1061,6 +1061,66 @@ async function runTests() {
     assert.ok(retryAfter > 0);
   });
 
+
+  // 49. Sample-size endpoint returns calculated size for valid params
+  await test('Sample-size endpoint returns calculated size', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/sample-size?baseline=0.10&mde=0.15&power=0.8&alpha=0.05', method: 'GET' });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.strictEqual(body.mdeType, 'relative');
+    assert.ok(typeof body.sampleSize === 'number' && body.sampleSize > 0);
+    assert.ok(body.totalSampleSize === body.sampleSize * 2);
+  });
+
+  // 50. Sample-size endpoint rejects missing params
+  await test('Sample-size endpoint rejects missing params', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/sample-size', method: 'GET' });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 400);
+  });
+
+  // 51. Sample-size endpoint rejects invalid baseline
+  await test('Sample-size endpoint rejects invalid baseline', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/sample-size?baseline=1.5&mde=0.10', method: 'GET' });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 400);
+  });
+
+  // 52. Sample-size endpoint rejects invalid power
+  await test('Sample-size endpoint rejects invalid power', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/sample-size?baseline=0.10&mde=0.15&power=0', method: 'GET' });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 400);
+  });
+
+  // 53. Sample-size endpoint rejects invalid alpha
+  await test('Sample-size endpoint rejects invalid alpha', () => {
+    const { handleAbtestRoutes } = require('./src/routes/abtest');
+    const mockDb = { all: () => {}, get: () => {}, prepare: () => ({ run: () => {}, finalize: () => {} }) };
+    const req = mockRequest({ url: '/api/abtest/sample-size?baseline=0.10&mde=0.15&alpha=0', method: 'GET' });
+    const res = mockResponse();
+    const result = handleAbtestRoutes(req, res, Date.now(), createDeps(mockDb));
+    assert.strictEqual(result, true);
+    assert.strictEqual(res.statusCode, 400);
+  });
   console.log('\n📊 Results: ' + passed + ' passed, ' + failed + ' failed');
   if (failed > 0) process.exit(1);
 }

@@ -672,7 +672,7 @@ ${entries.map(e => `  <entry>
           '/metrics', '/github', '/cr', '/git', '/health',
           '/api/chat (POST)', '/api/abtest/event (POST)', '/api/abtest/results (GET)',
           '/api/abtest/config (POST/GET)', '/api/abtest/reset (POST)',
-          '/api/abtest/stats (GET)', '/api/abtest/significance (GET)', '/api/abtest/confidence (GET)', '/api/abtest/bayesian (GET)', '/api/abtest/export (GET)',
+          '/api/abtest/stats (GET)', '/api/abtest/significance (GET)', '/api/abtest/confidence (GET)', '/api/abtest/bayesian (GET)', '/api/abtest/sample-size (GET)', '/api/abtest/export (GET)',
           '/api/research/{refresh,status,history,rss}', '/api/push/{discord,telegram,slack} (POST)',
           '/media/* (static)',
         ],
@@ -695,7 +695,7 @@ server.on('upgrade', (request, socket, head) => {
 server.listen(PORT, () => {
   console.log(`⚡ KARMA Metrics Server v25.2 running on http://localhost:${PORT}`);
   console.log(`   Endpoints: /metrics  /github  /cr  /git  /health`);
-  console.log(`   A/B Test:  /api/abtest/{event,results,stats,config,reset,export}`);
+  console.log(`   A/B Test:  /api/abtest/{event,results,stats,config,reset,export,sample-size}`);
   console.log(`   WebSocket: ws://localhost:${PORT} (A/B test live dashboard)`);
   console.log(`   Research:  /api/research/{refresh,status,history,rss}  /feed.xml  /rss`);
   console.log(`   Push:      /api/push/{discord,telegram,slack}`);
