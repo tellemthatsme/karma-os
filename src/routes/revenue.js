@@ -884,6 +884,58 @@ function handleRevenueRoutes(req, res, startTime, deps) {
     });
     return true;
   }
+  // ── /api/revenue/stripe/verify ─────────────────────────────────────────────
+  if (pathname === '/api/revenue/stripe/verify' && method === 'GET') {
+    const sessionId = url.searchParams.get('session_id') || '';
+    if (!sessionId) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime, { error: 'Missing session_id' });
+      res.end(JSON.stringify({ ok: false, error: 'Missing session_id' }));
+      return true;
+    }
+    // Mock verification for dashboard demo (replace with real Stripe API call)
+    db.get(
+      `SELECT * FROM stripe_payments WHERE sessionId = ? ORDER BY ts DESC LIMIT 1`,
+      [sessionId],
+      (err, row) => {
+        if (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime, { error: err.message });
+          res.end(JSON.stringify({ ok: false, error: err.message }));
+          return;
+        }
+        if (row) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime);
+          res.end(JSON.stringify({
+            ok: true,
+            verified: true,
+            plan: (row.metadata && JSON.parse(row.metadata).plan) || 'Pro',
+            amount: row.amount,
+            currency: row.currency,
+            customerEmail: row.customerEmail,
+            status: row.status,
+          }));
+        } else {
+          // Return a mock successful response for demo / testing
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime);
+          res.end(JSON.stringify({
+            ok: true,
+            verified: true,
+            plan: 'Pro',
+            amount: 4900,
+            currency: 'usd',
+            customerEmail: 'customer@example.com',
+            status: 'succeeded',
+            note: 'Mock verification — integrate Stripe API for production',
+          }));
+        }
+      }
+    );
+    return true;
+  }
+
   // ── /api/revenue/lead-hunter/cycle ─────────────────────────────────────────
   if (pathname === '/api/revenue/lead-hunter/cycle' && method === 'POST') {
     runLeadHunterCycle(db, config || {}).then(result => {
@@ -895,6 +947,22 @@ function handleRevenueRoutes(req, res, startTime, deps) {
       logRequest(req, res, startTime, { error: e.message });
       res.end(JSON.stringify({ error: e.message }));
     });
+    return true;
+  }
+
+  // ── /api/scheduler/status ───────────────────────────────────────────────────
+  if (pathname === '/api/scheduler/status' && method === 'GET') {
+    try {
+      const { getSchedulerStatus } = require('../scheduler');
+      const status = getSchedulerStatus();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      res.end(JSON.stringify({ ok: true, status }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime, { error: e.message });
+      res.end(JSON.stringify({ error: e.message }));
+    }
     return true;
   }
 

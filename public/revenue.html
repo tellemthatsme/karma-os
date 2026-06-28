@@ -72,6 +72,7 @@
     <div class="tab" onclick="switchTab('content',this)">Content Bot</div>
     <div class="tab" onclick="switchTab('payments',this)">Payments</div>
     <div class="tab" onclick="switchTab('decisions',this)">Decisions</div>
+    <div class="tab" onclick="switchTab('scheduler',this)">Scheduler</div>
     <div class="tab" onclick="switchTab('logs',this)">Live Log</div>
   </div>
 
@@ -142,6 +143,23 @@
     </div>
   </div>
 
+
+  <div id="scheduler" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Scheduler Status</h3>
+        <div id="schedulerStats" style="margin-top:.75rem"></div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="refresh()">Refresh Status</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Scheduled Tasks</h3>
+        <div id="schedulerTasks" style="margin-top:.75rem"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="logs" class="tab-content">
     <div class="card">
       <h3>System Log</h3>
@@ -176,6 +194,27 @@ async function api(path, method, body) {
     const r = await fetch(path, opts);
     return await r.json();
   } catch (e) { return { ok: false, error: e.message }; }
+}
+
+
+function renderScheduler() {
+  const sched = state.scheduler || {};
+  const running = sched.running || false;
+  const tasks = sched.tasks || [];
+  const schedules = sched.schedules || {};
+  const items = [
+    ['Status', running ? 'Running ✅' : 'Stopped ❌'],
+    ['Tasks Active', tasks.length],
+    ['Lead Hunter', (schedules.leadHunter && schedules.leadHunter.enabled !== false ? '✅ ' : '❌ ') + (schedules.leadHunter && schedules.leadHunter.cron || '0 9 * * *')],
+    ['Content Bot', (schedules.contentBot && schedules.contentBot.enabled !== false ? '✅ ' : '❌ ') + (schedules.contentBot && schedules.contentBot.cron || '0 */6 * * *')],
+  ];
+  document.getElementById('schedulerStats').innerHTML = items.map(function(item) {
+    return '<div class="module-row"><span style="color:var(--muted)">' + item[0] + '</span><span style="font-weight:600">' + item[1] + '</span></div>';
+  }).join('');
+
+  document.getElementById('schedulerTasks').innerHTML = tasks.length ? tasks.map(function(t) {
+    return '<div class="module-row"><span style="color:var(--muted)">' + t.name + '</span><span class="tag tag-on">Active</span></div>';
+  }).join('') : '<p style="color:var(--muted)">No active tasks.</p>';
 }
 
 function renderStats() {
@@ -338,11 +377,13 @@ async function refresh() {
   }
   const lh = await api('/api/revenue/lead-hunter/status');
   if (lh.ok) state.leadHunter = lh.status || {};
+  const schedStatus = await api('/api/scheduler/status');
+  if (schedStatus.ok) state.scheduler = schedStatus.status;
   const cbPosts = await api('/api/revenue/content-bot/posts?limit=10');
   if (cbPosts.ok) state.posts = cbPosts.posts || [];
 
   renderStats(); renderModules(); renderGuardrails(); renderDecisions(); renderRevenueChart();
-  renderLeadHunter(); renderContentBot(); renderRecentPosts(); renderStripe(); renderRecentPayments();
+  renderLeadHunter(); renderContentBot(); renderRecentPosts(); renderStripe(); renderRecentPayments(); renderScheduler();
   document.getElementById('systemStatus').textContent = (sched.ok ? 'Online' : 'Offline');
   document.getElementById('systemStatus').className = 'tag ' + (sched.ok ? 'tag-on' : 'tag-off');
 }

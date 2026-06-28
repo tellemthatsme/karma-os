@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karma — Payment Success</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #111827;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --success: #22c55e;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    max-width: 480px;
+    width: 100%;
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.5rem;
+    background: rgba(34,197,94,0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+  h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  p { color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+  .details {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .details .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .details .row:last-child { border-bottom: none; }
+  .details .label { color: var(--muted); font-size: 0.875rem; }
+  .details .value { font-weight: 600; }
+  .btn {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #000;
+    font-weight: 700;
+    padding: 0.875rem 2rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .loading { animation: pulse 1.5s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .error { color: #ef4444; }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="icon loading" id="icon">⏳</div>
+  <h1 id="title">Verifying payment…</h1>
+  <p id="message">Hang tight while we confirm your transaction.</p>
+
+  <div class="details" id="details" style="display:none">
+    <div class="row"><span class="label">Plan</span><span class="value" id="plan">—</span></div>
+    <div class="row"><span class="label">Amount</span><span class="value" id="amount">—</span></div>
+    <div class="row"><span class="label">Email</span><span class="value" id="email">—</span></div>
+    <div class="row"><span class="label">Status</span><span class="value" id="status">—</span></div>
+  </div>
+
+  <a href="/revenue" class="btn" id="btn" style="display:none">Open Dashboard</a>
+</div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+
+  const $ = id => document.getElementById(id);
+
+  function showSuccess(data) {
+    $('icon').textContent = '✅';
+    $('icon').classList.remove('loading');
+    $('title').textContent = 'Payment successful!';
+    $('message').textContent = 'Welcome to Karma. Your plan is now active.';
+    $('plan').textContent = data.plan || 'Pro';
+    $('amount').textContent = data.amount ? '$' + (data.amount / 100).toFixed(2) + ' ' + (data.currency || 'usd').toUpperCase() : '—';
+    $('email').textContent = data.customerEmail || '—';
+    $('status').textContent = 'Active';
+    $('details').style.display = 'block';
+    $('btn').style.display = 'inline-block';
+  }
+
+  function showError(msg) {
+    $('icon').textContent = '❌';
+    $('icon').classList.remove('loading');
+    $('title').textContent = 'Payment failed';
+    $('message').innerHTML = '<span class="error">' + msg + '</span>';
+  }
+
+  // If no session_id, show error
+  if (!sessionId) {
+    showError('No session ID found in URL.');
+    return;
+  }
+
+  // Verify session with backend
+  fetch('/api/revenue/stripe/verify?session_id=' + encodeURIComponent(sessionId))
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.verified) {
+        showSuccess(data);
+      } else {
+        showError(data.error || 'Unable to verify payment.');
+      }
+    })
+    .catch(err => {
+      showError('Network error: ' + err.message);
+    });
+})();
+</script>
+
+</body>
+</html>

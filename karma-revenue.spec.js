@@ -368,6 +368,21 @@ async function runTests() {
     assert.strictEqual(after.tasks.length, 0);
   });
 
+  // ── 23. Scheduler status endpoint returns status object ────────────────────
+  await test('Scheduler status endpoint', async () => {
+    const req = mockRequest({ url: '/api/scheduler/status', method: 'GET' });
+    const res = mockResponse();
+    const handled = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb()));
+    assert.strictEqual(handled, true);
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(typeof body.status === 'object');
+    assert.ok(typeof body.status.running === 'boolean');
+    assert.ok(Array.isArray(body.status.tasks));
+    assert.ok(typeof body.status.schedules === 'object');
+  });
+
   global.fetch = originalFetch;
 
   console.log('\n📊 Results: ' + passed + ' passed, ' + failed + ' failed');
