@@ -42,6 +42,33 @@ db.serialize(() => {
     createdAt TEXT
   )`);
 
+
+  db.run(`CREATE TABLE IF NOT EXISTS content_bot_posts (
+    id TEXT PRIMARY KEY,
+    platform TEXT,
+    niche TEXT,
+    topic TEXT,
+    content TEXT,
+    engagement INTEGER,
+    status TEXT,
+    postedAt INTEGER,
+    date TEXT
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_content_posts_date ON content_bot_posts(date)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS stripe_payments (
+    id TEXT PRIMARY KEY,
+    ts INTEGER,
+    eventType TEXT,
+    sessionId TEXT,
+    amount REAL,
+    currency TEXT,
+    status TEXT,
+    customerEmail TEXT,
+    metadata TEXT,
+    date TEXT
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_stripe_payments_date ON stripe_payments(date)`);
   // Revenue Engine Tables
   db.run(`CREATE TABLE IF NOT EXISTS revenue_decisions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

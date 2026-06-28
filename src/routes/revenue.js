@@ -12,7 +12,7 @@ const MODULES = {
   leadHunter: {
     name: 'Lead Hunter',
     description: 'Auto-scrape leads, enrich contacts, send AI-personalized outreach',
-    enabled: false,
+    enabled: true,
     config: {
       maxDailyEmails: 50,
       signalSources: ['reddit', 'indiehackers', 'jobboards'],
@@ -358,6 +358,187 @@ async function runLeadHunterCycle(db, config) {
   return { ran: true, signalsFound: results.signals, leadsEnriched: results.enriched, emailsSent: results.contacted, leads };
 }
 
+// ── Lead Hunter Status ───────────────────────────────────────────────────────
+function getLeadHunterStatus(db) {
+  return new Promise((resolve, reject) => {
+    db.get(`SELECT COUNT(*) as total FROM revenue_leads`, [], (err, leadCount) => {
+      if (err) return reject(err);
+      db.get(`SELECT COUNT(*) as total FROM revenue_leads WHERE status = 'hot'`, [], (err2, hotCount) => {
+        db.get(`SELECT COUNT(*) as total FROM revenue_outreach WHERE date = ?`, [state.today], (err3, outreachCount) => {
+          db.get(`SELECT COUNT(*) as total FROM revenue_outreach WHERE status = 'replied' AND date = ?`, [state.today], (err4, replyCount) => {
+            db.get(`SELECT COUNT(*) as total FROM revenue_decisions WHERE module = 'leadHunter' AND date = ?`, [state.today], (err5, decisionCount) => {
+              resolve({
+                enabled: MODULES.leadHunter.enabled,
+                today: state.today,
+                totalLeads: leadCount?.total || 0,
+                hotLeads: hotCount?.total || 0,
+                emailsSentToday: outreachCount?.total || 0,
+                repliesToday: replyCount?.total || 0,
+                decisionsToday: decisionCount?.total || 0,
+                dailyCounters: state.dailyCounters,
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  CONTENT ARBITRAGE BOT MODULE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Trend Scraper (simulated + extensible) ───────────────────────────────────
+async function scrapeTrends(niches) {
+  const trends = [];
+  const now = Date.now();
+  for (const niche of niches) {
+    trends.push(
+      { niche, topic: `Top 5 ${niche} tools in 2026`, engagement: 1200 + Math.floor(Math.random() * 3000), platform: 'twitter', scrapedAt: now },
+      { niche, topic: `Why ${niche} is changing everything`, engagement: 800 + Math.floor(Math.random() * 2000), platform: 'linkedin', scrapedAt: now },
+      { niche, topic: `${niche} automation guide`, engagement: 500 + Math.floor(Math.random() * 1500), platform: 'medium', scrapedAt: now }
+    );
+  }
+  return trends;
+}
+
+// ── Content Generator ────────────────────────────────────────────────────────
+function generateContent(trend, template) {
+  const templates = {
+    'affiliate-review': `🧵 Top 5 ${trend.topic}\n\n1. ToolA — best for beginners\n2. ToolB — best for teams\n3. ToolC — best budget pick\n4. ToolD — most powerful\n5. ToolE — best AI features\n\nFull breakdown + affiliate links 👇`,
+    'problem-solution': `Struggling with ${trend.niche}?\n\nI spent 100+ hours testing every solution.\n\nHere's the exact stack that saved me 10h/week:\n\n🧵👇`,
+    'hot-take': `Hot take: 90% of ${trend.niche} advice is wrong.\n\nHere's what actually works in 2026:\n\n🧵👇`,
+  };
+  return templates[template] || templates['affiliate-review'];
+}
+
+// ── Content Poster (simulated + extensible) ──────────────────────────────────
+async function postContent(db, trend, contentBody, config) {
+  const guardrail = checkGuardrails('apiCall', {}, config.guardrails);
+  if (!guardrail.approved) {
+    logDecision(db, 'contentBot', 'postContent', { platform: trend.platform }, guardrail, 'blocked');
+    return { ok: false, error: 'Guardrail blocked', violations: guardrail.violations };
+  }
+
+  state.dailyCounters.apiCalls++;
+
+  const postId = 'post_' + Math.random().toString(36).slice(2, 10);
+  const ts = Date.now();
+  const engagement = Math.floor(trend.engagement * (0.5 + Math.random()));
+
+  db.run(
+    `INSERT INTO content_bot_posts (id, platform, niche, topic, content, engagement, status, postedAt, date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [postId, trend.platform, trend.niche, trend.topic, contentBody, engagement, 'posted', ts, state.today]
+  );
+
+  logDecision(db, 'contentBot', 'postContent', { postId, platform: trend.platform }, guardrail, 'posted');
+
+  return { ok: true, postId, platform: trend.platform, engagement };
+}
+
+// ── Content Bot Run Cycle ────────────────────────────────────────────────────
+async function runContentBotCycle(db, config) {
+  const isEnabled = config?.modules?.contentBot?.enabled ?? MODULES.contentBot.enabled;
+  if (!isEnabled) return { ran: false, reason: 'Module disabled' };
+
+  const modConfig = { ...MODULES.contentBot.config, ...config.modules?.contentBot };
+  const results = { trendsScraped: 0, postsGenerated: 0, postsPublished: 0, blocked: 0 };
+  const posts = [];
+
+  const trends = await scrapeTrends(modConfig.niches);
+  results.trendsScraped = trends.length;
+
+  for (const trend of trends) {
+    const contentBody = generateContent(trend, modConfig.template || 'affiliate-review');
+    results.postsGenerated++;
+
+    const guardrail = checkGuardrails('apiCall', {}, config.guardrails);
+    if (guardrail.approved) {
+      const postResult = await postContent(db, trend, contentBody, config);
+      if (postResult.ok) {
+        results.postsPublished++;
+        posts.push(postResult);
+      } else {
+        results.blocked++;
+      }
+    } else {
+      results.blocked++;
+      logDecision(db, 'contentBot', 'postContent', { platform: trend.platform }, guardrail, 'pending_approval');
+    }
+  }
+
+  return { ran: true, ...results, posts };
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  STRIPE MONETIZATION MODULE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Checkout Session ─────────────────────────────────────────────────────────
+async function createCheckoutSession(config, lineItems, metadata) {
+  const stripeKey = config.stripeSecretKey || process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey) {
+    return { ok: false, error: 'Stripe secret key not configured' };
+  }
+
+  try {
+    const resp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${stripeKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        'mode': 'payment',
+        'success_url': metadata.successUrl || 'https://example.com/success',
+        'cancel_url': metadata.cancelUrl || 'https://example.com/cancel',
+        'line_items[0][price_data][currency]': 'usd',
+        'line_items[0][price_data][product_data][name]': lineItems[0]?.name || 'KARMA Service',
+        'line_items[0][price_data][unit_amount]': String(Math.round((lineItems[0]?.amount || 0) * 100)),
+        'line_items[0][quantity]': String(lineItems[0]?.quantity || 1),
+        'metadata[karma_module]': metadata.module || '',
+        'metadata[karma_user]': metadata.userId || '',
+      }).toString(),
+    });
+    const data = await resp.json();
+    if (data.error) {
+      return { ok: false, error: data.error.message };
+    }
+    return { ok: true, sessionId: data.id, url: data.url };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ── Webhook Handler ──────────────────────────────────────────────────────────
+async function handleStripeWebhook(db, payload, signature, webhookSecret) {
+  // In production: verify signature with crypto
+  // For now: parse and log
+  const event = payload;
+  const id = 'wh_' + Math.random().toString(36).slice(2, 10);
+  const ts = Date.now();
+
+  db.run(
+    `INSERT INTO stripe_payments (id, ts, eventType, sessionId, amount, currency, status, customerEmail, metadata, date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, ts, event.type || 'unknown', event.data?.object?.id || '',
+     (event.data?.object?.amount_total || 0) / 100,
+     event.data?.object?.currency || 'usd',
+     event.type === 'checkout.session.completed' ? 'completed' : event.type,
+     event.data?.object?.customer_details?.email || '',
+     JSON.stringify(event.data?.object?.metadata || {}),
+     state.today]
+  );
+
+  logDecision(db, 'stripe', 'webhook', { eventType: event.type }, { approved: true, violations: [] }, 'processed');
+
+  return { ok: true, id, eventType: event.type };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  API ROUTE HANDLER
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -621,6 +802,88 @@ function handleRevenueRoutes(req, res, startTime, deps) {
     return true;
   }
 
+
+  // ── /api/revenue/lead-hunter/status ────────────────────────────────────────
+  if (pathname === '/api/revenue/lead-hunter/status' && method === 'GET') {
+    getLeadHunterStatus(db).then(status => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      res.end(JSON.stringify({ ok: true, status }));
+    }).catch(e => {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime, { error: e.message });
+      res.end(JSON.stringify({ error: e.message }));
+    });
+    return true;
+  }
+
+  // ── /api/revenue/content-bot/cycle ─────────────────────────────────────────
+  if (pathname === '/api/revenue/content-bot/cycle' && method === 'POST') {
+    runContentBotCycle(db, config || {}).then(result => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      res.end(JSON.stringify({ ok: true, cycle: result }));
+    }).catch(e => {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime, { error: e.message });
+      res.end(JSON.stringify({ error: e.message }));
+    });
+    return true;
+  }
+
+  // ── /api/revenue/content-bot/posts ─────────────────────────────────────────
+  if (pathname === '/api/revenue/content-bot/posts' && method === 'GET') {
+    const limit = parseInt(parsed.query.limit) || 50;
+    db.all(`SELECT * FROM content_bot_posts ORDER BY postedAt DESC LIMIT ?`, [limit], (err, rows) => {
+      if (err) { res.writeHead(500); res.end(JSON.stringify({ error: err.message })); return; }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      res.end(JSON.stringify({ ok: true, posts: rows || [] }));
+    });
+    return true;
+  }
+
+  // ── /api/revenue/stripe/checkout ───────────────────────────────────────────
+  if (pathname === '/api/revenue/stripe/checkout' && method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body);
+        const result = await createCheckoutSession(config || {}, payload.lineItems || [], payload.metadata || {});
+        res.writeHead(result.ok ? 200 : 400, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime);
+        res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime, { error: e.message });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return true;
+  }
+
+  // ── /api/revenue/stripe/webhook ────────────────────────────────────────────
+  if (pathname === '/api/revenue/stripe/webhook' && method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body);
+        const signature = req.headers['stripe-signature'] || '';
+        const webhookSecret = config?.stripeWebhookSecret || process.env.STRIPE_WEBHOOK_SECRET || '';
+        const result = await handleStripeWebhook(db, payload, signature, webhookSecret);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime);
+        res.end(JSON.stringify(result));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        logRequest(req, res, startTime, { error: e.message });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return true;
+  }
   // ── /api/revenue/lead-hunter/cycle ─────────────────────────────────────────
   if (pathname === '/api/revenue/lead-hunter/cycle' && method === 'POST') {
     runLeadHunterCycle(db, config || {}).then(result => {
