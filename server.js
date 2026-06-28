@@ -6,6 +6,7 @@ const { exec } = require('child_process');
 const sqlite3 = require('sqlite3').verbose();
 const WebSocket = require('ws');
 const { handleAbtestRoutes } = require('./src/routes/abtest');
+const { handleRevenueRoutes } = require('./src/routes/revenue');
 
 const PORT = process.env.PORT || 8888;
 const IS_WIN = os.platform() === 'win32';
@@ -39,6 +40,72 @@ db.serialize(() => {
     startDate TEXT,
     endDate TEXT,
     createdAt TEXT
+  )`);
+
+  // Revenue Engine Tables
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_decisions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts INTEGER NOT NULL,
+    module TEXT,
+    action TEXT,
+    payload TEXT,
+    approved INTEGER,
+    violations TEXT,
+    outcome TEXT,
+    date TEXT
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_revenue_decisions_date ON revenue_decisions(date)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_revenue_decisions_module ON revenue_decisions(module)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_leads (
+    id TEXT PRIMARY KEY,
+    company TEXT,
+    domain TEXT,
+    email TEXT,
+    niche TEXT,
+    source TEXT,
+    confidence REAL,
+    status TEXT DEFAULT 'new',
+    createdAt INTEGER,
+    lastContacted INTEGER,
+    lastReplyAt INTEGER,
+    replyCount INTEGER DEFAULT 0,
+    date TEXT
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_revenue_leads_status ON revenue_leads(status)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_outreach (
+    id TEXT PRIMARY KEY,
+    leadId TEXT,
+    emailBody TEXT,
+    sentAt INTEGER,
+    status TEXT DEFAULT 'sent',
+    replies INTEGER DEFAULT 0,
+    date TEXT
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_modules (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    enabled INTEGER DEFAULT 0,
+    updatedAt INTEGER
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_guardrails (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    config TEXT,
+    updatedAt INTEGER
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS revenue_ledger (
+    id TEXT PRIMARY KEY,
+    ts INTEGER,
+    type TEXT,
+    amount REAL,
+    source TEXT,
+    description TEXT,
+    module TEXT,
+    date TEXT
   )`);
 });
 

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KARMA Revenue Engine</title>
+<style>
+  :root { --bg:#0b0f19; --card:#111827; --accent:#10b981; --accent2:#3b82f6; --text:#e5e7eb; --muted:#9ca3af; --danger:#ef4444; --warn:#f59e0b; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  header{padding:1.5rem 2rem;background:var(--card);border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+  header h1{font-size:1.25rem;font-weight:700;display:flex;align-items:center;gap:.5rem}
+  header h1 span{color:var(--accent)}
+  .container{max-width:1200px;margin:0 auto;padding:2rem}
+  .grid{display:grid;gap:1rem}
+  .grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .grid-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:.75rem;padding:1.25rem}
+  .card h3{font-size:.875rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.025em}
+  .card .value{font-size:1.75rem;font-weight:700}
+  .card .change{font-size:.875rem;margin-top:.25rem}
+  .up{color:var(--accent)} .down{color:var(--danger)}
+  .tag{display:inline-block;padding:.25rem .625rem;border-radius:999px;font-size:.75rem;font-weight:600;background:#1f2937}
+  .tag-on{background:rgba(16,185,129,.15);color:var(--accent)}
+  .tag-off{background:rgba(239,68,68,.15);color:var(--danger)}
+  .module-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 0;border-bottom:1px solid #1f2937}
+  .module-row:last-child{border-bottom:none}
+  .btn{padding:.5rem 1rem;border-radius:.5rem;border:none;font-size:.875rem;font-weight:600;cursor:pointer;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-secondary{background:#374151;color:#fff}
+  .btn-sm{padding:.375rem .75rem;font-size:.75rem}
+  .actions{display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap}
+  .log{max-height:240px;overflow:auto;background:#0b0f19;border:1px solid #1f2937;border-radius:.5rem;padding:.75rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8125rem}
+  .log .line{padding:.125rem 0;border-bottom:1px solid #111827}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.375rem}
+  .status-dot.on{background:var(--accent)}
+  .status-dot.off{background:var(--muted)}
+  #toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.875rem 1.25rem;background:var(--card);border:1px solid #1f2937;border-radius:.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,.5);transform:translateY(120%);transition:transform .3s;z-index:50}
+  #toast.show{transform:translateY(0)}
+  .tabs{display:flex;gap:1.5rem;border-bottom:1px solid #1f2937;margin-bottom:1.5rem}
+  .tab{padding:.75rem 0;border-bottom:2px solid transparent;cursor:pointer;color:var(--muted);font-size:.875rem;font-weight:600}
+  .tab.active{color:var(--text);border-color:var(--accent)}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>⚡</span> KARMA Revenue Engine</h1>
+  <div style="display:flex;gap:.75rem;align-items:center">
+    <span class="tag" id="systemStatus">Loading...</span>
+    <button class="btn btn-sm btn-secondary" onclick="refresh()">Refresh</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+    <div class="tab" onclick="switchTab('modules',this)">Modules</div>
+    <div class="tab" onclick="switchTab('decisions',this)">Decisions</div>
+    <div class="tab" onclick="switchTab('logs',this)">Live Log</div>
+  </div>
+
+  <div id="overview" class="tab-content active">
+    <div class="grid grid-4" id="statsGrid"></div>
+    <div class="grid grid-2" style="margin-top:1rem">
+      <div class="card">
+        <h3>Revenue by Module</h3>
+        <div id="revenueChart" style="margin-top:.75rem"></div>
+      </div>
+      <div class="card">
+        <h3>Guardrails</h3>
+        <div id="guardrailsList" style="margin-top:.75rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modules" class="tab-content">
+    <div class="card" id="modulesList"></div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="triggerLeadHunter()">Run Lead Hunter Now</button>
+      <button class="btn btn-secondary" onclick="toggleAll(true)">Enable All</button>
+      <button class="btn btn-secondary" onclick="toggleAll(false)">Disable All</button>
+    </div>
+  </div>
+
+  <div id="decisions" class="tab-content">
+    <div class="card">
+      <h3>Recent Decisions</h3>
+      <div id="decisionsList" style="margin-top:.75rem"></div>
+    </div>
+  </div>
+
+  <div id="logs" class="tab-content">
+    <div class="card">
+      <h3>System Log</h3>
+      <div class="log" id="systemLog"><div class="line" style="color:var(--muted)">Waiting for data...</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let state = { modules: [], guardrails: {}, stats: {}, decisions: [], leads: [] };
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+async function api(path, method) {
+  try {
+    const r = await fetch(path, { method: method || 'GET' });
+    return await r.json();
+  } catch (e) { return { ok: false, error: e.message }; }
+}
+
+function renderStats() {
+  const s = state.stats || {};
+  const items = [
+    { label: 'Today Revenue', value: '$' + (s.todayRevenue || 0).toFixed(2), change: '+0%', up: true },
+    { label: 'Active Modules', value: (state.modules.filter(m => m.enabled).length) + '/' + state.modules.length, change: 'running', up: true },
+    { label: 'Leads Generated', value: s.leadsGenerated || 0, change: '+0%', up: true },
+    { label: 'Emails Sent', value: s.emailsSent || 0, change: 'today', up: true },
+  ];
+  document.getElementById('statsGrid').innerHTML = items.map(i => `
+    <div class="card">
+      <h3>${i.label}</h3>
+      <div class="value">${i.value}</div>
+      <div class="change ${i.up ? 'up' : 'down'}">${i.change}</div>
+    </div>
+  `).join('');
+}
+
+function renderModules() {
+  const list = document.getElementById('modulesList');
+  if (!state.modules.length) { list.innerHTML = '<p style="color:var(--muted)">No modules loaded.</p>'; return; }
+  list.innerHTML = state.modules.map(m => `
+    <div class="module-row">
+      <div>
+        <div style="font-weight:600">${m.name}</div>
+        <div style="font-size:.875rem;color:var(--muted)">${m.description}</div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <span class="tag ${m.enabled ? 'tag-on' : 'tag-off'}">${m.enabled ? 'ON' : 'OFF'}</span>
+        <button class="btn btn-sm ${m.enabled ? 'btn-secondary' : 'btn-primary'}" onclick="toggleModule('${m.id}')">${m.enabled ? 'Disable' : 'Enable'}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGuardrails() {
+  const g = state.guardrails || {};
+  const items = [
+    ['Max Daily Spend', '$' + (g.maxDailySpend || 0)],
+    ['Max Daily Emails', g.maxDailyEmails || 0],
+    ['Min Margin %', (g.minMarginPercent || 0) + '%'],
+    ['Risk Level', g.riskLevel || 'low'],
+  ];
+  document.getElementById('guardrailsList').innerHTML = items.map(([k,v]) => `
+    <div class="module-row"><span style="color:var(--muted)">${k}</span><span style="font-weight:600">${v}</span></div>
+  `).join('');
+}
+
+function renderDecisions() {
+  const list = document.getElementById('decisionsList');
+  if (!state.decisions.length) { list.innerHTML = '<p style="color:var(--muted)">No decisions yet.</p>'; return; }
+  list.innerHTML = state.decisions.slice(0, 20).map(d => `
+    <div class="module-row">
+      <div>
+        <span class="tag ${d.approved ? 'tag-on' : 'tag-off'}">${d.approved ? 'APPROVED' : 'BLOCKED'}</span>
+        <span style="margin-left:.5rem;font-weight:600">${d.action}</span>
+      </div>
+      <div style="color:var(--muted);font-size:.875rem">${d.module} · ${new Date(d.ts).toLocaleTimeString()}</div>
+    </div>
+  `).join('');
+}
+
+function renderRevenueChart() {
+  const chart = document.getElementById('revenueChart');
+  const modules = state.modules.filter(m => m.estRevenue > 0);
+  if (!modules.length) { chart.innerHTML = '<p style="color:var(--muted)">No revenue data yet.</p>'; return; }
+  const max = Math.max(...modules.map(m => m.estRevenue));
+  chart.innerHTML = modules.map(m => `
+    <div style="margin:.5rem 0">
+      <div style="display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.25rem">
+        <span>${m.name}</span><span>$${m.estRevenue.toFixed(0)}</span>
+      </div>
+      <div style="height:8px;background:#1f2937;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${(m.estRevenue/max*100).toFixed(0)}%;background:var(--accent);border-radius:4px"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function refresh() {
+  const dash = await api('/api/revenue/dashboard');
+  if (dash.ok) {
+    state.modules = dash.modules || [];
+    state.guardrails = dash.guardrails || {};
+    state.stats = dash.stats || {};
+  }
+  const dec = await api('/api/revenue/decisions');
+  if (dec.ok) state.decisions = dec.decisions || [];
+  const sched = await api('/api/revenue/scheduler');
+  if (sched.ok) {
+    const enabled = new Set(sched.enabledModules || []);
+    state.modules.forEach(m => m.enabled = enabled.has(m.id));
+  }
+  renderStats(); renderModules(); renderGuardrails(); renderDecisions(); renderRevenueChart();
+  document.getElementById('systemStatus').textContent = (sched.ok ? 'Online' : 'Offline');
+  document.getElementById('systemStatus').className = 'tag ' + (sched.ok ? 'tag-on' : 'tag-off');
+}
+
+async function toggleModule(id) {
+  const r = await api('/api/revenue/modules/' + id + '/toggle', 'POST');
+  showToast(r.ok ? (r.module.enabled ? 'Module enabled' : 'Module disabled') : 'Error: ' + (r.error || 'Unknown'));
+  refresh();
+}
+
+async function toggleAll(on) {
+  for (const m of state.modules) {
+    if (m.enabled !== on) await api('/api/revenue/modules/' + m.id + '/toggle', 'POST');
+  }
+  showToast(on ? 'All modules enabled' : 'All modules disabled');
+  refresh();
+}
+
+async function triggerLeadHunter() {
+  const r = await api('/api/revenue/lead-hunter/trigger', 'POST');
+  showToast(r.ok ? 'Lead Hunter queued' : 'Error: ' + (r.error || 'Unknown'));
+  refresh();
+}
+
+// Auto-refresh every 30s
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
