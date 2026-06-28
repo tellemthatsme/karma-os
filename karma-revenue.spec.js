@@ -321,6 +321,53 @@ async function runTests() {
     assert.ok(body.ok === true);
   });
 
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // Scheduler Tests
+  // ════════════════════════════════════════════════════════════════════════════
+
+  const { startScheduler, stopScheduler, getSchedulerStatus, DEFAULT_SCHEDULES } = require('./src/scheduler');
+
+  // ── 19. Scheduler starts successfully ──────────────────────────────────────
+  await test('Scheduler starts Lead Hunter and Content Bot', async () => {
+    const result = startScheduler(makeMockDb(), { timezone: 'UTC' });
+    assert.strictEqual(result.started, true);
+    assert.ok(Array.isArray(result.tasks));
+    assert.ok(result.tasks.includes('leadHunter'));
+    assert.ok(result.tasks.includes('contentBot'));
+    stopScheduler();
+  });
+
+  // ── 20. Scheduler returns already-running on second start ──────────────────
+  await test('Scheduler prevents double start', async () => {
+    startScheduler(makeMockDb(), { timezone: 'UTC' });
+    const result2 = startScheduler(makeMockDb(), { timezone: 'UTC' });
+    assert.strictEqual(result2.started, false);
+    assert.strictEqual(result2.reason, 'Already running');
+    stopScheduler();
+  });
+
+  // ── 21. Scheduler status returns correct shape ─────────────────────────────
+  await test('Scheduler status returns running state', async () => {
+    startScheduler(makeMockDb(), { timezone: 'UTC' });
+    const status = getSchedulerStatus();
+    assert.strictEqual(status.running, true);
+    assert.ok(Array.isArray(status.tasks));
+    assert.ok(typeof status.schedules === 'object');
+    stopScheduler();
+  });
+
+  // ── 22. Scheduler stop clears tasks ────────────────────────────────────────
+  await test('Scheduler stop clears all tasks', async () => {
+    startScheduler(makeMockDb(), { timezone: 'UTC' });
+    const before = getSchedulerStatus();
+    assert.strictEqual(before.running, true);
+    stopScheduler();
+    const after = getSchedulerStatus();
+    assert.strictEqual(after.running, false);
+    assert.strictEqual(after.tasks.length, 0);
+  });
+
   global.fetch = originalFetch;
 
   console.log('\n📊 Results: ' + passed + ' passed, ' + failed + ' failed');

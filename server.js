@@ -7,6 +7,7 @@ const sqlite3 = require('sqlite3').verbose();
 const WebSocket = require('ws');
 const { handleAbtestRoutes } = require('./src/routes/abtest');
 const { handleRevenueRoutes } = require('./src/routes/revenue');
+const { startScheduler } = require('./src/scheduler');
 
 const PORT = process.env.PORT || 8888;
 const IS_WIN = os.platform() === 'win32';
