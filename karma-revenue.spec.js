@@ -9,7 +9,6 @@ function mockRequest(opts = {}) {
     on: (event, cb) => {
       handlers[event] = cb;
       if (event === 'end') {
-        // Auto-fire end on next tick for GET; fire after data for POST with body
         if (req.method === 'GET' || !opts.body) {
           process.nextTick(() => cb());
         }
@@ -32,8 +31,8 @@ function mockResponse() {
   return res;
 }
 
-function createDeps(mockDb) {
-  return { db: mockDb, logRequest: () => {}, metrics: { activeConnections: 1 }, config: {} };
+function createDeps(mockDb, extraConfig) {
+  return { db: mockDb, logRequest: () => {}, metrics: { activeConnections: 1 }, config: extraConfig || {} };
 }
 
 let passed = 0, failed = 0;
@@ -63,7 +62,6 @@ async function runTests() {
     const res = mockResponse();
     const result = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb()));
     assert.strictEqual(result, true);
-    // Wait for nested DB callbacks
     await new Promise(r => setTimeout(r, 30));
     assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.body);
@@ -135,7 +133,7 @@ async function runTests() {
   await test('Lead Hunter cycle returns summary', async () => {
     const req = mockRequest({ url: '/api/revenue/lead-hunter/cycle', method: 'POST' });
     const res = mockResponse();
-    const result = handleRevenueRoutes(req, res, Date.now(), { ...createDeps(makeMockDb()), config: { modules: { leadHunter: { enabled: true } } } });
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb(), { modules: { leadHunter: { enabled: true } } }));
     assert.strictEqual(result, true);
     await new Promise(r => setTimeout(r, 50));
     assert.strictEqual(res.statusCode, 200);
@@ -221,6 +219,109 @@ async function runTests() {
     assert.strictEqual(result.approved, true);
     assert.strictEqual(result.violations.length, 0);
   });
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // v2 Tests — Content Arbitrage Bot
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // ── 14. Lead Hunter status endpoint ────────────────────────────────────────
+  await test('Lead Hunter status returns stats', async () => {
+    const req = mockRequest({ url: '/api/revenue/lead-hunter/status', method: 'GET' });
+    const res = mockResponse();
+    const db = makeMockDb([{ total: 42 }]);
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(db));
+    assert.strictEqual(result, true);
+    await new Promise(r => setTimeout(r, 30));
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(typeof body.status === 'object');
+    assert.ok(typeof body.status.totalLeads === 'number');
+    assert.ok(typeof body.status.hotLeads === 'number');
+    assert.ok(typeof body.status.emailsSentToday === 'number');
+  });
+
+  // ── 15. Content Bot cycle endpoint ─────────────────────────────────────────
+  await test('Content Bot cycle returns summary', async () => {
+    const req = mockRequest({ url: '/api/revenue/content-bot/cycle', method: 'POST' });
+    const res = mockResponse();
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb(), { modules: { contentBot: { enabled: true } } }));
+    assert.strictEqual(result, true);
+    await new Promise(r => setTimeout(r, 50));
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(typeof body.cycle === 'object');
+    assert.ok(typeof body.cycle.trendsScraped === 'number');
+    assert.ok(typeof body.cycle.postsGenerated === 'number');
+    assert.ok(typeof body.cycle.postsPublished === 'number');
+    assert.ok(Array.isArray(body.cycle.posts));
+  });
+
+  // ── 16. Content Bot posts list ─────────────────────────────────────────────
+  await test('Content Bot posts list returns posts array', async () => {
+    const req = mockRequest({ url: '/api/revenue/content-bot/posts?limit=5', method: 'GET' });
+    const res = mockResponse();
+    const db = makeMockDb([
+      { id: 'cb-1', platform: 'twitter', niche: 'ai', topic: 'GPT-5', content: 'Hello world', engagement: 120, status: 'published', postedAt: Date.now() }
+    ]);
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(db));
+    assert.strictEqual(result, true);
+    await new Promise(r => setTimeout(r, 10));
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(Array.isArray(body.posts));
+    assert.ok(body.posts.length >= 0);
+  });
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // v2 Tests — Stripe Monetization
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // Mock global.fetch for Stripe tests
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({ id: 'cs_test_123', url: 'https://checkout.stripe.com/test' }),
+  });
+
+  await test('Stripe checkout creates session URL', async () => {
+    const req = mockRequest({
+      url: '/api/revenue/stripe/checkout',
+      method: 'POST',
+      body: JSON.stringify({ lineItems: [{ price: 'price_123', quantity: 1 }], metadata: { plan: 'pro' } })
+    });
+    const res = mockResponse();
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb(), { stripeSecretKey: 'sk_test_xxx', stripeWebhookSecret: 'whsec_xxx' }));
+    assert.strictEqual(result, true);
+    await new Promise(r => setTimeout(r, 30));
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(typeof body.url === 'string');
+    assert.ok(body.url.includes('checkout.stripe.com'));
+  });
+
+  // ── 18. Stripe webhook processes payment event ─────────────────────────────
+  await test('Stripe webhook processes payment event', async () => {
+    const req = mockRequest({
+      url: '/api/revenue/stripe/webhook',
+      method: 'POST',
+      body: JSON.stringify({ type: 'checkout.session.completed', data: { object: { id: 'cs_123', amount_total: 4900, currency: 'usd', customer_email: 'test@example.com' } } }),
+      headers: { 'stripe-signature': 'sig_test_123' }
+    });
+    const res = mockResponse();
+    const result = handleRevenueRoutes(req, res, Date.now(), createDeps(makeMockDb(), { stripeWebhookSecret: 'whsec_xxx' }));
+    assert.strictEqual(result, true);
+    await new Promise(r => setTimeout(r, 30));
+    assert.strictEqual(res.statusCode, 200);
+    const body = JSON.parse(res.body);
+    assert.strictEqual(body.ok, true);
+    assert.ok(body.ok === true);
+  });
+
+  global.fetch = originalFetch;
 
   console.log('\n📊 Results: ' + passed + ' passed, ' + failed + ' failed');
   if (failed > 0) process.exit(1);

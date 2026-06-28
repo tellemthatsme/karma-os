@@ -925,4 +925,8 @@ module.exports = {
   writeColdEmail,
   sendOutreach,
   runLeadHunterCycle,
+  runContentBotCycle,
+  createCheckoutSession,
+  handleStripeWebhook,
+  getLeadHunterStatus,
 };

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KARMA Revenue Engine</title>
 <style>
-  :root { --bg:#0b0f19; --card:#111827; --accent:#10b981; --accent2:#3b82f6; --text:#e5e7eb; --muted:#9ca3af; --danger:#ef4444; --warn:#f59e0b; }
+  :root { --bg:#0b0f19; --card:#111827; --accent:#10b981; --accent2:#3b82f6; --accent3:#8b5cf6; --text:#e5e7eb; --muted:#9ca3af; --danger:#ef4444; --warn:#f59e0b; }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
   header{padding:1.5rem 2rem;background:var(--card);border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
@@ -14,21 +14,26 @@
   .container{max-width:1200px;margin:0 auto;padding:2rem}
   .grid{display:grid;gap:1rem}
   .grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
   .grid-2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
   .card{background:var(--card);border:1px solid #1f2937;border-radius:.75rem;padding:1.25rem}
   .card h3{font-size:.875rem;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.025em}
   .card .value{font-size:1.75rem;font-weight:700}
+  .card .value-sm{font-size:1.25rem;font-weight:700}
   .card .change{font-size:.875rem;margin-top:.25rem}
   .up{color:var(--accent)} .down{color:var(--danger)}
   .tag{display:inline-block;padding:.25rem .625rem;border-radius:999px;font-size:.75rem;font-weight:600;background:#1f2937}
   .tag-on{background:rgba(16,185,129,.15);color:var(--accent)}
   .tag-off{background:rgba(239,68,68,.15);color:var(--danger)}
+  .tag-info{background:rgba(59,130,246,.15);color:var(--accent2)}
   .module-row{display:flex;justify-content:space-between;align-items:center;padding:.875rem 0;border-bottom:1px solid #1f2937}
   .module-row:last-child{border-bottom:none}
   .btn{padding:.5rem 1rem;border-radius:.5rem;border:none;font-size:.875rem;font-weight:600;cursor:pointer;transition:opacity .15s}
   .btn:hover{opacity:.85}
   .btn-primary{background:var(--accent);color:#fff}
   .btn-secondary{background:#374151;color:#fff}
+  .btn-accent2{background:var(--accent2);color:#fff}
+  .btn-accent3{background:var(--accent3);color:#fff}
   .btn-sm{padding:.375rem .75rem;font-size:.75rem}
   .actions{display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap}
   .log{max-height:240px;overflow:auto;background:#0b0f19;border:1px solid #1f2937;border-radius:.5rem;padding:.75rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8125rem}
@@ -43,6 +48,12 @@
   .tab.active{color:var(--text);border-color:var(--accent)}
   .tab-content{display:none}
   .tab-content.active{display:block}
+  .post-card{background:#0b0f19;border:1px solid #1f2937;border-radius:.5rem;padding:.75rem;margin:.5rem 0}
+  .post-card .platform{font-size:.75rem;color:var(--accent2);font-weight:600;text-transform:uppercase}
+  .post-card .topic{font-weight:600;margin:.25rem 0}
+  .post-card .engagement{font-size:.75rem;color:var(--muted)}
+  .payment-row{display:flex;justify-content:space-between;align-items:center;padding:.625rem 0;border-bottom:1px solid #1f2937}
+  .payment-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -58,13 +69,15 @@
   <div class="tabs">
     <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
     <div class="tab" onclick="switchTab('modules',this)">Modules</div>
+    <div class="tab" onclick="switchTab('content',this)">Content Bot</div>
+    <div class="tab" onclick="switchTab('payments',this)">Payments</div>
     <div class="tab" onclick="switchTab('decisions',this)">Decisions</div>
     <div class="tab" onclick="switchTab('logs',this)">Live Log</div>
   </div>
 
   <div id="overview" class="tab-content active">
     <div class="grid grid-4" id="statsGrid"></div>
-    <div class="grid grid-2" style="margin-top:1rem">
+    <div class="grid grid-3" style="margin-top:1rem">
       <div class="card">
         <h3>Revenue by Module</h3>
         <div id="revenueChart" style="margin-top:.75rem"></div>
@@ -73,6 +86,10 @@
         <h3>Guardrails</h3>
         <div id="guardrailsList" style="margin-top:.75rem"></div>
       </div>
+      <div class="card">
+        <h3>Lead Hunter</h3>
+        <div id="leadHunterStats" style="margin-top:.75rem"></div>
+      </div>
     </div>
   </div>
 
@@ -80,8 +97,41 @@
     <div class="card" id="modulesList"></div>
     <div class="actions">
       <button class="btn btn-primary" onclick="triggerLeadHunter()">Run Lead Hunter Now</button>
+      <button class="btn btn-accent2" onclick="triggerContentBot()">Run Content Bot Now</button>
       <button class="btn btn-secondary" onclick="toggleAll(true)">Enable All</button>
       <button class="btn btn-secondary" onclick="toggleAll(false)">Disable All</button>
+    </div>
+  </div>
+
+  <div id="content" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Content Bot Stats</h3>
+        <div id="contentBotStats" style="margin-top:.75rem"></div>
+        <div class="actions">
+          <button class="btn btn-accent2" onclick="triggerContentBot()">Run Content Cycle</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent Posts</h3>
+        <div id="recentPosts" style="margin-top:.75rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="payments" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Stripe Revenue</h3>
+        <div id="stripeStats" style="margin-top:.75rem"></div>
+        <div class="actions">
+          <button class="btn btn-accent3" onclick="createCheckout()">Create Checkout Session</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent Payments</h3>
+        <div id="recentPayments" style="margin-top:.75rem"></div>
+      </div>
     </div>
   </div>
 
@@ -103,7 +153,7 @@
 <div id="toast"></div>
 
 <script>
-let state = { modules: [], guardrails: {}, stats: {}, decisions: [], leads: [] };
+let state = { modules: [], guardrails: {}, stats: {}, decisions: [], leads: [], posts: [], payments: [] };
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -119,9 +169,11 @@ function switchTab(id, el) {
   document.getElementById(id).classList.add('active');
 }
 
-async function api(path, method) {
+async function api(path, method, body) {
   try {
-    const r = await fetch(path, { method: method || 'GET' });
+    const opts = { method: method || 'GET', headers: {} };
+    if (body) { opts.body = typeof body === 'string' ? body : JSON.stringify(body); opts.headers['Content-Type'] = 'application/json'; }
+    const r = await fetch(path, opts);
     return await r.json();
   } catch (e) { return { ok: false, error: e.message }; }
 }
@@ -173,6 +225,72 @@ function renderGuardrails() {
   `).join('');
 }
 
+function renderLeadHunter() {
+  const s = state.leadHunter || {};
+  const items = [
+    ['Total Leads', s.totalLeads || 0],
+    ['Hot Leads', s.hotLeads || 0],
+    ['Recent Outreach', s.recentOutreach || 0],
+    ['Reply Rate', (s.replyRate || 0) + '%'],
+  ];
+  document.getElementById('leadHunterStats').innerHTML = items.map(([k,v]) => `
+    <div class="module-row"><span style="color:var(--muted)">${k}</span><span style="font-weight:600">${v}</span></div>
+  `).join('');
+}
+
+function renderContentBot() {
+  const s = state.contentBot || {};
+  const items = [
+    ['Trends Scraped', s.trendsScraped || 0],
+    ['Posts Generated', s.postsGenerated || 0],
+    ['Posts Published', s.postsPublished || 0],
+    ['Total Engagement', s.totalEngagement || 0],
+  ];
+  document.getElementById('contentBotStats').innerHTML = items.map(([k,v]) => `
+    <div class="module-row"><span style="color:var(--muted)">${k}</span><span style="font-weight:600">${v}</span></div>
+  `).join('');
+}
+
+function renderRecentPosts() {
+  const list = document.getElementById('recentPosts');
+  if (!state.posts || !state.posts.length) { list.innerHTML = '<p style="color:var(--muted)">No posts yet.</p>'; return; }
+  list.innerHTML = state.posts.slice(0, 10).map(p => `
+    <div class="post-card">
+      <div class="platform">${p.platform || 'unknown'}</div>
+      <div class="topic">${p.topic || 'Untitled'}</div>
+      <div style="font-size:.875rem;color:var(--muted);margin:.25rem 0">${(p.content || '').substring(0, 120)}${(p.content || '').length > 120 ? '...' : ''}</div>
+      <div class="engagement">${p.engagement || 0} engagements · ${p.status || 'draft'} · ${new Date(p.postedAt).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+}
+
+function renderStripe() {
+  const s = state.stripe || {};
+  const items = [
+    ['Total Revenue', '$' + (s.totalRevenue || 0).toFixed(2)],
+    ['Successful Payments', s.successfulPayments || 0],
+    ['Failed Payments', s.failedPayments || 0],
+    ['MRR', '$' + (s.mrr || 0).toFixed(2)],
+  ];
+  document.getElementById('stripeStats').innerHTML = items.map(([k,v]) => `
+    <div class="module-row"><span style="color:var(--muted)">${k}</span><span style="font-weight:600">${v}</span></div>
+  `).join('');
+}
+
+function renderRecentPayments() {
+  const list = document.getElementById('recentPayments');
+  if (!state.payments || !state.payments.length) { list.innerHTML = '<p style="color:var(--muted)">No payments yet.</p>'; return; }
+  list.innerHTML = state.payments.slice(0, 10).map(p => `
+    <div class="payment-row">
+      <div>
+        <span class="tag ${p.status === 'succeeded' ? 'tag-on' : p.status === 'failed' ? 'tag-off' : 'tag-info'}">${p.status || 'pending'}</span>
+        <span style="margin-left:.5rem;font-weight:600">$${((p.amount || 0) / 100).toFixed(2)} ${p.currency || 'usd'}</span>
+      </div>
+      <div style="color:var(--muted);font-size:.875rem">${p.customerEmail || 'unknown'} · ${new Date(p.ts).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+}
+
 function renderDecisions() {
   const list = document.getElementById('decisionsList');
   if (!state.decisions.length) { list.innerHTML = '<p style="color:var(--muted)">No decisions yet.</p>'; return; }
@@ -218,7 +336,13 @@ async function refresh() {
     const enabled = new Set(sched.enabledModules || []);
     state.modules.forEach(m => m.enabled = enabled.has(m.id));
   }
+  const lh = await api('/api/revenue/lead-hunter/status');
+  if (lh.ok) state.leadHunter = lh.status || {};
+  const cbPosts = await api('/api/revenue/content-bot/posts?limit=10');
+  if (cbPosts.ok) state.posts = cbPosts.posts || [];
+
   renderStats(); renderModules(); renderGuardrails(); renderDecisions(); renderRevenueChart();
+  renderLeadHunter(); renderContentBot(); renderRecentPosts(); renderStripe(); renderRecentPayments();
   document.getElementById('systemStatus').textContent = (sched.ok ? 'Online' : 'Offline');
   document.getElementById('systemStatus').className = 'tag ' + (sched.ok ? 'tag-on' : 'tag-off');
 }
@@ -241,6 +365,22 @@ async function triggerLeadHunter() {
   const r = await api('/api/revenue/lead-hunter/trigger', 'POST');
   showToast(r.ok ? 'Lead Hunter queued' : 'Error: ' + (r.error || 'Unknown'));
   refresh();
+}
+
+async function triggerContentBot() {
+  const r = await api('/api/revenue/content-bot/cycle', 'POST');
+  showToast(r.ok ? `Content Bot ran — ${r.result.postsPublished || 0} posts published` : 'Error: ' + (r.error || 'Unknown'));
+  refresh();
+}
+
+async function createCheckout() {
+  const r = await api('/api/revenue/stripe/checkout', 'POST', { lineItems: [{ price: 'price_pro', quantity: 1 }], metadata: { plan: 'pro', source: 'dashboard' } });
+  if (r.ok && r.checkoutUrl) {
+    window.open(r.checkoutUrl, '_blank');
+    showToast('Checkout opened');
+  } else {
+    showToast('Error: ' + (r.error || 'Could not create checkout'));
+  }
 }
 
 // Auto-refresh every 30s
