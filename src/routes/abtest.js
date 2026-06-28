@@ -26,6 +26,72 @@ function checkAbtestRateLimit(ip) {
 
 
 
+
+// -- Wilson score confidence interval for binomial proportion ----------------
+function wilsonScoreInterval(conversions, users, z = 1.96) {
+  if (users === 0) return { lower: 0, upper: 0, point: 0 };
+  const p = conversions / users;
+  const n = users;
+  const denominator = 1 + (z * z) / n;
+  const centre = p + (z * z) / (2 * n);
+  const halfWidth = z * Math.sqrt((p * (1 - p) / n) + (z * z) / (4 * n * n));
+  const lower = Math.max(0, (centre - halfWidth) / denominator);
+  const upper = Math.min(1, (centre + halfWidth) / denominator);
+  return { lower: Number(lower.toFixed(4)), upper: Number(upper.toFixed(4)), point: Number(p.toFixed(4)) };
+}
+
+// -- Bayesian Beta posterior for A/B test ------------------------------------
+function betaPosterior(conversions, users, alphaPrior = 1, betaPrior = 1) {
+  const alpha = alphaPrior + conversions;
+  const beta = betaPrior + (users - conversions);
+  const mean = alpha / (alpha + beta);
+  const variance = (alpha * beta) / (Math.pow(alpha + beta, 2) * (alpha + beta + 1));
+  return { alpha, beta, mean: Number(mean.toFixed(4)), variance: Number(variance.toFixed(6)) };
+}
+
+// -- Monte Carlo probability that variant A beats variant B ------------------
+function probabilityABeatsB(alphaA, betaA, alphaB, betaB, samples = 10000) {
+  let wins = 0;
+  for (let i = 0; i < samples; i++) {
+    const sampleA = sampleBeta(alphaA, betaA);
+    const sampleB = sampleBeta(alphaB, betaB);
+    if (sampleA > sampleB) wins++;
+  }
+  return Number((wins / samples).toFixed(4));
+}
+
+// Marsaglia's method for Beta sampling
+function sampleBeta(alpha, beta) {
+  const x = sampleGamma(alpha, 1);
+  const y = sampleGamma(beta, 1);
+  return x / (x + y);
+}
+
+function sampleGamma(shape, scale) {
+  if (shape < 1) {
+    return sampleGamma(shape + 1, scale) * Math.pow(Math.random(), 1 / shape);
+  }
+  const d = shape - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  while (true) {
+    let x = sampleNormal();
+    let v = Math.pow(1 + c * x, 3);
+    if (v > 0) {
+      let u = Math.random();
+      if (u < 1 - 0.0331 * x * x * x * x || Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) {
+        return d * v * scale;
+      }
+    }
+  }
+}
+
+function sampleNormal() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
 // -- Chi-square p-value (df=1) using standard normal CDF (Abramowitz & Stegun) ----
 function chiSquarePValue(chi2) {
   const z = Math.sqrt(chi2);
@@ -385,7 +451,112 @@ function handleAbtestRoutes(req, res, startTime, deps) {
     return true;
   }
 
+
+  // /api/abtest/confidence — GET
+  if (url === '/api/abtest/confidence' && req.method === 'GET') {
+    const testId = new URL(req.url, 'http://localhost').searchParams.get('testId');
+    const event = new URL(req.url, 'http://localhost').searchParams.get('event');
+    if (!testId || !event) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: 'Missing testId or event' });
+      metrics.activeConnections--;
+      return res.end(JSON.stringify({ error: 'Missing testId or event' }));
+    }
+    computeABStatsFromDB(db, (err, stats) => {
+      if (err) {
+        res.writeHead(500);
+        logRequest(req, res, startTime, { error: err.message });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: err.message }));
+      }
+      const testData = stats[testId];
+      if (!testData || Object.keys(testData).length < 2) {
+        res.writeHead(400);
+        logRequest(req, res, startTime, { error: 'Test not found or only one variant' });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: 'Test not found or only one variant' }));
+      }
+      const variants = Object.keys(testData);
+      const result = {};
+      for (const v of variants) {
+        const d = testData[v];
+        const conversions = d.events[event] || 0;
+        const users = d.userCount || 0;
+        const interval = wilsonScoreInterval(conversions, users);
+        result[v] = {
+          users,
+          conversions,
+          rate: users > 0 ? Number((conversions / users).toFixed(4)) : 0,
+          confidence95: interval,
+        };
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ ok: true, testId, event, variants: result }));
+    });
+    return true;
+  }
+
+  // /api/abtest/bayesian — GET
+  if (url === '/api/abtest/bayesian' && req.method === 'GET') {
+    const testId = new URL(req.url, 'http://localhost').searchParams.get('testId');
+    const event = new URL(req.url, 'http://localhost').searchParams.get('event');
+    if (!testId || !event) {
+      res.writeHead(400);
+      logRequest(req, res, startTime, { error: 'Missing testId or event' });
+      metrics.activeConnections--;
+      return res.end(JSON.stringify({ error: 'Missing testId or event' }));
+    }
+    computeABStatsFromDB(db, (err, stats) => {
+      if (err) {
+        res.writeHead(500);
+        logRequest(req, res, startTime, { error: err.message });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: err.message }));
+      }
+      const testData = stats[testId];
+      if (!testData || Object.keys(testData).length < 2) {
+        res.writeHead(400);
+        logRequest(req, res, startTime, { error: 'Test not found or only one variant' });
+        metrics.activeConnections--;
+        return res.end(JSON.stringify({ error: 'Test not found or only one variant' }));
+      }
+      const variants = Object.keys(testData);
+      const result = {};
+      for (const v of variants) {
+        const d = testData[v];
+        const conversions = d.events[event] || 0;
+        const users = d.userCount || 0;
+        const posterior = betaPosterior(conversions, users);
+        result[v] = {
+          users,
+          conversions,
+          posterior,
+        };
+      }
+      // Pairwise probability that each variant beats the control (first variant)
+      if (variants.length >= 2) {
+        const control = variants[0];
+        const controlPost = result[control].posterior;
+        const probabilities = {};
+        for (let i = 1; i < variants.length; i++) {
+          const v = variants[i];
+          const vPost = result[v].posterior;
+          const prob = probabilityABeatsB(vPost.alpha, vPost.beta, controlPost.alpha, controlPost.beta);
+          probabilities[v + '_vs_' + control] = prob;
+        }
+        result.probabilities = probabilities;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      logRequest(req, res, startTime);
+      metrics.activeConnections--;
+      res.end(JSON.stringify({ ok: true, testId, event, variants: result }));
+    });
+    return true;
+  }
+
   return false;
 }
 
-module.exports = { handleAbtestRoutes, computeABStatsFromDB, checkAbtestRateLimit };
+module.exports = { handleAbtestRoutes, computeABStatsFromDB, checkAbtestRateLimit, wilsonScoreInterval, betaPosterior, probabilityABeatsB };

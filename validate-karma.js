@@ -90,7 +90,7 @@ async function validateEndpoints() {
     const res = await httpReq(ep.method, ep.path);
     const duration = Date.now() - start;
     if (res.status !== ep.expect) { bad(`${ep.path} returned ${res.status}, expected ${ep.expect}`); continue; }
-    if (ep.key && !res.data[ep.key]) { bad(`${ep.path} missing key: ${ep.key}`); continue; }
+    if (ep.key && res.data[ep.key] === undefined) { bad(`${ep.path} missing key: ${ep.key}`); continue; }
     if (duration > 2000) { warn(`${ep.path} slow — ${duration}ms`); }
     ok(`${ep.path} — ${duration}ms, ${ep.key} present`);
   }
@@ -198,8 +198,8 @@ async function validateWebSocket() {
 // ── HTML/JS Audit ───────────────────────────────────────────────────────
 async function validateHTMLAudit() {
   log('\n📄 HTML/JS Audit');
-  const htmlPath = path.join(__dirname, 'karma-os-v6 (1).html');
-  if (!fs.existsSync(htmlPath)) { bad('karma-os-v6 (1).html not found'); return; }
+  const htmlPath = path.join(__dirname, 'karma-os-ultimate.html');
+  if (!fs.existsSync(htmlPath)) { bad('karma-os-ultimate.html not found'); return; }
   const html = fs.readFileSync(htmlPath, 'utf8');
   const jsErrorPatterns = [
     /toastTmr\s*=/, // Should be declared before use

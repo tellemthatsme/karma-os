@@ -358,6 +358,43 @@ const requestHandler = async (req, res) => {
       metrics.activeConnections--;
       res.end(JSON.stringify(data));
     }
+    // ── Static media files ──────────────────────────────────────────────
+    if (url.startsWith('/media/') && req.method === 'GET') {
+      let safe;
+      try { safe = decodeURIComponent(url.replace(/^\/media\//, '').split('#')[0]).replace(/\.\./g, ''); } catch {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        logRequest(req, res, startTime, { error: 'Bad request' });
+        metrics.activeConnections--;
+        return res.end('Bad request');
+      }
+      const full = path.join(__dirname, 'media', safe);
+      if (!full.startsWith(path.join(__dirname, 'media'))) {
+        res.writeHead(403);
+        logRequest(req, res, startTime, { error: 'Forbidden' });
+        metrics.activeConnections--;
+        return res.end('Forbidden');
+      }
+      const ext = path.extname(full).toLowerCase();
+      const mime = {
+        '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
+        '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
+        '.md': 'text/markdown', '.json': 'application/json',
+      }[ext] || 'application/octet-stream';
+      fs.readFile(full, (err, data) => {
+        if (err) {
+          console.error('[media]', err.code, safe);
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          logRequest(req, res, startTime, { error: 'Not found' });
+          metrics.activeConnections--;
+          return res.end('Not found: ' + safe);
+        }
+        res.writeHead(200, { 'Content-Type': mime });
+        logRequest(req, res, startTime);
+        metrics.activeConnections--;
+        res.end(data);
+      });
+      return;
+    }
     // ── A/B Testing ────────────────────────────────────────────────────
     if (handleAbtestRoutes(req, res, startTime, { db, broadcast, logRequest, metrics, wsClients })) {
       return;
@@ -635,7 +672,7 @@ ${entries.map(e => `  <entry>
           '/metrics', '/github', '/cr', '/git', '/health',
           '/api/chat (POST)', '/api/abtest/event (POST)', '/api/abtest/results (GET)',
           '/api/abtest/config (POST/GET)', '/api/abtest/reset (POST)',
-          '/api/abtest/stats (GET)', '/api/abtest/significance (GET)', '/api/abtest/export (GET)',
+          '/api/abtest/stats (GET)', '/api/abtest/significance (GET)', '/api/abtest/confidence (GET)', '/api/abtest/bayesian (GET)', '/api/abtest/export (GET)',
           '/api/research/{refresh,status,history,rss}', '/api/push/{discord,telegram,slack} (POST)',
           '/media/* (static)',
         ],

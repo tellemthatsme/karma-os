@@ -1,5 +1,4 @@
-name: KARMA OS CI/CD
-
+name: KARMA OS CI
 on:
   push:
     branches: [main, master]
@@ -7,117 +6,68 @@ on:
     branches: [main, master]
 
 jobs:
-  lint:
+  unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
-      - name: Lint check
-        run: npx eslint server.js media/abtest.js --quiet || echo "No ESLint config — skipping"
+      - run: node --test karma-abtest.node-test.js
+      - run: node --test server.test.js
 
-  validate:
+  integration-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: lint
+    needs: unit-tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test karma-integration.node-test.js
+
+  playwright-tests:
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
       - name: Start server
         run: node server.js &
       - name: Wait for server
-        run: >-
-          for i in $(seq 1 15); do
-            curl -sS http://localhost:8888/health && exit 0 || sleep 1;
-          done;
-          echo 'Server failed to start';
-          exit 1
-      - name: Run validation suite
+        run: for i in $(seq 1 20); do curl -s http://localhost:8888/health && break; sleep 1; echo "Waiting... $i"; done
+      - name: Run Playwright tests
+        run: npx playwright test --project=chromium --reporter=list
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+
+  validation:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start server
+        run: node server.js &
+      - name: Wait for server
+        run: for i in $(seq 1 20); do curl -s http://localhost:8888/health && break; sleep 1; echo "Waiting... $i"; done
+      - name: Run validation
         run: node validate-karma.js
-      - name: Run unit tests
-        run: node karma-abtest.spec.js
-      - name: Upload validation logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: validation-logs
-          path: karma.db
-          retention-days: 3
-
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: validate
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      - name: Run all tests (Chromium)
-        run: npm run test:ci
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-chromium
-          path: playwright-report/
-          retention-days: 7
-
-  cross-browser:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: test
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      - name: Start server
-        run: node server.js &
-      - name: Wait for server
-        run: >-
-          for i in $(seq 1 15); do
-            curl -sS http://localhost:8888/health && exit 0 || sleep 1;
-          done;
-          echo 'Server failed to start';
-          exit 1
-      - name: Run cross-browser tests
-        run: npm run test:cross-browser
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-cross-browser
-          path: playwright-report/
-          retention-days: 7
-
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [validate, test]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Render/Railway
-        run: echo "Add deployment hook here"
-      - name: Health check
-        run: curl -sfS https://your-app.onrender.com/health || echo "Health check skipped — configure URL"

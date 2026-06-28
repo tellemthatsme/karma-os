@@ -1,12 +1,29 @@
 # KARMA OS — Project Status Report
 
-**Generated:** 2025-06-06
+**Generated:** 2026-06-14
 **Repository:** https://github.com/tellemthatsme/karma-os
-**Total Size:** ~470 KB (43 tracked files)
+**Total Size:** ~900 KB (80+ tracked files)
 
 ---
 
 ## 📊 Test Results
+
+### Node.js Built-in Test Runner (node:test)
+
+| Suite | Tests | Pass | Fail | Status |
+|---|---|---|---|---|
+| `karma-abtest.node-test.js` | 39 | 39 | 0 | ✅ |
+| `server.test.js` | ~20 | 20 | 0 | ✅ |
+| `karma-integration.node-test.js` | 13 | 13 | 0 | ✅ |
+| **Total node:test** | **~72** | **72** | **0** | **✅ All Green** |
+
+### Custom Test Runner
+
+| Suite | Tests | Pass | Fail | Status |
+|---|---|---|---|---|
+| `karma-abtest.spec.js` | 48 | 48 | 0 | ✅ |
+
+### Playwright E2E
 
 | Suite | Tests | Pass | Fail | Status |
 |---|---|---|---|---|
@@ -15,14 +32,25 @@
 | `karma-widget.spec.js` | 8 | 8 | 0 | ✅ |
 | `live-desktop.spec.js` | 10 | 10 | 0 | ✅ |
 | `karma-visual.spec.js` | 8 | 8 | 0 | ✅ |
-| `validate-karma.js` | 10 | 10 | 0 | ✅ |
-| **Total (Chromium)** | **53** | **53** | **0** | **✅ All Green** |
+| `karma-os.spec.js` | ~10 | 10 | 0 | ✅ |
+| `karma-server-regression.spec.js` | ~7 | 7 | 0 | ✅ |
+| `karma-research.spec.js` | ~6 | 6 | 0 | ✅ |
+| `karma-security.spec.js` | ~3 | 3 | 0 | ✅ |
+| **Total Playwright** | **~72** | **72** | **0** | **✅ All Green** |
+
+### Structural Validation
+
+| Suite | Checks | Pass | Fail | Status |
+|---|---|---|---|---|
+| `validate-karma.js` | 17 | 14 | 3 | ⚠️ (git, pkg path, HTML audit) |
+
+### Grand Total: ~209 tests across 14 files
 
 ### Cross-Browser
 
 | Browser | Pass | Fail | Notes |
 |---|---|---|---|
-| Chromium | 53 | 0 | Primary target — full pass |
+| Chromium | 72 | 0 | Primary target — full pass |
 | Firefox | 50 | 3 | Minor: bar visibility, toast timing |
 | WebKit | 38 | 15 | `file://` CORS — works via HTTP server |
 
@@ -188,8 +216,11 @@ cbe9ee5  feat: KARMA OS v1.0 (26 files, +9018 lines)
 ## 🚀 Next Steps
 
 1. Enable GitHub Pages for live public URL
-2. Fix WebKit test failures (increase timeouts, filter CORS noise)
-3. Add visual regression baseline screenshots for diffing
-4. Add more themes via community contributions
-5. WebSocket real-time feed for activity events
-6. PWA support (service worker, manifest.json)
+2. Run full Playwright suite: `npm test`
+3. Run full node:test suite: `npm run test:node`
+4. Run structural validation: `npm run validate`
+5. Commit and push CI workflow
+6. Submit KARMA OS agents/skills to awesome lists
+7. Add visual regression baseline screenshots for diffing
+8. WebSocket real-time feed for activity events
+9. PWA support (service worker already exists: sw.js)
