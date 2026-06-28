@@ -126,7 +126,11 @@
     $('icon').textContent = '❌';
     $('icon').classList.remove('loading');
     $('title').textContent = 'Payment failed';
-    $('message').innerHTML = '<span class="error">' + msg + '</span>';
+    const span = document.createElement('span');
+    span.className = 'error';
+    span.textContent = msg;
+    $('message').innerHTML = '';
+    $('message').appendChild(span);
   }
 
   // If no session_id, show error

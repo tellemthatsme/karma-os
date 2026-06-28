@@ -910,14 +910,14 @@ function handleRevenueRoutes(req, res, startTime, deps) {
           res.end(JSON.stringify({
             ok: true,
             verified: true,
-            plan: (row.metadata && JSON.parse(row.metadata).plan) || 'Pro',
+            plan: (() => { try { return row.metadata && JSON.parse(row.metadata).plan; } catch { return null; } })() || 'Pro',
             amount: row.amount,
             currency: row.currency,
             customerEmail: row.customerEmail,
             status: row.status,
           }));
-        } else {
-          // Return a mock successful response for demo / testing
+        } else if (process.env.NODE_ENV !== 'production') {
+          // Demo fallback — disabled in production
           res.writeHead(200, { 'Content-Type': 'application/json' });
           logRequest(req, res, startTime);
           res.end(JSON.stringify({
@@ -930,6 +930,10 @@ function handleRevenueRoutes(req, res, startTime, deps) {
             status: 'succeeded',
             note: 'Mock verification — integrate Stripe API for production',
           }));
+        } else {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          logRequest(req, res, startTime, { error: 'Session not found' });
+          res.end(JSON.stringify({ ok: false, error: 'Session not found' }));
         }
       }
     );

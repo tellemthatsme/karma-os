@@ -69,9 +69,9 @@ async function run() {
   if (cmd === 'start') {
     // Create a minimal in-memory-like db stub for CLI usage
     const dbStub = {
-      get: () => {},
+      get: (sql, params, cb) => { if (typeof cb === 'function') cb(null, null); },
       run: () => {},
-      all: () => {},
+      all: (sql, params, cb) => { if (typeof cb === 'function') cb(null, []); },
     };
     const result = startScheduler(dbStub, { timezone: 'UTC' });
     if (result.started) {
