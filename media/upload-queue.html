@@ -3,104 +3,151 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>KARMA OS · Upload Queue</title>
+<title>KARMA OS - Upload Queue</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--good:#00ff9d;--bad:#ff3366;--mut:#a8a8b3;--bg:#060a14;--panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.15);--txt:#e8f4ff;--mute:rgba(255,255,255,.4)}
-html,body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-height:100vh;padding:20px}
+:root{--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--bad:#ff3366;--mut:#a8a8b3;--bg:#060a14;--panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.15);--txt:#e8f4ff;--mute:rgba(255,255,255,.4)}
+html,body{background:var(--bg);color:var(--txt);font-family:Inter,sans-serif;min-height:100vh;padding:20px}
 .hdr{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 18px;padding:14px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
-.logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
-.hdr-right{display:flex;gap:8px}
-.btn{padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--mute);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s}
+.logo{font-family:Orbitron,monospace;font-size:20px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
+.sub{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:2px;margin-top:2px}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--txt);font-size:11px;cursor:pointer;transition:all .2s}
 .btn:hover{border-color:var(--ac);color:var(--ac)}
-.btn.primary{background:rgba(0,212,255,.1);border-color:var(--ac);color:var(--ac)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1200px;margin:0 auto 18px}
-.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:center}
-.stat-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-.stat-lab{font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
-.dial{position:relative;width:120px;height:120px;margin:0 auto 18px}
-.dial svg{transform:rotate(-90deg)}
-.dial-bg{stroke:rgba(0,212,255,.12);stroke-width:8;fill:none}
-.dial-fg{stroke:url(#g1);stroke-width:8;stroke-linecap:round;fill:none;transition:stroke-dasharray .5s}
-.dial-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:24px;font-weight:700;color:var(--txt)}
-.dial-lab{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:1px}
-.legend{max-width:1200px;margin:0 auto 14px;padding:10px 16px;background:var(--panel);border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--mute);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.legend label{display:flex;align-items:center;gap:6px;cursor:pointer}
-.legend input[type=checkbox]{accent-color:var(--ac)}
-.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;max-width:1200px;margin:0 auto 22px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;transition:all .3s;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--ac);opacity:.6}
-.card[data-status="scripted"]::before{background:var(--ac2)}
-.card[data-status="recorded"]::before{background:#ffbd00}
-.card[data-status="rendered"]::before{background:var(--warn)}
-.card[data-status="uploaded"]::before{background:var(--good)}
-.card[data-status="live"]::before{background:var(--good);box-shadow:0 0 8px var(--good)}
-.card:hover{border-color:var(--ac);transform:translateY(-2px)}
-.day{font-family:'Orbitron',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;text-transform:uppercase}
-title-block{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--txt);margin:4px 0 6px;line-height:1.25}
-.meta{font-size:10px;color:var(--mute);margin-bottom:8px}
-.status-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.sel{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--txt);font-size:10px;font-family:'Inter',sans-serif;padding:3px 6px;border-radius:6px;cursor:pointer;flex:1}
-.sel:focus{outline:none;border-color:var(--ac)}
-.id-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--txt);font-size:10px;font-family:monospace;padding:3px 6px;border-radius:6px;margin-bottom:4px}
-.id-input:focus{outline:none;border-color:var(--ac)}
-.id-input::placeholder{color:rgba(255,255,255,.2)}
-.note{width:100%;background:transparent;border:none;color:var(--mute);font-size:10px;font-family:'Inter',sans-serif;padding:2px 0;border-bottom:1px dashed var(--border);resize:none;height:auto;min-height:18px;overflow:hidden}
-.note:focus{outline:none;border-bottom-color:var(--ac);color:var(--txt)}
-.srv-state{font-size:10px;color:var(--mute);text-align:center;margin:8px auto;max-width:1200px}
-.srv-state.online{color:var(--good)}
-.srv-state.offline{color:var(--warn)}
-@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.hdr{flex-direction:column;gap:10px;text-align:center}}
+.btn.primary{background:rgba(0,212,255,.12);border-color:var(--ac);color:var(--ac)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:1200px;margin:0 auto 16px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat-v{font-family:Orbitron,monospace;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat-l{font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.gauge-wrap{max-width:1200px;margin:0 auto 18px;padding:12px 18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:14px}
+.gauge{flex:1;height:14px;background:rgba(255,255,255,.06);border-radius:7px;overflow:hidden}
+.gauge-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:7px;transition:width .4s;box-shadow:0 0 8px rgba(0,212,255,.4)}
+.gauge-lbl{font-family:Orbitron,monospace;font-size:13px;color:var(--ac);min-width:130px;text-align:right}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;max-width:1200px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;transition:all .2s}
+.card:hover{border-color:var(--ac)}
+.card.live{border-color:var(--ac3)}
+.card.next{box-shadow:0 0 18px rgba(0,212,255,.18);border-color:var(--ac)}
+.day{font-family:Orbitron,monospace;font-size:10px;color:var(--ac);letter-spacing:2px;text-transform:uppercase}
+.title{font-family:Orbitron,monospace;font-size:12px;font-weight:700;margin:6px 0;color:var(--txt)}
+.meta{font-size:10px;color:var(--mute);margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start}
+.row>label{font-size:9px;font-family:Orbitron,monospace;color:var(--mute);text-transform:uppercase;letter-spacing:1px;min-width:60px;align-self:center;padding-top:6px}
+.input,.select,.ta{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:6px;color:var(--txt);font-size:11px;padding:6px 8px;font-family:Inter,sans-serif}
+.input:focus,.select:focus,.ta:focus{outline:none;border-color:var(--ac)}
+.ta{min-height:38px;resize:vertical}
+.tag{display:inline-block;font-size:9px;padding:3px 8px;border-radius:10px;background:rgba(0,212,255,.1);color:var(--ac);border:1px solid rgba(0,212,255,.2);font-family:Orbitron,monospace;letter-spacing:1px}
+.tag.pending{background:rgba(168,168,179,.12);color:var(--mut);border-color:rgba(168,168,179,.25)}
+.tag.live{background:rgba(0,255,157,.12);color:var(--ac3);border-color:rgba(0,255,157,.25)}
+.tag.failed{background:rgba(255,51,102,.12);color:var(--bad);border-color:rgba(255,51,102,.25)}
+.notice{max-width:1200px;margin:18px auto;padding:10px 14px;font-size:11px;border-radius:10px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.25);color:var(--warn)}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-
-<div class="hdr">
-  <div class="logo">UPLOAD QUEUE · TELLLEMTHATSME</div>
-  <div class="hdr-right">
-    <button class="btn" id="exportBtn">Export</button>
-    <button class="btn" id="importBtn">Import</button>
-    <button class="btn primary" id="syncBtn">Sync Server</button>
-    <a class="btn" href="index.html" style="text-decoration:none">Home</a>
-  </div>
-</div>
-
-<div class="dial">
-  <svg width="120" height="120"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#b347ff"/></linearGradient></defs><circle class="dial-bg" cx="60" cy="60" r="52"/><circle class="dial-fg" id="dialFg" cx="60" cy="60" r="52" stroke-dasharray="0 327"/></svg>
-  <div class="dial-val" id="dialVal">0/16</div>
-  <div class="dial-lab">UPLOADED</div>
-</div>
-
-<div class="stats">
-  <div class="stat"><div class="stat-val" id="sUploaded">0</div><div class="stat-lab">Uploaded</div></div>
-  <div class="stat"><div class="stat-val" id="sLive">0</div><div class="stat-lab">Live</div></div>
-  <div class="stat"><div class="stat-val" id="sToday">—</div><div class="stat-lab">Next Slot</div></div>
-  <div class="stat"><div class="stat-val" id="sDayN">D0</div><div class="stat-lab">Day</div></div>
-</div>
-
-<div class="legend">
-  <strong style="color:var(--txt);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px">FILTER:</strong>
-  <label><input type="checkbox" data-filter="pending" checked/> Pending</label>
-  <label><input type="checkbox" data-filter="scripted" checked/> Scripted</label>
-  <label><input type="checkbox" data-filter="recorded" checked/> Recorded</label>
-  <label><input type="checkbox" data-filter="rendered" checked/> Rendered</label>
-  <label><input type="checkbox" data-filter="uploaded" checked/> Uploaded</label>
-  <label><input type="checkbox" data-filter="live" checked/> Live</label>
-</div>
-
-<div class="srv-state offline" id="srvState">Server sync: untested (graceful localStorage fallback active)</div>
-<div class="queue" id="queue"></div>
-
+<div class="hdr"><div><div class="logo">KARMA OS</div><div class="sub">UPLOAD QUEUE - 16 TRACKS - YPP ROLL-OUT</div></div>
+<div class="tools"><button class="btn" onclick="exportJSON()">Export JSON</button><button class="btn" onclick="document.getElementById('imp').click()">Import JSON</button><input type="file" id="imp" accept="application/json" style="display:none" onchange="importJSON(event)"/><button class="btn" onclick="resetData()">Reset</button><button class="btn primary" id="syncBtn">Sync Server</button></div></div>
+<div class="stats" id="stats"></div>
+<div class="gauge-wrap"><div class="gauge"><div class="gauge-fill" id="gaugeFill" style="width:0%"></div></div><div class="gauge-lbl" id="gaugeLbl">0 / 16</div></div>
+<div id="notice" class="notice" style="display:none"></div>
+<div class="grid" id="grid"></div>
 <script>
-// ── Default 16-track schedule (from launch/SESSION_LOG.md + audit) ───────────
-const SCHEDULE_DAY1 = '2026-06-08';  // override via localStorage.karma_day1
-const TRACKS = [
-  { title: 'Dont Rush Me',         file: 'audio/dont-rush-me.mp3',  channel: 'main' },
-  { title: 'Built Not Born',       file: 'audio/built-not-born.mp3',channel: 'main' },
-  { title: 'Karma Loop',           file: 'audio/karma-loop.mp3',    channel: 'main' },
-  { title: 'Ghost in the Machine', file: 'audio/ghost-machine.mp3', channel: 'main' },
-  { title: 'Iron Lung',            file: 'audio/iron-lung.mp3',     channel: 'main' },
-  { title: 'No Ceiling',           file: 'audio/no-ceiling.mp3',    channel: 'main' },
-  { title: 'Concrete Roots',       file: 'audio/concrete-roots.mp3',channel: 'main' },
-  { title: 'Static 
+var STORAGE_KEY='karma_upload_queue_v1';
+var DEFAULT_TRACKS=[
+{day:1,title:'TellLemThatsMe Intro',file:'intelligence/videos/tell-lem-thatsme-intro.mp4',time:'2026-06-08T15:00',channel:'main'},
+{day:2,title:'Wave Maker Beat 1',file:'beats/wave-maker-01.mp4',time:'2026-06-09T15:00',channel:'main'},
+{day:3,title:'Neural Flow 1',file:'beats/neural-flow-01.mp4',time:'2026-06-10T15:00',channel:'main'},
+{day:4,title:'Cinematic Strings',file:'beats/cinematic-strings-01.mp4',time:'2026-06-11T15:00',channel:'main'},
+{day:5,title:'Trap Beats 1',file:'beats/trap-01.mp4',time:'2026-06-12T15:00',channel:'beats'},
+{day:6,title:'Lo-Fi Vibes',file:'beats/lofi-01.mp4',time:'2026-06-13T15:00',channel:'beats'},
+{day:7,title:'Storyteller 1',file:'intelligence/videos/story-01.mp4',time:'2026-06-14T15:00',channel:'main'},
+{day:8,title:'Mid-tier Promo',file:'promo/mid-01.mp4',time:'2026-06-15T15:00',channel:'promo'},
+{day:9,title:'Neural Flow 2',file:'beats/neural-flow-02.mp4',time:'2026-06-16T15:00',channel:'main'},
+{day:10,title:'Trap Beats 2',file:'beats/trap-02.mp4',time:'2026-06-17T15:00',channel:'beats'},
+{day:11,title:'TellLemThatsMe Update',file:'intelligence/videos/update-01.mp4',time:'2026-06-18T15:00',channel:'main'},
+{day:12,title:'Wave Maker 2',file:'beats/wave-maker-02.mp4',time:'2026-06-19T15:00',channel:'main'},
+{day:13,title:'Cinematic 2',file:'beats/cinematic-02.mp4',time:'2026-06-20T15:00',channel:'main'},
+{day:14,title:'Storyteller 2',file:'intelligence/videos/story-02.mp4',time:'2026-06-21T15:00',channel:'main'},
+{day:15,title:'Promo Tier 2',file:'promo/tier2-01.mp4',time:'2026-06-22T15:00',channel:'promo'},
+{day:16,title:'Final Roll',file:'beats/final-01.mp4',time:'2026-06-23T15:00',channel:'main'}
+];
+function escapeHtml(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'})[c];});}
+function load(){try{var s=localStorage.getItem(STORAGE_KEY);if(!s)return JSON.parse(JSON.stringify(DEFAULT_TRACKS));var p=JSON.parse(s);if(Array.isArray(p)&&p.length===16)return p;return JSON.parse(JSON.stringify(DEFAULT_TRACKS));}catch(e){return JSON.parse(JSON.stringify(DEFAULT_TRACKS));}}
+function save(state){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
+function todayDay(){var d1=new Date('2026-06-08T00:00:00Z').getTime();var now=Date.now();if(now<d1)return 1;return Math.min(16,Math.floor((now-d1)/864
+function render(){
+var state=load();var tday=todayDay();var live=0,pending=0,failed=0;
+for(var n=0;n<state.length;n++){var t2=state[n];if(t2.status==='live'){live++;}else if(t2.status==='failed'){failed++;}else{pending++;}}
+document.getElementById('stats').innerHTML='<div class=\"stat\"><div class=\"stat-v\">'+state.length+'</div><div class=\"stat-l\">Tracks</div></div><div class=\"stat\"><div class=\"stat-v\">'+live+'</div><div class=\"stat-l\">Live</div></div><div class=\"stat\"><div class=\"stat-v\">'+pending+'</div><div class=\"stat-l\">Pending</div></div><div class=\"stat\"><div class=\"stat-v\">'+(live+failed)+' / '+state.length+'</div><div class=\"stat-l\">Attempted</div></div>';
+var pct=Math.round((live/state.length)*100);
+document.getElementById('gaugeFill').style.width=pct+'%';
+document.getElementById('gaugeLbl').textContent=live+' / '+state.length+' ('+pct+'%)';
+var grid=document.getElementById('grid');
+var html='';
+for(var i=0;i<state.length;i++){
+var t=state[i];var isLive=t.status==='live';var isNext=t.day===tday&&!isLive;
+var tagClass='tag';
+if(t.status==='live'){tagClass='tag live';}else if(t.status==='failed'){tagClass='tag failed';}else{tagClass='tag pending';}
+html+='<div class=\"card'+(isLive?' live':'')+(isNext?' next':'')+'\">'
++'<div class=\"row\" style=\"justify-content:space-between;align-items:center\"><span class=\"day\">DAY '+t.day+'</span><span class=\"'+tagClass+'\">'+escapeHtml(t.status)+'</span></div>'
++'<div class=\"title\">'+escapeHtml(t.title)+'</div>'
++'<div class=\"meta\"><span>'+fmtDate(t.time)+'</span><span>ch: '+escapeHtml(t.channel||'-')+'</span></div>'
++'<div class=\"meta\"><span>file: '+escapeHtml(t.file)+'</span></div>'
++'<div class=\"row\"><label>Status</label><select class=\"select\" data-d=\"'+t.day+'\" data-k=\"status\"><option value=\"pending\"'+(t.status==='pending'?' selected':'')+'>pending</option><option value=\"live\"'+(t.status==='live'?' selected':'')+'>live</option><option value=\"failed\"'+(t.status==='failed'?' selected':'')+'>failed</option></select></div>'
++'<div class=\"row\"><label>Video ID</label><input class=\"input\" data-d=\"'+t.day+'\" data-k=\"youtube_video_id\" value=\"'+escapeHtml(t.youtube_video_id||'')+'\" placeholder=\"YouTube video ID\"/></div>'
++'<div class=\"row\"><label>Channel</label><input class=\"input\" data-d=\"'+t.day+'\" data-k=\"channel\" value=\"'+escapeHtml(t.channel||'')+'\"/></div>'
++'<div class=\"row\"><label>Notes</label><textarea class=\"ta\" data-d=\"'+t.day+'\" data-k=\"notes\">'+escapeHtml(t.notes||'')+'</textarea></div>'
++'</div>';
+}
+grid.innerHTML=html;
+grid.querySelectorAll('[data-d]').forEach(function(el){
+el.addEventListener('change',function(){
+var d=parseInt(el.getAttribute('data-d'),10);var k=el.getAttribute('data-k');
+var s2=load();var row=null;
+for(var j=0;j<s2.length;j++){if(s2[j].day===d){row=s2[j];break;}}
+if(!row)return;row[k]=el.value;
+if(k==='status'&&el.value==='live'&&!row.uploaded_at){row.uploaded_at=new Date().toISOString();}
+save(s2);render();});});
+}
+function exportJSON(){
+var s=load();var b=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});
+var u=URL.createObjectURL(b);var a=document.createElement('a');
+a.href=u;a.download='karma-upload-queue-'+new Date().toISOString().slice(0,10)+'.json';
+a.click();URL.revokeObjectURL(u);showNotice('Exported '+s.length+' tracks','success');
+}
+function importJSON(ev){
+var f=ev.target.files[0];if(!f)return;
+var r=new FileReader();r.onload=function(){
+try{var p=JSON.parse(r.result);
+if(!Array.isArray(p)||p.length!==16)throw new Error('Expected 16 tracks, got '+(p&&p.length));
+save(p);render();showNotice('Imported '+p.length+' tracks','success');
+}catch(e){showNotice('Import failed: '+e.message,'error');}};r.readAsText(f);
+}
+function resetData(){
+if(!confirm('Reset all 16 tracks to defaults? Current state will be lost.'))return;
+localStorage.removeItem(STORAGE_KEY);render();showNotice('Reset to default 16 tracks','success');
+}
+document.getElementById('syncBtn').addEventListener('click',function(){
+var btn=this;var prev=btn.textContent;
+btn.disabled=true;btn.textContent='Syncing...';
+fetch('/api/upload-queue/state',{method:'GET'}).then(function(r){
+if(!r.ok)throw new Error('HTTP '+r.status);return r.json();
+}).then(function(server_state){
+if(!Array.isArray(server_state))throw new Error('Bad payload shape');
+save(server_state);render();
+showNotice('Synced with server ('+server_state.length+' tracks)','success');
+}).catch(function(e){
+showNotice('Server sync unavailable: '+e.message+'. Using localStorage.','warn');
+}).finally(function(){btn.disabled=false;btn.textContent=prev;});
+});
+function showNotice(msg,kind){
+var n=document.getElementById('notice');n.style.display='block';
+if(kind==='success'){n.style.background='rgba(0,255,157,.08)';n.style.borderColor='rgba(0,255,157,.25)';n.style.color='var(--ac3)';}
+else if(kind==='error'){n.style.background='rgba(255,51,102,.08)';n.style.borderColor='rgba(255,51,102,.25)';n.style.color='var(--bad)';}
+else{n.style.background='rgba(255,107,53,.08)';n.style.borderColor='rgba(255,107,53,.25)';n.style.color='var(--warn)';}
+n.textContent=msg;}
+render();
+</script>
+</body>
+</html>
