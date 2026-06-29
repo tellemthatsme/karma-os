@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KARMA OS · YPP Eligibility Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--bg:#060a14;
+  --panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.15);--text:#e8f4ff;
+  --muted:rgba(255,255,255,.4);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:20px}
+.hdr{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto 20px;padding:16px 22px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
+.subtitle{font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.arrow{font-family:'Orbitron',monospace;color:var(--ac2);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;max-width:1100px;margin:0 auto 20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px}
+.label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:'Orbitron',monospace}
+.value{font-family:'Orbitron',monospace;font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.sub{font-size:11px;color:var(--muted);margin-top:6px}
+.progress{margin-top:10px;height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.bar{height:100%;background:linear-gradient(90deg,var(--ac3),var(--ac));transition:width 1s ease;border-radius:3px}
+.bar.warn{background:linear-gradient(90deg,var(--warn),var(--ac))}
+.targets{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:1100px;margin:0 auto 20px}
+.target{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.target.met{border-color:var(--ac3);box-shadow:0 0 24px rgba(0,255,157,.12)}
+.target .badge{position:absolute;top:14px;right:14px;font-family:'Orbitron',monospace;font-size:9px;padding:3px 8px;border-radius:10px;background:rgba(0,255,157,.15);color:var(--ac3);border:1px solid rgba(0,255,157,.3);text-transform:uppercase;letter-spacing:1px}
+.target.unmet .badge{background:rgba(255,107,53,.15);color:var(--warn);border-color:rgba(255,107,53,.3)}
+.target h3{font-family:'Orbitron',monospace;font-size:13px;color:var(--ac);margin-bottom:8px;letter-spacing:1px}
+.target .num{font-family:'Orbitron',monospace;font-size:26px;color:var(--text);margin:6px 0 2px}
+.target .need{font-size:11px;color:var(--muted)}
+.config{background:var(--panel);border:1px dashed var(--border);border-radius:14px;padding:18px;max-width:1100px;margin:0 auto 20px}
+.config h2{font-family:'Orbitron',monospace;font-size:12px;color:var(--ac);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.config p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.config code{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);padding:1px 6px;border-radius:4px;color:var(--ac);font-size:11px}
+.foot{text-align:center;font-size:10px;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:2px;text-transform:uppercase;margin-top:20px}
+.spin{color:var(--ac2);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><div class="logo">KARMA OS · YPP</div><div class="subtitle">YouTube Partner Program eligibility tracker</div></div>
+  <div class="subtitle"><span class="spin" id="spin">●</span>&nbsp;live</div>
+</div>
+
+<div id="cardsRoot" class="grid"></div>
+
+<div class="targets">
+  <div class="target" id="t-subs">
+    <div class="badge">UNMET</div>
+    <h3>1,000 Subscribers</h3>
+    <div class="num" id="subsNum">—</div>
+    <div class="need">need 1,000</div>
+    <div class="progress"><div class="bar" id="subsBar" style="width:0%"></div></div>
+  </div>
+  <div class="target" id="t-watch">
+    <div class="badge">UNMET</div>
+    <h3>4,000 Watch Hours</h3>
+    <div class="num" id="watchNum">—</div>
+    <div class="need">need 4,000 hrs</div>
+    <div class="progress"><div class="bar" id="watchBar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div class="config" id="config" style="display:none">
+  <h2>⚙️ Setup required</h2>
+  <p>This page reads your channel stats from <code>YouTube Data API v3</code>. Until you paste your key + channel ID below, the dashboard will stay blank.</p>
+  <p>1. Create a free GCP project → enable <code>YouTube Data API v3</code> → create an API key.</p>
+  <p>2. Find your channel ID: visit <code>youtube.com/account_advanced</code>.</p>
+  <p>3. Paste both below. Stored only in this browser's localStorage (never sent off-device).</p>
+  <input id="apiKey" placeholder="AIzaSy... (YouTube Data API key)" style="width:100%;padding:8px;margin:6px 0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px"/>
+  <input id="chanId" placeholder="UC... (channel ID)" style="width:100%;padding:8px;margin:6px 0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:monospace;font-size:12px"/>
+  <button onclick="saveCreds()" style="padding:8px 16px;background:var(--ac);color:#000;border:none;border-radius:6px;cursor:pointer;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;margin-top:6px">SAVE &amp; FETCH</button>
+</div>
+
+<div class="foot">refresh · 5 min · read-only · cannot modify your channel</div>
+
+<script>
+const YPP_SUBS = 1000, YPP_WATCH = 4000;
+let timer;
+
+function fmt(n){return (n||0).toLocaleString();}
+
+async function fetchChannel(){
+  const k = localStorage.getItem('ypp_api_key');
+  const c = localStorage.getItem('ypp_channel_id');
+  if(!k || !c){ document.getElementById('config').style.display='block'; return; }
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${c}&key=${k}`;
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if(d.error){ document.getElementById('config').style.display='block'; return; }
+    const s = d.items?.[0]?.statistics || {};
+    render(s);
+  } catch(e){
+    document.getElementById('config').style.display='block';
+  }
+}
+
+function render(s){
+  const subs = parseInt(s.subscriberCount||0);
+  const views = parseInt(s.viewCount||0);
+  const vids = parseInt(s.videoCount||0);
+  const watchHrs = Math.round(views / 200); 
+  const day1 = localStorage.getItem('ypp_day1') || '2026-06-08';
+  const days = Math.floor((Date.now() - new Date(day1).getTime()) / 86400000);
+
+  cardsRoot.innerHTML = \`
+    <div class="card"><div class="label">Subscribers</div><div class="value">\${fmt(subs)}</div><div class="sub">+\${fmt(subs - (parseInt(localStorage.getItem('ypp_subs_prev')||'0')))} since last fetch</div></div>
+    <div class="card"><div class="label">Channel Views</div><div class="value">\${fmt(views)}</div><div class="sub">\${fmt(vids)} public videos</div></div>
+    <div class="card"><div class="label">Day \${Math.max(1,days)} / 16</div><div class="value">\${Math.round(days*100/16)}%</div><div class="sub">cadence vs launch checklist</div></div>
+    <div class="card"><div class="label">Required Pace</div><div class="value">\${Math.ceil(YPP_SUBS/Math.max(1,days))}/d</div><div class="sub">subscribers/day needed</div></div>
+  \`;
+
+  const subPct = Math.min(100, subs/YPP_SUBS*100);
+  document.getElementById('subsNum').textContent = fmt(subs);
+  document.getElementById('subsBar').style.width = subPct+'%';
+  const tSubs = document.get
