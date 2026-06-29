@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KARMA OS · Upload Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ac:#00d4ff;--ac2:#b347ff;--ac3:#00ff9d;--warn:#ff6b35;--good:#00ff9d;--bad:#ff3366;--mut:#a8a8b3;--bg:#060a14;--panel:rgba(10,20,40,.82);--border:rgba(0,212,255,.15);--txt:#e8f4ff;--mute:rgba(255,255,255,.4)}
+html,body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-height:100vh;padding:20px}
+.hdr{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 18px;padding:14px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
+.hdr-right{display:flex;gap:8px}
+.btn{padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--mute);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.primary{background:rgba(0,212,255,.1);border-color:var(--ac);color:var(--ac)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1200px;margin:0 auto 18px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:center}
+.stat-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.stat-lab{font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.dial{position:relative;width:120px;height:120px;margin:0 auto 18px}
+.dial svg{transform:rotate(-90deg)}
+.dial-bg{stroke:rgba(0,212,255,.12);stroke-width:8;fill:none}
+.dial-fg{stroke:url(#g1);stroke-width:8;stroke-linecap:round;fill:none;transition:stroke-dasharray .5s}
+.dial-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:24px;font-weight:700;color:var(--txt)}
+.dial-lab{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:9px;color:var(--mute);text-transform:uppercase;letter-spacing:1px}
+.legend{max-width:1200px;margin:0 auto 14px;padding:10px 16px;background:var(--panel);border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--mute);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.legend label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.legend input[type=checkbox]{accent-color:var(--ac)}
+.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;max-width:1200px;margin:0 auto 22px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;transition:all .3s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--ac);opacity:.6}
+.card[data-status="scripted"]::before{background:var(--ac2)}
+.card[data-status="recorded"]::before{background:#ffbd00}
+.card[data-status="rendered"]::before{background:var(--warn)}
+.card[data-status="uploaded"]::before{background:var(--good)}
+.card[data-status="live"]::before{background:var(--good);box-shadow:0 0 8px var(--good)}
+.card:hover{border-color:var(--ac);transform:translateY(-2px)}
+.day{font-family:'Orbitron',monospace;font-size:10px;color:var(--mute);letter-spacing:1px;text-transform:uppercase}
+title-block{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--txt);margin:4px 0 6px;line-height:1.25}
+.meta{font-size:10px;color:var(--mute);margin-bottom:8px}
+.status-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.sel{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--txt);font-size:10px;font-family:'Inter',sans-serif;padding:3px 6px;border-radius:6px;cursor:pointer;flex:1}
+.sel:focus{outline:none;border-color:var(--ac)}
+.id-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--txt);font-size:10px;font-family:monospace;padding:3px 6px;border-radius:6px;margin-bottom:4px}
+.id-input:focus{outline:none;border-color:var(--ac)}
+.id-input::placeholder{color:rgba(255,255,255,.2)}
+.note{width:100%;background:transparent;border:none;color:var(--mute);font-size:10px;font-family:'Inter',sans-serif;padding:2px 0;border-bottom:1px dashed var(--border);resize:none;height:auto;min-height:18px;overflow:hidden}
+.note:focus{outline:none;border-bottom-color:var(--ac);color:var(--txt)}
+.srv-state{font-size:10px;color:var(--mute);text-align:center;margin:8px auto;max-width:1200px}
+.srv-state.online{color:var(--good)}
+.srv-state.offline{color:var(--warn)}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.hdr{flex-direction:column;gap:10px;text-align:center}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">UPLOAD QUEUE · TELLLEMTHATSME</div>
+  <div class="hdr-right">
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <button class="btn primary" id="syncBtn">Sync Server</button>
+    <a class="btn" href="index.html" style="text-decoration:none">Home</a>
+  </div>
+</div>
+
+<div class="dial">
+  <svg width="120" height="120"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#b347ff"/></linearGradient></defs><circle class="dial-bg" cx="60" cy="60" r="52"/><circle class="dial-fg" id="dialFg" cx="60" cy="60" r="52" stroke-dasharray="0 327"/></svg>
+  <div class="dial-val" id="dialVal">0/16</div>
+  <div class="dial-lab">UPLOADED</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val" id="sUploaded">0</div><div class="stat-lab">Uploaded</div></div>
+  <div class="stat"><div class="stat-val" id="sLive">0</div><div class="stat-lab">Live</div></div>
+  <div class="stat"><div class="stat-val" id="sToday">—</div><div class="stat-lab">Next Slot</div></div>
+  <div class="stat"><div class="stat-val" id="sDayN">D0</div><div class="stat-lab">Day</div></div>
+</div>
+
+<div class="legend">
+  <strong style="color:var(--txt);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px">FILTER:</strong>
+  <label><input type="checkbox" data-filter="pending" checked/> Pending</label>
+  <label><input type="checkbox" data-filter="scripted" checked/> Scripted</label>
+  <label><input type="checkbox" data-filter="recorded" checked/> Recorded</label>
+  <label><input type="checkbox" data-filter="rendered" checked/> Rendered</label>
+  <label><input type="checkbox" data-filter="uploaded" checked/> Uploaded</label>
+  <label><input type="checkbox" data-filter="live" checked/> Live</label>
+</div>
+
+<div class="srv-state offline" id="srvState">Server sync: untested (graceful localStorage fallback active)</div>
+<div class="queue" id="queue"></div>
+
+<script>
+// ── Default 16-track schedule (from launch/SESSION_LOG.md + audit) ───────────
+const SCHEDULE_DAY1 = '2026-06-08';  // override via localStorage.karma_day1
+const TRACKS = [
+  { title: 'Dont Rush Me',         file: 'audio/dont-rush-me.mp3',  channel: 'main' },
+  { title: 'Built Not Born',       file: 'audio/built-not-born.mp3',channel: 'main' },
+  { title: 'Karma Loop',           file: 'audio/karma-loop.mp3',    channel: 'main' },
+  { title: 'Ghost in the Machine', file: 'audio/ghost-machine.mp3', channel: 'main' },
+  { title: 'Iron Lung',            file: 'audio/iron-lung.mp3',     channel: 'main' },
+  { title: 'No Ceiling',           file: 'audio/no-ceiling.mp3',    channel: 'main' },
+  { title: 'Concrete Roots',       file: 'audio/concrete-roots.mp3',channel: 'main' },
+  { title: 'Static 

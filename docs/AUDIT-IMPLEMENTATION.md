@@ -48,6 +48,12 @@ These features are **fully implementable** with code, but require the user to pr
 
 **Trade-off:** this dashboard refreshes every 5 min from the public read-only API, so it is safe to run 24/7 with zero risk of accidental uploads or deletions.
 
+## Tier 2b — Shipped alongside Daily Posting Companion
+
+| Feature | Files | How it works today |
+|--------|-------|-------------------|
+| **Upload-queue companion** (16-track pacing board with server-sync fallback) | `media/upload-queue.html` (client-side) | Dark-cyber dashboard mirrors `launch/DAILY_POSTING_BOARD.html`. State lives in browser `localStorage` (key `karma_upload_queue_v1`). Status ladder: pending → scripted → recorded → rendered → uploaded → live. Per card: status select, YouTube video ID, freeform notes. Export-and-import JSON. Circular gauge for upload progress. Optional **Sync Server** button calls `GET /api/upload-queue/state` with a 3-second timeout and gracefully falls back to localStorage when the route is absent. Cadence defaults to 1 track/day from 2026-06-08 (override via `localStorage.karma_day1`). |
+
 ## Tier 3 — User-Ops Only (No Code Path)
 
 These audit items are inherently manual, with no code shortcut. Any automation would be brittle, error-prone, or violate platform ToS.
