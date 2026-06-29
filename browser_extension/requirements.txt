@@ -1,0 +1,15 @@
+# KARMA OS — Browser extension bridge dependencies
+# Install via: pip install -r browser_extension/requirements.txt
+# All scripts currently use Python 3 stdlib only; these are optional.
+
+# bridge_server.py — stdlib only
+# youtube_uploader.py — stdlib only
+# mcp_server.py — stdlib only
+
+# Optional: Production hardening (FastAPI migration)
+# fastapi>=0.115.0
+# uvicorn[standard]>=0.32.0
+# pydantic>=2.9.0
+
+# Optional: Browser automation in bridge
+# playwright>=1.49.0

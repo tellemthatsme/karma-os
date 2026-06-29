@@ -2,7 +2,7 @@
 
 > A cyberpunk-themed multi-dashboard system monitor with a floating HUD, widget, live desktop overlay, unified launcher, real-time metrics backend, **AI Research pipeline** (RSS/Discord/Telegram/Slack), **one-command VPS deploy**, and a **social-media command center** for 16 videos × 32 platforms × 70+ communities.
 
-> 📖 **Start here:** [`KARMA_OS_SHIPPED.md`](KARMA_OS_SHIPPED.md) — master documentation for everything in this build.
+> 📖 **Start here:** [`KARMA_OS_SHIPPED.md`](docs/archive/KARMA_OS_SHIPPED.md) — master documentation for everything in this build.
 > 📊 **For the social-media HQ:** open `media/TELLLEMTHATSME_COMMAND_CENTER.html` (22 tabs · 180 KB · 32 platforms · AEST-aware).
 > 🤖 **For AI Research:** open the **🧪 AI Research** tab in the command center, or hit `http://localhost:8888/api/research/rss` for the Atom feed.
 
@@ -251,3 +251,21 @@ npm run deploy:netlify # Deploy to Netlify
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE)
+
+## 📚 Documentation Index
+
+Historical session, status, and release documents are kept in `docs/archive/` for reference. The current source of truth is this README plus:
+
+- `ARCHITECTURE.md` — current system architecture
+- `CHANGELOG.md` — version history
+- `CONTRIBUTING.md` — contribution guide
+- `docs/archive/SESSION_SUMMARY.md` — historical session work logs
+- `docs/archive/PROJECT-STATUS.md` — historical test results + infra specs
+- `docs/archive/MASTER_DOC.md` — historical architecture narrative
+- `docs/archive/KARMA_OS_SHIPPED.md` — historical release notes
+
+## 🔐 Environment Setup
+
+Copy `.env.example` to `.env` and fill in real values. Run `npm run env:check` to verify presence (set `SKIP_ENV_CHECK=1` in CI environments). Never commit `.env`.
+
+See `.env.example` for required keys: PORT, DB_PATH, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, BRIDGE_SECRET, BRIDGE_PORT, YOUTUBE_SESSION_COOKIE, YOUTUBE_CHANNEL_ID, scheduler cron expressions, and logging config.

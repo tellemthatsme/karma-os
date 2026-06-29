@@ -28,3 +28,8 @@ npm-debug.log*
 karma.db
 *.png
 *.jpg
+
+# Audit Quick Win: SQLite WAL sidecars + Windows redirect artifacts
+*.db-shm
+*.db-wal
+nul

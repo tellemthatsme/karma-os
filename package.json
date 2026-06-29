@@ -1,7 +1,7 @@
 {
   "name": "karma-os",
   "version": "1.0.0",
-  "description": "KARMA OS — A cyberpunk-themed multi-dashboard system monitor with floating HUD, widget, and live desktop views",
+  "description": "KARMA OS \u2014 A cyberpunk-themed multi-dashboard system monitor with floating HUD, widget, and live desktop views",
   "main": "validate-karma.js",
   "scripts": {
     "test": "npx playwright test --project=chromium --reporter=list --workers=1",
@@ -21,9 +21,11 @@
     "deploy:netlify": "netlify deploy --prod",
     "launch": "cmd /c launch-karma.bat",
     "install:browsers": "npx playwright install chromium",
-    "test:all": "npx playwright test --reporter=list --workers=1",
+    "test:all": "npm run test:node && npm run test:e2e",
     "test:cross-browser": "npx playwright test --reporter=list",
-    "test:node": "node --test karma-abtest.node-test.js server.test.js karma-integration.node-test.js"
+    "test:node": "node --test karma-abtest.node-test.js server.test.js karma-integration.node-test.js",
+    "test:e2e": "npx playwright test --project=chromium --reporter=list --workers=1",
+    "env:check": "node scripts/verify-env.js"
   },
   "keywords": [
     "karma",

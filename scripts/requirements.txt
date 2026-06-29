@@ -1,0 +1,12 @@
+# KARMA OS — Python scripts dependencies
+# Install via: pip install -r scripts/requirements.txt
+# All scripts use stdlib by default; these are optional accelerators.
+
+# SOCIAL_POSTER.py — stdlib only (urllib, json)
+# youtube_researcher.py — stdlib only (urllib, json)
+
+# Optional: HTTP client with retries
+# requests>=2.32.0
+
+# Optional: YouTube Data API client
+# google-api-python-client>=2.149.0

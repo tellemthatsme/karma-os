@@ -16,8 +16,16 @@ const IS_WIN = os.platform() === 'win32';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'karma.db');
 const db = new sqlite3.Database(DB_PATH);
 
-// Initialize tables
+// Apply PRAGMAs inside serialize() so they run before any CREATE TABLE.
+// synchronous=FULL chosen because this DB records Stripe webhook events;
+// durability beats throughput for revenue data.
 db.serialize(() => {
+  db.run('PRAGMA journal_mode = WAL;');
+  db.run('PRAGMA synchronous = FULL;');
+  db.run('PRAGMA busy_timeout = 5000;');
+  db.run('PRAGMA foreign_keys = ON;');
+
+  // Initialize tables
   db.run(`CREATE TABLE IF NOT EXISTS abtest_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     testId TEXT NOT NULL,
